@@ -23,6 +23,7 @@ get.ns.basis<-function(obs.data,knots){
 	return(as.vector((od.k1^3 - od.k3^3)/(knots[3]-knots[1]) - (od.k2^3 - od.k3^3)/(knots[3]-knots[2])))}
 
 #get data
+	#What are these different files??
 psa.data<-read.csv("psa-data-for-prediction.csv")
 pt.data<-read.csv("pt-data-for-prediction.csv")
 data.use<-read.csv("data-to-use-prediction.csv")
@@ -32,15 +33,18 @@ tx.data<-read.csv("tx-data-for-prediction.csv")
 #Before call to JAGS, get the data into simple matrices and vectors to send to JAGS
 
 (n<-dim(pt.data)[1]) #896
-length(unique(psa.data$id))
-length(unique(data.use$id))
+length(unique(psa.data$id)) 
+	#what are these values??
+length(unique(data.use$id)) 
+	#what are these values??
 
 
 #get observed latent class
 eta.data<-vector(length=n)
-for(i in 1:n){if(sum(pt.data$id[i]%in%tx.data$id)==1){
+for(i in 1:n){
+	if(sum(pt.data$id[i]%in%tx.data$id)==1){
 		eta.data[i]<-as.numeric(tx.data$RRP_Gleason[tx.data$id==pt.data$id[i]]>=7)}
-		else{eta.data[i]<-NA}}
+	else{eta.data[i]<-NA}}
 (n_eta_known<-sum(!is.na(eta.data)))
 
 #79+83 #162 #number eta observed
@@ -51,6 +55,7 @@ eta.data<-eta.data[ordered]
 pt.ordered<-pt.data[ordered,]
 
 #need a list of subjects (1) ordered by eta observed and (2) consecutive numbering
+	# I'm having trouble following this part, what do psa.data$id and data.use$id represent??
 ids<-unique(pt.ordered$id)
 psa.data$subj<-rep(0,dim(psa.data)[1])
 for(j in 1:dim(psa.data)[1]){psa.data$subj[j]<-c(1:n)[ids==psa.data$id[j]]}
@@ -64,9 +69,11 @@ ids<-NULL
 
 #PSA model
 (n_obs_psa<-dim(psa.data)[1])
+	#this is > the number subjects??
 Y<-psa.data$log.psa
 summary(Y)
-subj_psa<-psa.data$subj
+subj_psa<-psa.data$subj 
+	#what is this??
 
 #get natural spline basis for age
 (knots.psa<-quantile(psa.data$age.std,p=c(0.25,0.5,0.75)))
