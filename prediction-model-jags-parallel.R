@@ -24,10 +24,14 @@ get.ns.basis<-function(obs.data,knots){
 
 #get data
 	#What are these different files??
-psa.data<-read.csv("psa-data-for-prediction.csv")
-pt.data<-read.csv("pt-data-for-prediction.csv")
-data.use<-read.csv("data-to-use-prediction.csv")
-tx.data<-read.csv("tx-data-for-prediction.csv")
+psa.data<-read.csv("psa-data-for-prediction.csv") #this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
+
+pt.data<-read.csv("pt-data-for-prediction.csv") #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed
+
+data.use<-read.csv("data-to-use-prediction.csv") #this is a dataset that I have set-up for the reclassification logistic regression model. it has one record per 6 month interval with a biopsy per person. includes pt id, time of biopsy, biopsy results, and bx history up until that biopsy
+
+tx.data<-read.csv("tx-data-for-prediction.csv") #this dataset has a record for each patient who had their prostate removed, includes "true" gleason score
+
 
 
 #Before call to JAGS, get the data into simple matrices and vectors to send to JAGS
@@ -35,8 +39,11 @@ tx.data<-read.csv("tx-data-for-prediction.csv")
 (n<-dim(pt.data)[1]) #896
 length(unique(psa.data$id)) 
 	#what are these values??
+	#here, I am just checking that I have 896 unique patients in my psa data
 length(unique(data.use$id)) 
 	#what are these values??
+	#here, I am just checking that I have 896 unique patients in my biopsy data
+	#I just had these checks in here bc I had done so much data tidying, I wanted to make sure I pulled the right files
 
 
 #get observed latent class
@@ -56,6 +63,14 @@ pt.ordered<-pt.data[ordered,]
 
 #need a list of subjects (1) ordered by eta observed and (2) consecutive numbering
 	# I'm having trouble following this part, what do psa.data$id and data.use$id represent??
+	
+	# $id is the unique id field for both of these data sets
+	#here I am basically re-assigning unique ids to meet the two objectives mentioned in the above comment. 
+	#consecutive numbering- I need a list of unique ids that doesn't have any skips (i.e., subj ids 1-896, not 1-2000 with 896 people somewhere among those 2000) because I index the random effects by this subject id. 
+	#ordered by true cancer state- it is not so important that those with indolent cancer have subject ids lower than those with aggressive, but what is important is that we know true cancer state for subjects 1-162 and we do not know cancer state for subjects 163-896. it's important for the JAGS model, because I define eta (the latent state) differently for these two groups (for the first, eta is known data, for the second, it is a latent variable I will sample)
+	#$id will refer to the unique ids that I originally got in the data from Dr. Carter's lab, so this id does have skips (e.g., there is no id=8) and this id is not ordered with respect to true cancer state. I need to save this id to refer back to all the other files I have that use this unique identifier 
+	#"subj" will be this consecutive, ordered list of unique identifiers
+	
 ids<-unique(pt.ordered$id)
 psa.data$subj<-rep(0,dim(psa.data)[1])
 for(j in 1:dim(psa.data)[1]){psa.data$subj[j]<-c(1:n)[ids==psa.data$id[j]]}
@@ -70,10 +85,14 @@ ids<-NULL
 #PSA model
 (n_obs_psa<-dim(psa.data)[1])
 	#this is > the number subjects??
+	#this is the number of PSA observations we have, so it is >>number subjects
+	#I will loop through all 1:n_obs_psa observations in the JAGS code
 Y<-psa.data$log.psa
 summary(Y)
 subj_psa<-psa.data$subj 
 	#what is this??
+	#this variable has length=n_obs_psa, i.e., it is defined for every PSA observation
+	#I have matched the newly created unique subject variable with the psa data (which previously just had $id), so I will use it in the JAGS code to refer to a patient's random effects and latent state
 
 #get natural spline basis for age
 (knots.psa<-quantile(psa.data$age.std,p=c(0.25,0.5,0.75)))
@@ -81,8 +100,13 @@ psa.age.basis<- get.ns.basis( obs.data = psa.data$age.std, knots = knots.psa)
 
 #covariates with random effects
 Z.data<-as.matrix(cbind(rep(1,n_obs_psa), psa.data$age.std, psa.age.basis)) 
+
+#this is the design matrix for the random effects
+#age.std is standardized age, i.e., centered at mean of all ages for PSA observations and divided by the sd of those ages
+#psa.age.basis is the 3rd basis fcn, h_3(), in the write-up. it corresponds to the "curvature"
+
 (d.Z<-dim(Z.data)[2])
-round(apply(Z.data,2,summary),2)
+round(apply(Z.data,2,summary),2) #this is just here to check that I defined things correctly, have pulled in the right data
 
 #covariates with only fixed effects
 X.data<-as.matrix(cbind(psa.data$vol.std)) 
