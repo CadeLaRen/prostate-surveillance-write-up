@@ -25,31 +25,31 @@ get.ns.basis<-function(obs.data,knots){
 #get data
 	#What are these different files??
 psa.data<-read.csv("psa-data-for-prediction.csv") #this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
+#(pt = patient)
 
 pt.data<-read.csv("pt-data-for-prediction.csv") #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed
 
-data.use<-read.csv("data-to-use-prediction.csv") #this is a dataset that I have set-up for the reclassification logistic regression model. it has one record per 6 month interval with a biopsy per person. includes pt id, time of biopsy, biopsy results, and bx history up until that biopsy
+data.use<-read.csv("data-to-use-prediction.csv") #this is a dataset that I have set-up for the reclassification logistic regression model. it has one record per 6 month interval with a biopsy per person. includes pt id, time of biopsy, biopsy results, and bx  history up until that biopsy
+#(bx = biopsy)
 
 tx.data<-read.csv("tx-data-for-prediction.csv") #this dataset has a record for each patient who had their prostate removed, includes "true" gleason score
-
+#(tx = "true" gleason)
 
 
 #Before call to JAGS, get the data into simple matrices and vectors to send to JAGS
 
 (n<-dim(pt.data)[1]) #896
 length(unique(psa.data$id)) 
-	#what are these values??
 	#here, I am just checking that I have 896 unique patients in my psa data
 length(unique(data.use$id)) 
-	#what are these values??
 	#here, I am just checking that I have 896 unique patients in my biopsy data
-	#I just had these checks in here bc I had done so much data tidying, I wanted to make sure I pulled the right files
+
 
 
 #get observed latent class
 eta.data<-vector(length=n)
 for(i in 1:n){
-	if(sum(pt.data$id[i]%in%tx.data$id)==1){
+	if(sum(pt.data$id[i]%in%tx.data$id)==1){ #why sum ==1? why not just the logical condition itself?
 		eta.data[i]<-as.numeric(tx.data$RRP_Gleason[tx.data$id==pt.data$id[i]]>=7)}
 	else{eta.data[i]<-NA}}
 (n_eta_known<-sum(!is.na(eta.data)))
@@ -70,9 +70,12 @@ pt.ordered<-pt.data[ordered,]
 	#ordered by true cancer state- it is not so important that those with indolent cancer have subject ids lower than those with aggressive, but what is important is that we know true cancer state for subjects 1-162 and we do not know cancer state for subjects 163-896. it's important for the JAGS model, because I define eta (the latent state) differently for these two groups (for the first, eta is known data, for the second, it is a latent variable I will sample)
 	#$id will refer to the unique ids that I originally got in the data from Dr. Carter's lab, so this id does have skips (e.g., there is no id=8) and this id is not ordered with respect to true cancer state. I need to save this id to refer back to all the other files I have that use this unique identifier 
 	#"subj" will be this consecutive, ordered list of unique identifiers
-	
+	# AF - Essentially, here, we create an alternate set of unique identifies that are ordered by whether true state is observed.
+
+#Matching ids in psa.data to ids in pt.ordered?
+#Do same thing for both psa.data and data.use
 ids<-unique(pt.ordered$id)
-psa.data$subj<-rep(0,dim(psa.data)[1])
+psa.data$subj<-rep(0,dim(psa.data)[1]) #length = total # psa measurements.
 for(j in 1:dim(psa.data)[1]){psa.data$subj[j]<-c(1:n)[ids==psa.data$id[j]]}
 data.use$subj<-rep(0,dim(data.use)[1])
 for(j in 1:dim(data.use)[1]){data.use$subj[j]<-c(1:n)[ids==data.use$id[j]]}
@@ -84,13 +87,11 @@ ids<-NULL
 
 #PSA model
 (n_obs_psa<-dim(psa.data)[1])
-	#this is > the number subjects??
 	#this is the number of PSA observations we have, so it is >>number subjects
 	#I will loop through all 1:n_obs_psa observations in the JAGS code
 Y<-psa.data$log.psa
 summary(Y)
 subj_psa<-psa.data$subj 
-	#what is this??
 	#this variable has length=n_obs_psa, i.e., it is defined for every PSA observation
 	#I have matched the newly created unique subject variable with the psa data (which previously just had $id), so I will use it in the JAGS code to refer to a patient's random effects and latent state
 
