@@ -1,9 +1,10 @@
 rm(list=ls())
-setwd("/Users/ryc/Dropbox/inhealth/prediction-model/sim-data")
+# setwd("/Users/ryc/Dropbox/inhealth/prediction-model")
+
 
 #import environment variable, used for running multiple chains in parallel
 (SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
-#SEED<-4
+if(is.na(SEED)) SEED<-4
 
 #load necessary packages
 #library("splines")
@@ -14,17 +15,17 @@ library("R2jags")
 
 
 #get data
-psa.data<-read.csv("psa-data-sim.csv") #this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
+psa.data<-read.csv("simulation-data/psa-data-sim.csv") #this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
 
 
-pt.ordered<-read.csv("pt-ordered-sim.csv") #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
+pt.ordered<-read.csv("simulation-data/pt-ordered-sim.csv") #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
 (n<-dim(pt.ordered)[1]) #1000
 
 
-bx.data<-read.csv("bx-data-sim.csv") #biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
+bx.data<-read.csv("simulation-data/bx-data-sim.csv") #biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
 
 
-eta.data<-read.csv("eta-data-sim.csv") #this dataset has all the observed gleason scores (from surgery) and NA for those without surgery. data is ordered based on value (0,1,NA) and the order corresponds to the "subj" variable in all the other data sets
+eta.data<-read.csv("simulation-data/eta-data-sim.csv") #this dataset has all the observed gleason scores (from surgery) and NA for those without surgery. data is ordered based on value (0,1,NA) and the order corresponds to the "subj" variable in all the other data sets
 eta.data<-eta.data[,2]
 (n_eta_known<-sum(!is.na(eta.data)))
 
@@ -121,7 +122,8 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 ni <- 100000; nb <- 50000; nt <- 20; nc <- 1
 
 
-source("prediction-model.R")
+#AF - Note, this wouldn't work under previous setwd(..../simulation-data)
+source("prediction-model.R") 
 
 
 #seed<-SEED
