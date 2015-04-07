@@ -11,22 +11,31 @@ if(is.na(SEED)) SEED<-4
 library("lme4")
 library("bayesm")
 library("R2jags")
+library("dplyr")
+library("plyr")
 
 
+#exclude this subject from JAGS model fit
+	# if set to zero, or "blank", no subjects will be excluded
+star <- 0 
 
 #get data
-psa.data<-read.csv("simulation-data/psa-data-sim.csv") #this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
+psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
+psa.data <- filter(psa.data.full, subj != star)#this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
 
 
-pt.ordered<-read.csv("simulation-data/pt-ordered-sim.csv") #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
+
+pt.ordered.full<-read.csv("simulation-data/pt-ordered-sim.csv") 
+pt.ordered<-filter(pt.ordered.full, id != star) #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
 (n<-dim(pt.ordered)[1]) #1000
 
-
-bx.data<-read.csv("simulation-data/bx-data-sim.csv") #biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
+bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
+bx.data <- filter(bx.data.full, subj !=star)#biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
+	
 
 
 eta.data<-read.csv("simulation-data/eta-data-sim.csv") #this dataset has all the observed gleason scores (from surgery) and NA for those without surgery. data is ordered based on value (0,1,NA) and the order corresponds to the "subj" variable in all the other data sets
-eta.data<-eta.data[,2]
+eta.data<-eta.data[ eta.data[,1] != star,2] #gets all people if star=0 or 'none'
 (n_eta_known<-sum(!is.na(eta.data)))
 
 
@@ -88,7 +97,34 @@ mod.lmer<-lmer(log.psa~ std.vol + (1+ std.age + age.basis|id), data=psa.data)
 #bundle data for call to JAGS
 #this is observed data and constant variables that have already been assigned values (e.g. number of class K=2, number of subjects n, etc.)
 K<-2
-jags_data<-list(K=K, n=n, eta.data=eta.data, n_eta_known=n_eta_known, n_obs_psa=n_obs_psa, Y=Y, subj_psa=subj_psa, Z=Z.data, X=X.data, d.Z=d.Z, d.X=d.X, I_d.Z=diag(d.Z), n_obs_bx=n_obs_bx, R=R, subj_bx=subj_bx, W.RC=W.RC.data, d.W.RC=d.W.RC) 
+
+relabel_consecutive<-function(x){
+	fx<-as.factor(x)
+	rlfx<-mapvalues(fx,
+		from=levels(fx),
+		to=1:length(levels(fx)))
+	as.numeric(rlfx)
+}
+subj_psa_consecutive <- relabel_consecutive(subj_psa)
+subj_bx_consecutive <- relabel_consecutive(subj_bx)
+
+jags_data<-list(K=K,
+	n=n,
+	eta.data=eta.data,
+	n_eta_known=n_eta_known,
+	n_obs_psa=n_obs_psa,
+	Y=Y,
+	subj_psa=subj_psa_consecutive, #!! new
+	Z=Z.data,
+	X=X.data,
+	d.Z=d.Z,
+	d.X=d.X,
+	I_d.Z=diag(d.Z),
+	n_obs_bx=n_obs_bx,
+	R=R,
+	subj_bx=subj_bx_consecutive,#!! new
+	W.RC=W.RC.data,
+	d.W.RC=d.W.RC) 
 
 
 #initialize model
