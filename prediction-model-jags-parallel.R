@@ -122,24 +122,36 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 ni <- 100000; nb <- 50000; nt <- 20; nc <- 1
 
 
-#AF - Note, this wouldn't work under previous setwd(..../simulation-data)
 source("prediction-model.R") 
 
 
 #seed<-SEED
 
 
-do.one<-function(seed){
+do.one<-function(seed,return_R_obj=FALSE, save_output=TRUE){
 set.seed(seed)	
 outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="prediction-model.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
 
 out<-outj$BUGSoutput
 
-for(j in 1:length(out$sims.list)){
-	write.csv(out$sims.list[[j]], paste("jags-prediction-",names(out$sims.list)[j],"-",seed,".csv",sep=""))}
+if(save_output){
+	for(j in 1:length(out$sims.list)){
+		write.csv(out$sims.list[[j]], paste("jags-prediction-",names(out$sims.list)[j],"-",seed,".csv",sep=""))}}
+
+if(return_R_obj) return(out)
 }
 
 do.one(seed=SEED)
 
-#str(out$sims.list)
-#summary(out$sims.list$mu_spline)
+
+
+# WORKSPACE
+if(FALSE){
+	out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
+	#saveRDS(out,file='posterior_full.rds')
+	str(out$sims.list)
+	summary(out$sims.list$mu_spline)
+}
+
+
+
