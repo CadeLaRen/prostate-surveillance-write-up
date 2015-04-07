@@ -178,16 +178,10 @@ if(return_R_obj) return(out)
 }
 
 do.one(seed=SEED)
-
-
-
-# WORKSPACE
-if(FALSE){
-	out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
-	#saveRDS(out,file='posterior_full.rds')
-	str(out$sims.list)
-	summary(out$sims.list$mu_spline)
-}
+# out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
+# saveRDS(out,file='posterior_full_25k.rds')
+# str(out$sims.list)
+# summary(out$sims.list$mu_spline)
 
 
 
