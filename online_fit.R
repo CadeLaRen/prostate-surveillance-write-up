@@ -18,7 +18,9 @@ pt.ordered.full<-read.csv("simulation-data/pt-ordered-sim.csv")
 bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
 eta.data.full<-read.csv("simulation-data/eta-data-sim.csv") #
 
-oo <- readRDS('posterior_full_100k.rds')$sims.list #!!?? At some point, we'd want to update this to just use posterior from other subjects (leave-one-out).
+#Output from leave-one-Out JAGS model  (output-out -> oo)
+	# For now just use the output from the full model as an approximate replacement
+oo <- readRDS('posterior_full_100k.rds')$sims.list 
 
 
 
@@ -34,8 +36,9 @@ eta_true_or_jags<-c(known_etas,colMeans(of$eta.hat))
 # We'll then reweight these particles individually, for each subject, based on that subject's likelihood.
 
 K<-2  # two latent classes
-P<-length(oo$p_eta) # number of particles
+P<-length(oo$p_eta) # number of particles from JAGS output
 nreps<-20 # extend all arrays by repeating them nreps times
+P*nreps # total number of particles we'll be weighting over
 
 #Assign by cycle over nreps times (two vectors of different lengths)
 mu<-array(NA,dim=c(nreps*P,3,K))
@@ -54,9 +57,12 @@ eta<-rbinom(P*nreps,1,prob=rep(c(oo$p_eta),times=nreps))
 #Get P random draws for b.vec
 b.vec.star <- matrix(NA,P*nreps,3)
 cov_for_bvec <- list() #Also consider *not* storing this, since it's not used after b.vec.star is generated.
+(expand_time<-system.time({
+pb_sim <- txtProgressBar(min = 0, max = P*nreps, char = "=", style=3)
 for(r in 1:nreps){ # nreps = number of times we expand the particles from oo.
 for(oo_ind in 1:P){ #index for oo
 	p <- (r-1)*P+oo_ind #index along the extended particles we're creating.
+	setTxtProgressBar(pb_sim,p)
 
 	cov_for_bvec[[p]] <- diag(c(oo$sigma_int[oo_ind]^2,oo$sigma_slope[oo_ind]^2,oo$sigma_spline[oo_ind]^2))
 	cov_for_bvec[[p]][1,2]<-
@@ -67,7 +73,7 @@ for(oo_ind in 1:P){ #index for oo
 	cov_for_bvec[[p]][3,2]<-oo$cov_slope_spline[oo_ind]
 	b.vec.star[p,]<-mvrnorm(1,mu=mu[p,,eta[p]+1], Sigma=cov_for_bvec[[p]])
 		#note, eta[i] is *not* nessecarily the same as eta[i+P] due to random draws.
-}}
+}}})) #~ 2 min for nreps=50, P=25000
 ################
 
 
@@ -112,7 +118,7 @@ for(star in (1000-n_subj_to_est+1):1000){
 	# and a proposed set of random effects (b-vec & eta) and 
 	# hyper-params (beta, gamma.RC)
 	W <- rep(NA,P*nreps)
-	fit_time<-system.time({
+	fit_time<-system.time({  # ~ 35k / second
 	for(r in 1:nreps){ 
 	for(oo_ind in 1:P){ #index for oo
 		p <- (r-1)*P+oo_ind #index for our particle set
