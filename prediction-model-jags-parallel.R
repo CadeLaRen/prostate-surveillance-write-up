@@ -33,9 +33,8 @@ bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
 bx.data <- filter(bx.data.full, subj !=star)#biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
 	
 
-
-eta.data<-read.csv("simulation-data/eta-data-sim.csv") #this dataset has all the observed gleason scores (from surgery) and NA for those without surgery. data is ordered based on value (0,1,NA) and the order corresponds to the "subj" variable in all the other data sets
-eta.data<-eta.data[ eta.data[,1] != star,2] #gets all people if star=0 or 'none'
+eta.data.full<-read.csv("simulation-data/eta-data-sim.csv") #this dataset has all the observed gleason scores (from surgery) and NA for those without surgery. data is ordered based on value (0,1,NA) and the order corresponds to the "subj" variable in all the other data sets
+eta.data<-eta.data.full[ eta.data.full[,1] != star,2] #gets all people if star=0 or 'none'
 (n_eta_known<-sum(!is.na(eta.data)))
 
 
@@ -178,8 +177,8 @@ if(return_R_obj) return(out)
 }
 
 do.one(seed=SEED)
-# out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
-# saveRDS(out,file='posterior_full_25k.rds')
+#out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
+#saveRDS(out,file='posterior_full_100k.rds')
 # str(out$sims.list)
 # summary(out$sims.list$mu_spline)
 
