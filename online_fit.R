@@ -37,8 +37,12 @@ eta_true_or_jags<-c(known_etas,colMeans(of$eta.hat))
 
 K<-2  # two latent classes
 P<-length(oo$p_eta) # number of particles from JAGS output
-nreps<-20 # extend all arrays by repeating them nreps times
+nreps<-50 # extend all arrays by repeating them nreps times
 P*nreps # total number of particles we'll be weighting over
+
+# In order to expand the posterior, rather than looping operations nreps times,
+# we'll create a new posterior of size nreps * P, to more easily vectorize the operations
+# for increased speed.
 
 #Assign by cycle over nreps times (two vectors of different lengths)
 mu<-array(NA,dim=c(nreps*P,3,K))
@@ -49,7 +53,30 @@ mu[,2,1]<-oo$mu_slope[,1]
 mu[,2,2]<-oo$mu_slope[,2]
 mu[,3,1]<-oo$mu_spline[,1]
 mu[,3,2]<-oo$mu_spline[,2]
-all(mu[1,,]==mu[1+P,,]) #if TRUE then cycling worked!
+
+#expand beta
+beta_exp <- matrix(NA,P*nreps,2)
+beta_exp[,1]<-oo$beta[,1]
+beta_exp[,2]<-oo$beta[,2]
+
+#expand sigma_res
+sigma_res_exp<-rep(NA,P*nreps)
+sigma_res_exp[]<-oo$sigma_res
+
+#expand gamma
+gamma.RC.exp <- matrix(NA,P*nreps,dim(oo$gamma.RC)[2])
+gamma.RC.exp[,1]<-oo$gamma.RC[,1]
+gamma.RC.exp[,2]<-oo$gamma.RC[,2]
+gamma.RC.exp[,3]<-oo$gamma.RC[,3]
+gamma.RC.exp[,4]<-oo$gamma.RC[,4]
+
+
+if(nreps>1){
+	#if TRUE then cycling worked!
+	all(sigma_res_exp[1:10]==sigma_res_exp[1:10+P])
+	all(beta_exp[1:10,]==beta_exp[1:10+P,]) 
+	all(mu[1:10,,]==mu[1:10+P,,]) 
+}
 
 #Get random draws for eta
 eta<-rbinom(P*nreps,1,prob=rep(c(oo$p_eta),times=nreps))
@@ -112,50 +139,102 @@ for(star in (1000-n_subj_to_est+1):1000){
 	#########
 
 
-	#################
+	# ################
 	# Get weigths based on likelihood of a particle, 
 	# given subj_star's data (Y, Z, X, and W),
 	# and a proposed set of random effects (b-vec & eta) and 
 	# hyper-params (beta, gamma.RC)
-	W <- rep(NA,P*nreps)
-	fit_time<-system.time({  # ~ 35k / second
-	for(r in 1:nreps){ 
-	for(oo_ind in 1:P){ #index for oo
-		p <- (r-1)*P+oo_ind #index for our particle set
 
-		 #likelihood of PSA data
-		mu_obs_psa <- Z_star %*% b.vec.star[p,]  + 
-			( oo$beta[oo_ind,1] + oo$beta[oo_ind,2]*(eta[p]==1) ) * X_star
-		L_Y <- prod(dnorm(Y_star,mean=mu_obs_psa, sd=oo$sigma_res[oo_ind]))
+	#likelihood of PSA data
+	fit_time<-system.time({
+		#To vectorize likelihood fits, expand vectors
+			# Expanded vectors are have suffix `_exp`
+		# 1) repeat data vectors nreps*P times
+		# 2) get likelihood of each visit
+		# 3) add a group variable p_ind that groups visits by the particle
 
-		#likelihood of reclassifications
+		Z_star_X_bvec<-tcrossprod(b.vec.star,Z_star)
+		beta_eta<-beta_exp[,1] + beta_exp[,2]*(eta==1)
+		beta_exp_eta_Xstar<-tcrossprod(beta_eta,X_star)
+		mu_obs_psa_exp <-c(t(Z_star_X_bvec +beta_exp_eta_Xstar))
+		Y_star_exp<-rep(NA,length(Y_star)*nreps*P)
+		Y_star_exp[]<-Y_star #cycle Y_star up
+		p_ind <- rep(1:(nreps*P),each=length(Y_star)) #particle index to group Y_star likelihoods
+		sigma_res_exp2<-rep(sigma_res_exp,each=length(Y_star))
+		L_Y_j <- dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma_res_exp2) #the likelihood for each visit, grouped by particle.
+		L_Y_frame<-data.frame('L_Y_all'=L_Y_j,'p_ind'=as.factor(p_ind))%>%
+			group_by(p_ind) %>%
+			summarize(prod=prod(L_Y_all)) 
+		L_Y <- L_Y_frame$prod
+
+
 		if(!is.null(R_star)){
-			logit_p_rc<-cbind(W.RC_star,eta[p]) %*% oo$gamma.RC[oo_ind,1:(d.W.RC+1)] 
-			L_R <- prod(dbinom(x=R_star,size=1,prob=c(invLogit(logit_p_rc))))
-		}else{ 
+			logit_p_rc_exp<-gamma.RC.exp[,1:3] %*% t(W.RC_star) + gamma.RC.exp[,4]*eta 
+
+			R_star_exp<-rep(NA,length(R_star)*nreps*P)
+			R_star_exp[]<-R_star
+			prob_R_exp<-c(t(invLogit(logit_p_rc_exp)))
+			L_R_j <- matrix(dbinom(x=R_star_exp,size=1,prob=prob_R_exp),nreps*P,length(R_star),byrow=TRUE)
+			L_R_frame <- data.frame(L_R_all=c(t(L_R_j)),ind=rep(1:(nreps*P),each=length(R_star))) %>%
+				group_by(ind) %>%
+				summarize(prod=prod(L_R_all))
+			L_R <- L_R_frame$prod
+		}else{
 			L_R <- 1
 		}
 
-		W[p] <- L_Y * L_R #weights
-	}}})
-	#################
+		W<- L_R*L_Y
+		W<- W/sum(W)
+		etas_weighted[star]<-crossprod(W,eta)
+	})
 
-	W <- W/sum(W)
-	etas_weighted[star] <- crossprod(eta,W)
-	# plot(density(eta,weights=W))
+
+	# #####
+	# Alternate (older) version, looping nreps times instead of vectorizing.
+	# fit_time<-system.time({  # ~ 35k / second
+	# L_Y2_log<-
+	# L_R2_log<-
+	# W2 <- rep(NA,P*nreps)
+	# for(r in 1:nreps){ 
+	# for(oo_ind in 1:P){ #index for oo
+	# 	p <- (r-1)*P+oo_ind #index for our particle set
+
+	# 	 #likelihood of PSA data
+	# 	mu_obs_psa <- Z_star %*% b.vec.star[p,]  + 
+	# 		( oo$beta[oo_ind,1] + oo$beta[oo_ind,2]*(eta[p]==1) ) * X_star
+	# 	L_Y2 <- prod(dnorm(Y_star,mean=mu_obs_psa, sd=oo$sigma_res[oo_ind]))
+	# 	L_Y2_log[p]<-L_Y2
+
+	# 	#likelihood of reclassifications
+	# 	if(!is.null(R_star)){
+	# 		logit_p_rc<-cbind(W.RC_star,eta[p]) %*% oo$gamma.RC[oo_ind,1:(d.W.RC+1)] 
+	# 		L_R2 <- prod(dbinom(x=R_star,size=1,prob=c(invLogit(logit_p_rc))))
+	# 		L_R2_log[p]<-L_R2
+	# 	}else{ 
+	# 		L_R2 <- 1
+	# 	}
+
+	# 	W2[p] <- L_Y2 * L_R2 #weights
+	# }}})
+	# #################
+
+	# W2 <- W2/sum(W2)
+	# if(any(W!=W2)) browser()
+	# all(L_R==L_R2_log)
+	# all(L_Y==L_Y2_log)
+
+	# etas_weighted[star] <- crossprod(eta,W2)
+	######
+	######
+	######
 }
 
-abs_error <- etas_weighted-eta_true_or_jags
-per_error <- abs_error/eta_true_or_jags
-
-hist(star_abs_error,breaks=20)
-range(star_abs_error, na.rm=TRUE)
-
-hist(star_per_error)
-range(star_per_error, na.rm=TRUE)
-
-plot(eta_true_or_jags,etas_weighted)
+plot(eta_true_or_jags,etas_weighted,cex=.5)
 abline(0,1)
+
+
+
+
 
 
 #Choose an arbitrary subject to plot
