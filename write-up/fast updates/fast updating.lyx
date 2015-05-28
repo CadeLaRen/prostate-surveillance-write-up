@@ -1,0 +1,468 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine natbib_authoryear
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Section
+Fast latent variable estimates for new patient data
+\end_layout
+
+\begin_layout Standard
+Ideally, physicians like to give patients fast, in-visit risk estimates
+ whenever new lab results are acquired.
+ A standard implementation of our approach would entail refitting the entire
+ model to get updated posteriors for the subject's latent variables, which
+ can take hours to complete.
+ Instead, we use importance sampling (CITE TEXTBOOK) to get fast latent
+ variable posterior estimates.
+ This can be combined with periodic refitting of the entire model (e.g.
+ every two weeks) as more patients are acquired, to update the population-level
+ parameter posteriors.
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+This approach is conceptually very similar to the approach of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "lee2002particle"
+
+\end_inset
+
+, who combine a particle filter with periodic MCMC on all dynamic parameters.
+ The dynamic parameters in their work are analogous to the subject-specific
+ parameters in ours.
+\end_layout
+
+\end_inset
+
+ It may also be possible to attain a fast, 
+\begin_inset Quotes eld
+\end_inset
+
+online
+\begin_inset Quotes erd
+\end_inset
+
+ update of the population-level parameter posteriors, but there are known
+ obstacles to type of updating which push its solution beyond the scope
+ of our current work (see supplemental materials).
+\end_layout
+
+\begin_layout Standard
+In order to generate proposal values for importance sampling, we start with
+ draws from the posterior of the population-level parameters, obtained by
+ fitting model refXX on the previously observed data.
+ For each draw, we use the conditional distributions in Equation refXX to
+ generate proposed latent variable values for the subject with new data.
+ The importance weights for these proposed latent variable values are then
+ proportional to the likelihood of the newly acquired data, given the proposed
+ parameters and latent variables.
+ Note that proposals can be pre-generated before patients enter the clinic,
+ so that only the weights need to be calculated in real time.
+\end_layout
+
+\begin_layout Standard
+Using this approach, latent variable posterior mean estimates can be computed
+ in approximately 2 seconds.
+ These fast estimates have a correlation of XX% with the estimates from
+ refitting the model on the entire dataset.
+ For reference, estimates from two different runs of the JAGS model have
+ a correlation of XX, due to the stochastic nature of the posterior sampling.
+ We give further details of the importance weighting calculations, and their
+ performance, in the supplementary materials.
+\end_layout
+
+\begin_layout Section
+Supplement
+\end_layout
+
+\begin_layout Subsection
+Importance Sampling Procedure
+\end_layout
+
+\begin_layout Standard
+For the purposes of this section, we introduce the following abbreviated
+ form of the model in XX.
+ Let the posterior for our model be 
+\begin_inset Formula 
+\begin{equation}
+p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\theta)]\pi(\theta)\label{eq:posterior_n}
+\end{equation}
+
+\end_inset
+
+ Where 
+\begin_inset Formula $y_{i}=...$
+\end_inset
+
+ is the vector of measurements for subject 
+\begin_inset Formula $i$
+\end_inset
+
+, 
+\begin_inset Formula $y_{1:n}$
+\end_inset
+
+ is the list of measurements for the first 
+\begin_inset Formula $n$
+\end_inset
+
+ subjects, 
+\begin_inset Formula $b_{i}=...$
+\end_inset
+
+ is a vector of latent variables for subject 
+\begin_inset Formula $i$
+\end_inset
+
+, 
+\begin_inset Formula $b_{1:n}$
+\end_inset
+
+ is a list of latent variables for the first 
+\begin_inset Formula $n$
+\end_inset
+
+ subjects, 
+\begin_inset Formula $\theta$
+\end_inset
+
+ contains the population-level parameters, 
+\begin_inset Formula $\pi$
+\end_inset
+
+ is the prior for 
+\begin_inset Formula $\theta$
+\end_inset
+
+, and 
+\begin_inset Formula $f$
+\end_inset
+
+ and 
+\begin_inset Formula $g$
+\end_inset
+
+ are multivariate distributions coming from the likelihood in XX.
+ The goal of this section is to use importance weighting to estimate latent
+ for a new subject (indexed by 
+\begin_inset Formula $n+1$
+\end_inset
+
+) entering the study.
+\end_layout
+
+\begin_layout Standard
+Our goal is to calculate expectations with respect to the posterior distribution
+ based on all 
+\begin_inset Formula $n+1$
+\end_inset
+
+ subjects (i.e.
+ 
+\begin_inset Formula $p(\theta,b_{1:(n+1)}|y_{1:(n+1)})$
+\end_inset
+
+).
+ Unfortunately, we cannot immediately draw from this distribution, but we
+ can evaluate a function that is proportional to its density (Equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+).
+ To carry out importance sampling, we need choose a proposal distribution
+ 
+\begin_inset Formula $q$
+\end_inset
+
+ from which to generate candidate values of 
+\begin_inset Formula $(\theta,b_{1:(n+1)})$
+\end_inset
+
+.
+ We propose the posterior distribution based on the first 
+\begin_inset Formula $n$
+\end_inset
+
+ subjects.
+\begin_inset Formula 
+\begin{eqnarray*}
+q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Practically, this consists of taking 
+\begin_inset Formula $J$
+\end_inset
+
+ draws of 
+\begin_inset Formula $\theta$
+\end_inset
+
+ and 
+\begin_inset Formula $b_{1:n}$
+\end_inset
+
+ from the previously fitted posterior in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+.
+ Then, conditional on 
+\begin_inset Formula $\theta$
+\end_inset
+
+, we draw 
+\begin_inset Formula $b_{n+1}$
+\end_inset
+
+ from the distribution 
+\begin_inset Formula $g$
+\end_inset
+
+.
+ We index each of the resulting draws 
+\begin_inset Formula $(\theta^{(j)},b_{1:(n+1)}^{(j)})$
+\end_inset
+
+ by 
+\begin_inset Formula $j=1,\dots,J$
+\end_inset
+
+.
+ The importance weights 
+\begin_inset Formula $w_{j}$
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ are then proportional to 
+\begin_inset Formula 
+\begin{eqnarray*}
+w_{j} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\\
+ & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\\
+ & = & f(y_{i}|b_{i}^{(j)},\theta^{(j)})
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The final weights are then standardized to sum to 1.
+\end_layout
+
+\begin_layout Subsection
+Full model online updates
+\end_layout
+
+\begin_layout Standard
+We generally propose that importance sampling be used for fast, in-visit
+ estimates of patient's latent risk.
+ This can be combin with periodic full model re-fitting to update the population
+-level parameter posteriors.
+ The issue with this approach is that computational costs increase as more
+ and more patients are required, making the total computation take no less
+ than quadratic time.
+ The task of updating a hierarchical model in constant time is an open problem.
+\end_layout
+
+\begin_layout Standard
+Some initial work on online updates has been proposed in the field of text
+ analysis.
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "hoffman2010online_variational_bayes_LDA_text_analysis"
+
+\end_inset
+
+ applied a variational Bayesian approach, but this has some problems [need
+ to explore/talk to Beka]? 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "canini2009online_sampling_LDA_text_analysis"
+
+\end_inset
+
+ consider online sampling methods for text analysis
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+exactly the same model?
+\end_layout
+
+\end_inset
+
+, and recommend a particle filter approach (also known as Sequential Importance
+ Resampling)(Need canonical citation)
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+cite particle filters
+\end_layout
+
+\end_inset
+
+.
+ However, all of the online methods considered by 
+\begin_inset CommandInset citation
+LatexCommand citeauthor
+key "canini2009online_sampling_LDA_text_analysis"
+
+\end_inset
+
+ do not perform as well as refitting on the entire dataset, in a non-online
+ fashion.
+ 
+\end_layout
+
+\begin_layout Standard
+Our model also differs from 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "canini2009online_sampling_LDA_text_analysis"
+
+\end_inset
+
+ in a way that further complicate the use of particle filters.
+ Like 
+\begin_inset CommandInset citation
+LatexCommand citeauthor
+key "canini2009online_sampling_LDA_text_analysis"
+
+\end_inset
+
+, we assume that our population distribution is 
+\emph on
+static
+\emph default
+ over time.
+ In other words, we believe that the population-level parameters do not
+ change as we acquire new data.
+ The presence of such static parameters is known to cause particle filters
+ to break down (see 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "andrieu2005line"
+
+\end_inset
+
+, section II, for an intuitive illustration).
+ 
+\begin_inset CommandInset citation
+LatexCommand citeauthor
+key "canini2009online_sampling_LDA_text_analysis"
+
+\end_inset
+
+ mitigate
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+fully solve?
+\end_layout
+
+\end_inset
+
+ this issue by analytically integrating out the population-level parameters,
+ but this approach is not feasible in our case.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "inHealth"
+options "apalike"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
