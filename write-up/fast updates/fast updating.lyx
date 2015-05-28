@@ -65,7 +65,7 @@ Fast latent variable estimates for new patient data
 \end_layout
 
 \begin_layout Standard
-Ideally, physicians like to give patients fast, in-visit risk estimates
+Ideally, physicians would like to give patients fast, in-visit risk estimates
  whenever new lab results are acquired.
  A standard implementation of our approach would entail refitting the entire
  model to get updated posteriors for the subject's latent variables, which
