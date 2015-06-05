@@ -67,12 +67,12 @@ Fast latent variable estimates for new patient data
 \begin_layout Standard
 Ideally, physicians would like to give patients fast, in-visit risk estimates
  whenever new lab results are acquired.
- A standard implementation of our approach would entail refitting the entire
- model to get updated posteriors for the subject's latent variables, which
- can take hours to complete.
+ A standard implementation of our approach would entail re-running MCMC
+ to get updated posteriors for the subject's latent variables, which can
+ take hours to complete.
  Instead, we use importance sampling (CITE TEXTBOOK) to get fast latent
  variable posterior estimates.
- This can be combined with periodic refitting of the entire model (e.g.
+ This can be combined with periodic MCMC for all parameters (e.g.
  every two weeks) as more patients are acquired, to update the population-level
  parameter posteriors.
 \begin_inset Foot
@@ -122,12 +122,24 @@ In order to generate proposal values for importance sampling, we start with
 \begin_layout Standard
 Using this approach, latent variable posterior mean estimates can be computed
  in approximately 2 seconds.
- These fast estimates have a correlation of XX% with the estimates from
- refitting the model on the entire dataset.
- For reference, estimates from two different runs of the JAGS model have
- a correlation of XX, due to the stochastic nature of the posterior sampling.
- We give further details of the importance weighting calculations, and their
- performance, in the supplementary materials.
+ These fast estimates have a correlation of 0.9950 with the estimates from
+ running MCMC to estimate all parameters.
+ For reference, risk estimates from two different runs of the full MCMC
+ have a correlation of 0.9993, due to the stochastic nature of the posterior
+ sampling.
+ We give further details of the importance weighting, and their performance
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Figures showing x=y line for est v.
+ MCMC and MCMC v.
+ MCMC
+\end_layout
+
+\end_inset
+
+, calculations in the supplementary materials.
 \end_layout
 
 \begin_layout Section
@@ -245,7 +257,8 @@ reference "eq:posterior_n"
 \begin_inset Formula $n$
 \end_inset
 
- subjects.
+ subjects, an approach equivalent to a 1-step particle filter (CITE PARTICLE
+ FILTERS).
 \begin_inset Formula 
 \begin{eqnarray*}
 q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})
@@ -318,7 +331,7 @@ reference "eq:posterior_n"
  are then proportional to 
 \begin_inset Formula 
 \begin{eqnarray*}
-w_{j} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\\
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\\
  & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\\
  & = & f(y_{i}|b_{i}^{(j)},\theta^{(j)})
 \end{eqnarray*}
@@ -329,7 +342,29 @@ w_{j} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^
 \end_layout
 
 \begin_layout Standard
-The final weights are then standardized to sum to 1.
+The final weights 
+\begin_inset Formula $w^{(j)}$
+\end_inset
+
+ are standardized to sum to 1.
+ The new posterior for 
+\begin_inset Formula $(\theta,b_{1:(n+1)})$
+\end_inset
+
+ can then be represented as the mixture distribution satisfying 
+\begin_inset Formula $P(\theta=\theta^{(j)},b_{1:(n+1)}=b_{1:(n+1)}^{(j)})=w^{(j)}$
+\end_inset
+
+.
+ A posterior mean for 
+\begin_inset Formula $b_{(n+1)}$
+\end_inset
+
+ can be calculated as 
+\begin_inset Formula $\sum_{j=1}^{J}w^{(j)}b_{(n+1)}^{(j)}$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsection
@@ -339,11 +374,11 @@ Full model online updates
 \begin_layout Standard
 We generally propose that importance sampling be used for fast, in-visit
  estimates of patient's latent risk.
- This can be combin with periodic full model re-fitting to update the population
--level parameter posteriors.
- The issue with this approach is that computational costs increase as more
- and more patients are required, making the total computation take no less
- than quadratic time.
+ This can be combined with periodic MCMC to update the other latent variables
+ and population parameters.
+ The issue with this approach is that the computational cost of each MCMC
+ step increases as more patients are required, making the total computation
+ take no less than quadratic time.
  The task of updating a hierarchical model in constant time is an open problem.
 \end_layout
 
