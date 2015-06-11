@@ -1,0 +1,200 @@
+rm(list=ls())
+# setwd("/Users/ryc/Dropbox/inhealth/prediction-model")
+
+
+#import environment variable, used for running multiple chains in parallel
+(SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
+if(is.na(SEED)) SEED<-4
+
+#load necessary packages
+#library("splines")
+library("lme4")
+library("bayesm")
+library("R2jags")
+library("dplyr")
+library("plyr")
+
+
+#exclude this subject from JAGS model fit
+	# if set to zero, or "blank", no subjects will be excluded
+star <- 0 
+
+#get data
+psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
+psa.data <- filter(psa.data.full, subj != star)#this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
+
+
+
+##this data is already ordered
+
+pt.data.full<-read.csv("simulation-data/pt-data-sim.csv") 
+pt.data<-filter(pt.data.full, id != star) #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
+(n<-dim(pt.ordered)[1]) #1000
+
+
+##this biopsy data also contains information for predicting biopsies and surgery
+
+bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
+bx.data <- filter(bx.data.full, subj !=star)#biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
+	
+
+##this data is now part of pt. data 
+
+#eta.data.full<-read.csv("simulation-data/eta-data-sim.csv") #this dataset has all the observed gleason scores (from surgery) and NA for those without surgery. data is ordered based on value (0,1,NA) and the order corresponds to the "subj" variable in all the other data sets
+#eta.data<-eta.data.full[ eta.data.full[,1] != star,2] #gets all people if star=0 or 'none'
+#(n_eta_known<-sum(!is.na(eta.data)))
+
+eta.data<-pt.data$obs.eta
+table(eta.data) #107 in each
+(n_eta_known<-sum(!is.na(eta.data))) #214
+
+
+#Before call to JAGS, get the data into simple matrices and vectors to send to JAGS
+
+#latent class model
+#no regression model here
+
+#PSA model
+(n_obs_psa<-dim(psa.data)[1])
+	#this is the number of PSA observations we have, so it is >>number subjects
+	#I will loop through all 1:n_obs_psa observations in the JAGS code
+
+Y<-psa.data$log.psa
+summary(Y)
+subj_psa<-psa.data$subj #unique id that corresponds to the vector eta.data and will be used to index the random effects
+
+
+#covariates with random effects
+Z.data<-as.matrix(cbind(rep(1,n_obs_psa), psa.data$age.std)) 
+
+#this is the design matrix for the random effects
+#age.std is standardized age, i.e., centered at mean of all ages for PSA observations and divided by the sd of those ages
+#psa.age.basis is the 3rd basis fcn, h_3(), in the write-up. it corresponds to the "curvature"
+
+(d.Z<-dim(Z.data)[2])
+round(apply(Z.data,2,summary),2) #this is just here to check that I defined things correctly, have pulled in the right data
+
+
+#covariates with only fixed effects
+X.data<-as.matrix(cbind(psa.data$std.vol)) 
+(d.X<-dim(X.data)[2])
+summary(X.data)
+
+
+#outcome model (logistic regression for reclassification)
+bx.data<-bx.data[bx.data$bx.here==1,]
+
+(n_obs_bx<-dim(bx.data)[1])
+RC<-as.numeric(bx.data$rc)
+#table(RC) #300
+
+subj_bx<-bx.data$subj
+
+
+#covariates influencing risk of reclassification
+W.RC.data<-as.matrix(cbind(rep(1,n_obs_bx),  bx.data$age.std, bx.data$time, bx.data$time.ns, bx.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)    
+(d.W.RC<-dim(W.RC.data)[2])
+round(apply(W.RC.data,2,summary) ,2)
+
+
+
+##get starting values, other functions necessary for call to JAGS
+
+
+#lmer fit for initializing parameters
+#do this to get the starting value for a variance paramter in JAGS
+mod.lmer<-lmer(log.psa~ std.vol + (1+ age.std |id), data=psa.data)
+(var_vec <- apply(coef(mod.lmer)$id, 2, var)[1:d.Z]) #not sure why these aren't printed in the right order...
+(var_vec<- c(var_vec[2], var_vec[1])) #fixing order
+
+#bundle data for call to JAGS
+#this is observed data and constant variables that have already been assigned values (e.g. number of class K=2, number of subjects n, etc.)
+K<-2
+
+relabel_consecutive<-function(x){
+	fx<-as.factor(x)
+	rlfx<-mapvalues(fx,
+		from=levels(fx),
+		to=1:length(levels(fx)))
+	as.numeric(rlfx)
+}
+subj_psa_consecutive <- relabel_consecutive(subj_psa)
+subj_bx_consecutive <- relabel_consecutive(subj_bx)
+
+jags_data<-list(K=K,
+	n=n,
+	eta.data=eta.data,
+	n_eta_known=n_eta_known,
+	n_obs_psa=n_obs_psa,
+	Y=Y,
+	subj_psa=subj_psa_consecutive, #!! new
+	Z=Z.data,
+	X=X.data,
+	d.Z=d.Z,
+	d.X=d.X,
+	I_d.Z=diag(d.Z),
+	n_obs_bx=n_obs_bx,
+	RC=RC,
+	subj_bx=subj_bx_consecutive,#!! new
+	W.RC=W.RC.data,
+	d.W.RC=d.W.RC) 
+
+
+#initialize model
+#this is to set initial values of parameters
+#note that not all "parameters" need to be initialized. specifically, don't initialize random effects, but do need to set initial values for mean and covariance of random effects
+# also need to set initial values for latent variables that are not observed (here, eta)
+
+inits <- function() {
+	
+p_eta<-rbeta(1,1,1)
+
+eta.hat<-pt.data$rc[is.na(eta.data)]
+
+mu<-as.matrix(cbind(rnorm(d.Z),rnorm(d.Z)))
+Tau_B<-rwishart((d.Z+1),diag(d.Z)*var_vec)$W
+sigma_res<-min(rlnorm(1),3)
+
+beta<-rnorm(d.X*2)
+
+gamma.RC<-rnorm((d.W.RC+1),mean=0,sd=0.25)
+
+list(p_eta=p_eta, eta.hat=eta.hat, mu=mu, Tau_B=Tau_B, sigma_res=sigma_res, beta=beta, gamma.RC=gamma.RC) } 
+
+
+# parameters to track
+params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "gamma.RC") 
+
+# MCMC settings
+#ni <- 250; nb <- 50; nt <- 5; nc <- 1 
+#ni <- 25000; nb <- 5000; nt <- 20; nc <- 1 #mixing usually good by here
+ni <- 100000; nb <- 50000; nt <- 20; nc <- 1
+
+
+source("prediction-model.R") 
+
+
+#seed<-SEED
+
+
+do.one<-function(seed,return_R_obj=FALSE, save_output=TRUE){
+set.seed(seed)	
+outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="prediction-model.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
+
+out<-outj$BUGSoutput
+
+if(save_output){
+	for(j in 1:length(out$sims.list)){
+		write.csv(out$sims.list[[j]], paste("jags-prediction-",names(out$sims.list)[j],"-",seed,".csv",sep=""))}}
+
+if(return_R_obj) return(out)
+}
+
+do.one(seed=SEED)
+#out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
+#saveRDS(out,file='posterior_full_100k.rds')
+# str(out$sims.list)
+# summary(out$sims.list$mu_spline)
+
+
+
