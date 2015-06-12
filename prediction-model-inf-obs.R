@@ -13,9 +13,9 @@ p_eta ~ dbeta(1,1)
 for (index in 1:d.Z) {for(k in 1:K){
 		mu[index,k]~dnorm(0, 0.01) }  }
 
-for(k in 1:K){
-	mu_int[k] <- mu[1,k] 
-	mu_slope[k] <- mu[2,k]}
+for(k in 1:K){ #save this iteration of mu with clearer labels. This is not used in model, just to get posteriors more easily.
+	mu_int[k] <- mu[1,k]  
+	mu_slope[k] <- mu[2,k]} 
 
 #same covariance matrix (Sigma_B) across latent classes
 Tau_B ~ dwish(I_d.Z[,], (d.Z+1)) 
@@ -23,7 +23,7 @@ Sigma_B[1:d.Z, 1:d.Z] <- inverse(Tau_B[1:d.Z, 1:d.Z])
 for (index in 1:d.Z) {
 	sigma[index] <- sqrt(Sigma_B[index,index])}
 
-sigma_int <- sigma[1] 
+sigma_int <- sigma[1] # again, this is to track elements of the cov matrix with easier labels
 sigma_slope <- sigma[2] 
 
 rho_int_slope <- Sigma_B[1,2]/sqrt(Sigma_B[1,1] * Sigma_B[2,2])
@@ -70,7 +70,7 @@ for(j in 1:n_obs_psa){
 
 ##all biopsy data
 
-#logistic regression for biopsy
+#logistic regression for biopsy (prob of observation)
 for(j in 1:n_bx){
 	logit(p_bx[j]) <-inprod(gamma.BX[1:d.W.BX], W.BX[j,1:d.W.BX]) + gamma.BX[(d.W.BX+1)]*equals(eta[subj_bx[j]],2)  
 	BX[j] ~ dbern(p_bx[j]) }
