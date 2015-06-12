@@ -1,5 +1,5 @@
 #rm(list=ls())
-#setwd("/Users/ryc/Dropbox/inhealth/prediction-model-final/data")
+#setwd("/Users/ryc/Dropbox/inhealth/prediction-model-final/sim-data")
 #setwd("/Users/ryc/GitHub/prostate_surveillance")
 # setwd("/Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo")
 # setwd("/home/bst/student/afisher/inHealth_prostate")
@@ -21,6 +21,7 @@ pt.data<-read.csv("simulation-data/pt-data-sim.csv")
 
 data.use<-read.csv("simulation-data/bx-data-sim.csv")
 #this contains one record per annual interval for each patient until surgery or censoring
+
 
 
 #function to get natrual spline basis
