@@ -1,5 +1,5 @@
 rm(list=ls())
-setwd("/Users/ryc/Dropbox/inhealth/prediction-model/sim-data")
+setwd("/Users/ryc/Dropbox/inhealth/prediction-model-final/sim-data")
 
 
 library(MASS)
@@ -238,12 +238,15 @@ write.csv(pt.data,"pt-data-sim.csv")
 
 #get ordered subject variable
 
-pt.data<-pt.data[order(pt.data$obs.eta)]
+
+
+pt.data<-pt.data[order(pt.data$obs.eta),]
 pt.data$subj<-c(1:n)
 psa.data$subj<-rep(0,n_obs_psa)
 for(i in 1:n){psa.data$subj[psa.data$id==pt.data$id[i]]<-pt.data$subj[i]}
 bx.sim$subj<-rep(0,N)
 for(i in 1:n){bx.sim$subj[bx.sim$id==pt.data$id[i]]<-pt.data$subj[i]}
+
 
 write.csv(psa.data,"psa-data-sim.csv")
 write.csv(pt.data,"pt-data-sim.csv")
