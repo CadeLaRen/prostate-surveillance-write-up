@@ -1,10 +1,12 @@
 #rm(list=ls())
 #setwd("/Users/ryc/Dropbox/inhealth/prediction-model-final/data")
 #setwd("/Users/ryc/GitHub/prostate_surveillance")
+# setwd("/Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo")
+# setwd("/home/bst/student/afisher/inHealth_prostate")
 
 #import environment variable, used for running multiple chains in parallel
-#(SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
-
+(SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
+if(is.na(SEED)) SEED <- 0
 
 
 #load necessary packages
