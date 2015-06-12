@@ -1,6 +1,7 @@
 rm(list=ls())
 # setwd("/Users/ryc/Dropbox/inhealth/prediction-model")
 
+# setwd("/home/bst/student/afisher/inHealth_prostate")
 
 #import environment variable, used for running multiple chains in parallel
 (SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
@@ -177,8 +178,10 @@ if(return_R_obj) return(out)
 }
 
 do.one(seed=SEED)
-#out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
-#saveRDS(out,file='posterior_full_100k.rds')
+
+# Aaron's version
+# out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
+# saveRDS(out,file=paste0(Sys.Date(),'_posterior_full_100k_seed_',SEED,'.rds'))
 # str(out$sims.list)
 # summary(out$sims.list$mu_spline)
 
