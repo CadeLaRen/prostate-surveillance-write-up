@@ -13,6 +13,9 @@ p_eta ~ dbeta(1,1)
 for (index in 1:d.Z) {for(k in 1:K){
 		mu[index,k]~dnorm(0, 0.01) }  }
 
+for(k in 1:K){
+	mu_int[k] <- mu[1,k] 
+	mu_slope[k] <- mu[2,k]}
 
 #same covariance matrix (Sigma_B) across latent classes
 Tau_B ~ dwish(I_d.Z[,], (d.Z+1)) 
@@ -23,8 +26,8 @@ for (index in 1:d.Z) {
 sigma_int <- sigma[1] 
 sigma_slope <- sigma[2] 
 
-rho_int_slope <- Sigma_B[1, 2]/sqrt(Sigma_B[1, 1] * Sigma_B[2, 2])
-cov_int_slope <- rho_int_slope*sigma_int*sigma_slope
+rho_int_slope <- Sigma_B[1,2]/sqrt(Sigma_B[1,1] * Sigma_B[2,2])
+cov_int_slope<- rho_int_slope*sigma_int*sigma_slope
 
 
 ##residual variance, independent of correlated random effects, same across classes
@@ -37,8 +40,11 @@ for(index in 1:d.X){
 
 
 ###PRIORS FOR OUTCOME MODEL
+#last element in each gamma is coefficient for class membership eta=1
+for(index in 1:(d.W.BX+1)){gamma.BX[index] ~ dnorm(0,0.01)}
 for(index in 1:(d.W.RC+1)){gamma.RC[index] ~ dnorm(0,0.01)}
-#last element in gamma is coefficient for class membership eta=1
+for(index in 1:(d.W.RRP+2)){gamma.RRP[index] ~ dnorm(0,0.01)} #+2 because includes an interaction
+
 
 ###LIKELIHOOD
 
@@ -62,9 +68,22 @@ for(j in 1:n_obs_psa){
 	Y[j] ~ dnorm(mu_obs_psa[j], tau_res) }
 
 
-##logistic regression for reclassification 	
-for(j in 1:n_obs_bx){
-	logit(p_rc[j]) <-inprod(gamma.RC[1:d.W.RC], W.RC[j,1:d.W.RC]) + gamma.RC[(d.W.RC+1)]*equals(eta[subj_bx[j]],2) 
+##all biopsy data
+
+#logistic regression for biopsy
+for(j in 1:n_bx){
+	logit(p_bx[j]) <-inprod(gamma.BX[1:d.W.BX], W.BX[j,1:d.W.BX]) + gamma.BX[(d.W.BX+1)]*equals(eta[subj_bx[j]],2)  
+	BX[j] ~ dbern(p_bx[j]) }
+
+#logistic regression for reclassification 	
+for(j in 1:n_rc){
+	logit(p_rc[j]) <-inprod(gamma.RC[1:d.W.RC], W.RC[j,1:d.W.RC]) + gamma.RC[(d.W.RC+1)]*equals(eta[subj_rc[j]],2) 
 	RC[j] ~ dbern(p_rc[j]) }
+
+#logistic regression for surgery 	
+for(j in 1:n_rrp){
+	logit(p_rrp[j]) <-inprod(gamma.RRP[1:d.W.RRP], W.RRP[j,1:d.W.RRP]) + gamma.RRP[(d.W.RRP+1)]*equals(eta[subj_rrp[j]],2)  + gamma.RRP[(d.W.RRP+2)]*equals(eta[subj_rrp[j]],2)*W.RRP[j,d.W.RRP]  
+	RRP[j] ~ dbern(p_rrp[j]) }
+
 	
- }", fill=TRUE, file="prediction-model.txt")
+ }", fill=TRUE, file="prediction-model-inf-obs.txt")
