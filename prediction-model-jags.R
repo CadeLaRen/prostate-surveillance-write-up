@@ -151,15 +151,16 @@ p_eta<-rbeta(1,1,1)
 
 eta.hat<-pt.data$rc[is.na(eta.data)]
 
-mu<-as.matrix(cbind(rnorm(d.Z),rnorm(d.Z)))
-Tau_B<-rwishart((d.Z+1),diag(d.Z)*var_vec)$W
+xi<-rlnorm(d.Z)
+mu_raw<-as.matrix(cbind(rnorm(d.Z),rnorm(d.Z)))
+Tau_B_raw<-rwishart((d.Z+1),diag(d.Z)*var_vec)$W
 sigma_res<-min(rlnorm(1),3)
 
 beta<-rnorm(d.X*2)
 
 gamma.RC<-rnorm((d.W.RC+1),mean=0,sd=0.25)
 
-list(p_eta=p_eta, eta.hat=eta.hat, mu=mu, Tau_B=Tau_B, sigma_res=sigma_res, beta=beta, gamma.RC=gamma.RC) } 
+list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, gamma.RC=gamma.RC) } 
 
 
 # parameters to track
