@@ -10,15 +10,22 @@ p_eta ~ dbeta(1,1)
 ###PRIORS FOR MIXED MODEL
 #model correlated random effects distribution
 
-for (index in 1:d.Z) {for(k in 1:K){
-		mu[index,k]~dnorm(0, 0.01) }  }
+for (index in 1:d.Z) {
+	xi[index]~dunif(0,100) #scale parameter, same across classes
+	for(k in 1:K){
+		mu_raw[index,k]~dnorm(0, 0.01) 
+		mu[index,k]<-xi[index] *mu_raw[index,k]}  }
+		
+for(k in 1:K){ #save this iteration of mu with clearer labels. This is not used in model, just to get posteriors more easily.
+	mu_int[k] <- mu[1,k]  
+	mu_slope[k] <- mu[2,k]} 
 
 
 #same covariance matrix (Sigma_B) across latent classes
-Tau_B ~ dwish(I_d.Z[,], (d.Z+1)) 
-Sigma_B[1:d.Z, 1:d.Z] <- inverse(Tau_B[1:d.Z, 1:d.Z])
-for (index in 1:d.Z) {
-	sigma[index] <- sqrt(Sigma_B[index,index])}
+Tau_B_raw ~ dwish(I_d.Z[,], (d.Z+1))  #this is unscaled covariance matrix
+Sigma_B_raw[1:d.Z, 1:d.Z] <- inverse(Tau_B_raw[1:d.Z, 1:d.Z])	
+for (index in 1:d.Z){
+		sigma[index]<-xi[index]*sqrt(Sigma_B_raw[index,index]) } #take into account scaling when saving elements of the covariance matrix
 
 sigma_int <- sigma[1] 
 sigma_slope <- sigma[2] 
@@ -54,7 +61,8 @@ for(i in (n_eta_known+1):n){
 ##linear mixed effects model for PSA 
 #generate random intercept and slope for individual given latent class
 for (i in 1:n) {
-	b.vec[i,1:d.Z] ~ dmnorm(mu[1:d.Z,eta[i]], Tau_B[1:d.Z,1:d.Z])}
+	B_raw[i,1:d.Z] ~ dmnorm(mu_raw[1:d.Z,eta[i]], Tau_B_raw[1:d.Z, 1:d.Z])
+	for(index in 1:d.Z){b.vec[i,index] <- xi[index]*B_raw[i,index]} }
 
 #fit LME
 for(j in 1:n_obs_psa){ 
