@@ -29,7 +29,7 @@ psa.data <- filter(psa.data.full, subj != star)#this has data on psa observation
 
 pt.data.full<-read.csv("simulation-data/pt-data-sim.csv") 
 pt.data<-filter(pt.data.full, id != star) #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
-(n<-dim(pt.ordered)[1]) #1000
+(n<-dim(pt.data)[1]) #1000
 
 
 ##this biopsy data also contains information for predicting biopsies and surgery

@@ -21,7 +21,7 @@ for(k in 1:K){ #save this iteration of mu with clearer labels. This is not used 
 	mu_slope[k] <- mu[2,k]} 
 
 
-#same covariance matrix (Sigma_B) across latent classes
+#same covariance matrix (Sigma_B_raw) across latent classes
 Tau_B_raw ~ dwish(I_d.Z[,], (d.Z+1))  #this is unscaled covariance matrix
 Sigma_B_raw[1:d.Z, 1:d.Z] <- inverse(Tau_B_raw[1:d.Z, 1:d.Z])	
 for (index in 1:d.Z){
@@ -30,7 +30,7 @@ for (index in 1:d.Z){
 sigma_int <- sigma[1] 
 sigma_slope <- sigma[2] 
 
-rho_int_slope <- Sigma_B[1, 2]/sqrt(Sigma_B[1, 1] * Sigma_B[2, 2])
+rho_int_slope <- Sigma_B_raw[1, 2]/sqrt(Sigma_B_raw[1, 1] * Sigma_B_raw[2, 2])
 cov_int_slope <- rho_int_slope*sigma_int*sigma_slope
 
 
