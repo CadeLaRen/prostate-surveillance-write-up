@@ -75,4 +75,4 @@ for(j in 1:n_obs_bx){
 	logit(p_rc[j]) <-inprod(gamma.RC[1:d.W.RC], W.RC[j,1:d.W.RC]) + gamma.RC[(d.W.RC+1)]*equals(eta[subj_bx[j]],2) 
 	RC[j] ~ dbern(p_rc[j]) }
 	
- }", fill=TRUE, file="prediction-model.txt")
+ }", fill=TRUE, file="model-for-jags-noninf-obs.txt")

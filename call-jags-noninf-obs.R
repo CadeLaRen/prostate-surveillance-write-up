@@ -172,7 +172,7 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 ni <- 100000; nb <- 50000; nt <- 20; nc <- 1
 
 
-source("prediction-model.R") 
+source("model-for-jags-noninf-obs.R") 
 
 
 #seed<-SEED
@@ -180,7 +180,7 @@ source("prediction-model.R")
 
 do.one<-function(seed,return_R_obj=FALSE, save_output=TRUE){
 set.seed(seed)	
-outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="prediction-model.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
+outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="model-for-jags-noninf-obs.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
 
 out<-outj$BUGSoutput
 
