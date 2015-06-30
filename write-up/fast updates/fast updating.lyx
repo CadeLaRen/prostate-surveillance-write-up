@@ -70,8 +70,14 @@ Ideally, physicians would like to give patients fast, in-visit risk estimates
  A standard implementation of our approach would entail re-running MCMC
  to get updated posteriors for the subject's latent variables, which can
  take hours to complete.
- Instead, we use importance sampling (CITE TEXTBOOK) to get fast latent
- variable posterior estimates.
+ Instead, we use importance sampling (
+\begin_inset CommandInset citation
+LatexCommand citealp
+key "bishop2006pattern"
+
+\end_inset
+
+, chapter 11) to get fast latent variable posterior estimates.
  This can be combined with periodic MCMC for all parameters (e.g.
  every two weeks) as more patients are acquired, to update the population-level
  parameter posteriors.
@@ -86,9 +92,20 @@ key "lee2002particle"
 
 \end_inset
 
-, who combine a particle filter with periodic MCMC on all dynamic parameters.
+, who combine a sequential importane sampling with periodic MCMC to update
+ all dynamic parameters.
  The dynamic parameters in their work are analogous to the subject-specific
  parameters in ours.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+read their paper!!
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -103,7 +120,7 @@ online
 
  update of the population-level parameter posteriors, but there are known
  obstacles to type of updating which push its solution beyond the scope
- of our current work (see supplemental materials).
+ of our current work.
 \end_layout
 
 \begin_layout Standard
@@ -140,6 +157,64 @@ Figures showing x=y line for est v.
 \end_inset
 
 , calculations in the supplementary materials.
+\end_layout
+
+\begin_layout Standard
+Our approach of using importance sampling for patients with new data, and
+ periodic MCMC to update all other parameters, is anologous to the approach
+ of LEE & CHIA.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+ can be thought of as a one-step version of sequential importance resampling
+ (aka a particle filter)
+\end_layout
+
+\end_inset
+
+.
+ While it is tempting to use sequential importance resampling (SIRS) to
+ estimate posteriors in a fully online fashion, such methods are known to
+ suffer from the problem of 
+\begin_inset Quotes eld
+\end_inset
+
+degeneracy
+\begin_inset Quotes erd
+\end_inset
+
+ when the model includes static parameters (e.g.
+ 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+) in addition to dynamic parameters (e.g.
+ 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+).
+ For an intuitive discussion of this degeneracy, see section II of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "andrieu2005line"
+
+\end_inset
+
+.
+ Some proposed alternatives include fixed lag, or batch updating methods
+ (what's in Kantas, also caneni), augementation of the static parameters
+ (), and variational bayes approaches 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "hoffman2010online_variational_bayes_LDA_text_analysis"
+
+\end_inset
+
+ (more VB from Beka?).
+ See KANTAS 2014 for a recent literature review.
 \end_layout
 
 \begin_layout Section
