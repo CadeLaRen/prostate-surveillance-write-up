@@ -33,14 +33,13 @@ invLogit <- function(x)
 
 
 psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
-pt.ordered.full<-read.csv("simulation-data/pt-ordered-sim.csv") 
+pt.ordered.full<-read.csv("simulation-data/pt-data-sim.csv")
 bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
-eta.data.full<-read.csv("simulation-data/eta-data-sim.csv") #
 
 ### Output from leave-one-Out JAGS model  (output-out -> oo)
 	# For now just use the output from the full model as an approximate replacement
-oo <- readRDS('posterior_full_100k.rds')$sims.list 
-#oo <- readRDS('2015-06-05_posterior_full_100k_seed_5.rds')$sims.list
+oo <- readRDS('posterior_full_100k.rds')$sims.list
+#oo <- readRDS('2015-06-05_posterior_full_100k_seed_5.rds')$sims.list #on cluster
 P<-length(oo$p_eta)
 nreps <- 50
 (P*nreps)
@@ -48,8 +47,9 @@ nreps <- 50
 ### Collect posterior estimates from full JAGS model
 of<-readRDS('posterior_full_100k.rds')$sims.list
 #of <- readRDS('2015-06-05_posterior_full_100k_seed_5.rds')$sims.list
-known_etas<-eta.data.full[!is.na(eta.data.full[,2]),2]
-eta_true_or_jags<-c(known_etas,colMeans(of$eta.hat))
+known_etas<-dplyr::filter(pt.ordered.full,obs.eta==1) %>%
+	dplyr::select(eta.true)
+eta_true_or_jags<-c(known_etas$eta.true,colMeans(of$eta.hat))
 
 ###############
 
@@ -173,10 +173,10 @@ get_likelihood<-function(ps,psa.data.star,bx.data_star){
 	#Setup subject data
 	Y_star <- psa.data.star$log.psa
 	X_star <- psa.data.star$std.vol
-	Z_star <- cbind(1, psa.data.star$std.age, psa.data.star$age.basis)
+	Z_star <- cbind(1, psa.data.star$age.std)
 
 	R_star <- bx.data_star$rc
-	W.RC_star <-cbind(1,bx.data_star$std.age, bx.data_star$bx.time)
+	W.RC_star <-cbind(1,bx.data_star$age.std,bx.data_star$time, bx.data_star$time.ns, bx.data_star$sec.time.std)
 
 	d.W.RC<-dim(W.RC_star)[2]
 	d.Z<-dim(Z_star)[2]
@@ -388,7 +388,7 @@ for(star in subj2fit){
 
 
 #save.image(file=paste0(Sys.Date(),'_seed_',seed,'_online_fit_results.RData'))
-#load('2015-06-08_seed_101_online_fit_results.RData')
+#load('2015-06-08_seed_101_online_fit_results_with_refitv2.RData')
 
 
 
