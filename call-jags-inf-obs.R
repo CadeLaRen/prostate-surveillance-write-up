@@ -152,11 +152,11 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 ni <- 50000; nb <- 25000; nt <- 20; nc <- 1 
 #note, I am needing fewer sampling iterations here because I've solved mixing problems
 
-source("prediction-model-inf-obs.R")
+source("model-for-jags-inf-obs.R")
 
 do.one<-function(seed, return_R_obj=FALSE, save_output=TRUE){
 set.seed(seed)	
-outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="prediction-model-inf-obs.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
+outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="model-for-jags-inf-obs.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
 
 out<-outj$BUGSoutput
 

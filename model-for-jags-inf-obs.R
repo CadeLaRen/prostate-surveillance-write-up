@@ -90,4 +90,4 @@ for(j in 1:n_rrp){
 	RRP[j] ~ dbern(p_rrp[j]) }
 
 	
- }", fill=TRUE, file="prediction-model-inf-obs.txt")
+ }", fill=TRUE, file="model-for-jags-inf-obs.txt")
