@@ -169,8 +169,11 @@ if(return_R_obj) return(out)
 
 do.one(seed=SEED)
 
+
+
 # out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
-# saveRDS(out,file='posterior_full_100k.rds')
+# len.sim<-length(out$sims.list$p_eta)
+# saveRDS(out,file=paste0(Sys.Date(),'_posterior_full_nsim-',len.sim,'.rds'))
 # str(out$sims.list)
 # summary(out$sims.list$mu_spline)
 
