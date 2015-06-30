@@ -94,7 +94,7 @@ subj_bx<-bx.data$subj
 #covariates influencing risk of reclassification
 W.RC.data<-as.matrix(cbind(rep(1,n_obs_bx),  bx.data$age.std, bx.data$time, bx.data$time.ns, bx.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)    
 (d.W.RC<-dim(W.RC.data)[2])
-round(apply(W.RC.data,2,summary) ,2)
+apply(W.RC.data,2,summary)
 
 
 
