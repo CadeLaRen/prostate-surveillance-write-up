@@ -96,7 +96,7 @@ subj_rc<-data.use$subj
 #covariates influencing risk of reclassification
 W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)    
 (d.W.RC<-dim(W.RC.data)[2])
-apply(W.RC.data,2,summary)
+round(apply(W.RC.data,2,summary),2)
 
 
 ##get starting values, other functions necessary for call to JAGS
