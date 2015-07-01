@@ -174,7 +174,7 @@ do.one(seed=SEED)
 
 # out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
 # len.sim<-length(out$sims.list$p_eta)
-# saveRDS(out,file=paste0(Sys.Date(),'_posterior_full_nsim-',len.sim,'.rds'))
+# saveRDS(out,file=paste0(Sys.Date(),'_posterior_full_inf-obs_nsim-',len.sim,'.rds'))
 # str(out$sims.list)
 # summary(out$sims.list$mu_slope)
 
