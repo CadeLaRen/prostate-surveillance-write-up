@@ -152,14 +152,14 @@ p_eta<-rbeta(1,1,1)
 
 eta.hat<-pt.data$rc[is.na(eta.data)]
 
-xi<-rlnorm(d.Z)
+xi<-c(min(rlnorm(1),100), min(rlnorm(1),100))
 mu_raw<-as.matrix(cbind(rnorm(d.Z),rnorm(d.Z)))
 Tau_B_raw<-rwishart((d.Z+1),diag(d.Z)*var_vec)$W
-sigma_res<-min(rlnorm(1),3)
+sigma_res<-min(rlnorm(1),1)
 
 beta<-rnorm(d.X)
 
-gamma.RC<-rnorm((d.W.RC+1),mean=0,sd=0.25)
+gamma.RC<-rnorm((d.W.RC+1),mean=0,sd=0.1)
 
 list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, gamma.RC=gamma.RC) } 
 
