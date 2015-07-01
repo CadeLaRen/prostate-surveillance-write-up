@@ -1,0 +1,86 @@
+%% LyX 2.0.6 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{graphicx}
+\usepackage[authoryear]{natbib}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
+%% A simple dot to overcome graphicx limitations
+\newcommand{\lyxdot}{.}
+
+
+\makeatother
+
+\usepackage{babel}
+\begin{document}
+
+\section{Fast latent variable estimates for new patient data}
+
+Ideally, physicians would like to give patients fast, in-visit risk estimates whenever new lab results are acquired. A standard implementation of our approach would entail re-running MCMC to get updated posteriors for the subject's latent variables, which can take hours to complete. Instead, we use importance sampling (\citealp{bishop2006pattern}, chapter 11) to get fast latent variable posterior estimates. This can be combined with MCMC periodically (e.g. every two weeks) as more patients are acquired, to update the population-level parameter posteriors.%
+\footnote{This approach is conceptually very similar to the approach of \citet{lee2002particle}, who combine a sequential importane sampling with periodic MCMC to update all dynamic parameters. The dynamic parameters in their work are analogous to the subject-specific parameters in ours.%
+} It may also be possible to attain a fast, ``online'' update of the population-level parameter posteriors, but there are known obstacles to this type of updating which push its solution beyond the scope of our current work.
+
+In order to generate proposal values for importance sampling, we start with draws from the posterior of the population-level parameters, obtained by fitting model refXX on the previously observed data. For each draw, we use the conditional distributions in Equation refXX to generate proposed latent variable values for the subject with new data. The importance weights for these proposed latent variable values are then proportional to the likelihood of the newly acquired data, given the proposed parameters and latent variables. Such a procedure can be thought of a 1-step version of a sequential importance resampler, also known as a particle filter \citep{bishop2006pattern}. Note that proposals can be pre-generated before patients enter the clinic, so that only the weights need to be calculated in real time. Posterior means for each subject can then be computed in approximately 2 seconds. 
+
+By random chance, some patients will have data such that very few of the pre-generated, proposed latent variables values will receive high weights. This causes their posterior means to be less stable. However, such scenarios can be detected by monitoring the effective sample size of the posterior sample, also known as the effective number of particles. When this number drops below 500, we repeat our procedure with a larger set of pre-generated proposals.
+
+These fast estimates have a correlation of 0.9950 with the estimates from running MCMC to estimate all parameters. For reference, estimates from two different runs of the full MCMC have a correlation of 0.9993, due to the stochastic nature of the posterior sampling. Figure \ref{fig:Agreement-between-MCMC} shows the high degree of agreement between posterior risk estimates from MCMC, and from importance sampling. We give further details of the importance sampling calculations in the supplementary materials .
+
+Our approach still requires the periodic use of MCMC to update all other parameters. It is tempting to try to use sequential importance resampling (SIRS) to estimate posteriors in a fully online fashion, removing the computation costs of periodic MCMC. However, such online methods are known to suffer from the problem of ``degeneracy'' when the model includes static parameters (e.g. population-level parameters) in addition to dynamic parameters (e.g. subject-specific latent variables). For an intuitive discussion of this degeneracy, see section II of \citet{andrieu2005line}. Some proposed alternatives include fixed lag updating methods \citep{polson2008practical}; augementation of the static parameters \citep{kitagawa1998self}; and variational bayes approaches \citep{hoffman2010online_variational_bayes_LDA_text_analysis}. See \citet{kantas2014particle} for a recent literature review.
+
+\begin{figure}
+\begin{centering}
+\includegraphics[scale=0.6]{\string"/Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo/plots/2015-07-01_compare_fits_manual-edit\string".png}
+\par\end{centering}
+
+\caption{Agreement between MCMC (via JAGS) and Importance Sampling - (!! THIS IS A PLACEHOLDER FIGURE !!) for each subject, we plot the posterior mean value of $\eta_{i}$ from importance sampling, and from full MCMC. The correlation between these two estimates is 0.9950. \label{fig:Agreement-between-MCMC}}
+
+
+\end{figure}
+
+
+
+\section{Supplement}
+
+
+\subsection{Importance Sampling Procedure}
+
+For the purposes of this section, we introduce the following abbreviated form of the model in XX. Let the posterior for our model be 
+\begin{equation}
+p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\theta)]\pi(\theta)\label{eq:posterior_n}
+\end{equation}
+ Where $y_{i}$ is the vector of measurements for subject $i$, $y_{1:n}$ is the list of measurements for the first $n$ subjects, $b_{i}$ is a vector of latent variables for subject $i$, $b_{1:n}$ is a list of latent variables for the first $n$ subjects, $\theta$ contains the population-level parameters, $\pi$ is the prior for $\theta$, and $f$ and $g$ are multivariate distributions coming from the likelihood in XX. In this section, we illustrate how importance weighting can be used to estimate latent variables for a new subject (indexed by $n+1$) entering the study.
+
+Our goal is to calculate expectations with respect to the posterior distribution based on all $n+1$ subjects (i.e. $p(\theta,b_{1:(n+1)}|y_{1:(n+1)})$). Unfortunately, we cannot immediately draw from this distribution, but we can evaluate a function that is proportional to its density (Equation \ref{eq:posterior_n}). To carry out importance sampling, we need choose a proposal distribution $q$ from which to generate candidate values of $(\theta,b_{1:(n+1)})$. We use the posterior distribution based on the first $n$ subjects as our proposal distribution. This approach is analagous to a 1-step particle filter \citep{bishop2006pattern}.
+\begin{eqnarray*}
+q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})
+\end{eqnarray*}
+
+
+Practically, this consists of taking $J$ draws of $\theta$ and $b_{1:n}$ from the previously fitted posterior in Eq \ref{eq:posterior_n}. Then, conditional on $\theta$, we draw $b_{n+1}$ from the distribution $g$. We index each of the resulting draws as $(\theta^{(j)},b_{1:(n+1)}^{(j)})$, with $j=1,\dots,J$. The importance weights $w_{j}$ are then proportional to 
+\begin{eqnarray*}
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\\
+ & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\\
+ & = & f(y_{i}|b_{i}^{(j)},\theta^{(j)})
+\end{eqnarray*}
+
+
+The final weights $w^{(j)}$ are standardized to sum to 1. The new posterior for $(\theta,b_{1:(n+1)})$ can then be represented as the mixture distribution satisfying $P(\theta=\theta^{(j)},b_{1:(n+1)}=b_{1:(n+1)}^{(j)})=w^{(j)}$. A posterior mean for $b_{(n+1)}$ can be calculated as $\sum_{j=1}^{J}w^{(j)}b_{(n+1)}^{(j)}$. The unstandardized weights can also be used in a rejection sampling procedure, although we found this approach to be less computationally efficient than importance sampling for our scenario.
+
+
+\subsection{Full model online updates}
+
+We generally propose that importance sampling be used for fast, in-visit estimates of patient's latent risk. This can be combined with periodic MCMC to update the other latent variables and population parameters. The issue with this approach is that the computational cost of each MCMC step increases as more patients are required, making the total computation take no less than quadratic time. The task of updating a hierarchical model in constant time is an open problem.
+
+Some initial work on online updates has been proposed in the field of text analysis. \citet{hoffman2010online_variational_bayes_LDA_text_analysis} applied a variational Bayesian approach, but this has some problems {[}need to explore/talk to Beka{]}? \citet{canini2009online_sampling_LDA_text_analysis} consider online sampling methods for text analysis, and recommend a particle filter approach (also known as Sequential Importance Resampling)(Need canonical citation). However, all of the online methods considered by \citeauthor{canini2009online_sampling_LDA_text_analysis} do not perform as well as refitting on the entire dataset, in a non-online fashion. 
+
+Our model also differs from \citet{canini2009online_sampling_LDA_text_analysis} in a way that further complicate the use of particle filters. Like \citeauthor{canini2009online_sampling_LDA_text_analysis}, we assume that our population distribution is \emph{static} over time. In other words, we believe that the population-level parameters do not change as we acquire new data. The presence of such static parameters is known to cause particle filters to break down (see \citet{andrieu2005line}, section II, for an intuitive illustration). \citeauthor{canini2009online_sampling_LDA_text_analysis} mitigate this issue by analytically integrating out the population-level parameters, but this approach is not feasible in our case. 
+
+\bibliographystyle{apalike}
+\bibliography{inHealth}
+
+\end{document}

@@ -43,6 +43,10 @@
 \shortcut idx
 \color #008000
 \end_index
+\leftmargin 1in
+\topmargin 1in
+\rightmargin 1in
+\bottommargin 1in
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -78,7 +82,7 @@ key "bishop2006pattern"
 \end_inset
 
 , chapter 11) to get fast latent variable posterior estimates.
- This can be combined with periodic MCMC for all parameters (e.g.
+ This can be combined with MCMC periodically (e.g.
  every two weeks) as more patients are acquired, to update the population-level
  parameter posteriors.
 \begin_inset Foot
@@ -119,7 +123,7 @@ online
 \end_inset
 
  update of the population-level parameter posteriors, but there are known
- obstacles to type of updating which push its solution beyond the scope
+ obstacles to this type of updating which push its solution beyond the scope
  of our current work.
 \end_layout
 
@@ -132,52 +136,66 @@ In order to generate proposal values for importance sampling, we start with
  The importance weights for these proposed latent variable values are then
  proportional to the likelihood of the newly acquired data, given the proposed
  parameters and latent variables.
- Note that proposals can be pre-generated before patients enter the clinic,
- so that only the weights need to be calculated in real time.
-\end_layout
-
-\begin_layout Standard
-Using this approach, latent variable posterior mean estimates can be computed
- in approximately 2 seconds.
- These fast estimates have a correlation of 0.9950 with the estimates from
- running MCMC to estimate all parameters.
- For reference, risk estimates from two different runs of the full MCMC
- have a correlation of 0.9993, due to the stochastic nature of the posterior
- sampling.
- We give further details of the importance weighting, and their performance
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Figures showing x=y line for est v.
- MCMC and MCMC v.
- MCMC
-\end_layout
-
-\end_inset
-
-, calculations in the supplementary materials.
-\end_layout
-
-\begin_layout Standard
-Our approach of using importance sampling for patients with new data, and
- periodic MCMC to update all other parameters, is anologous to the approach
- of LEE & CHIA.
- 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
- can be thought of as a one-step version of sequential importance resampling
- (aka a particle filter)
-\end_layout
+ Such a procedure can be thought of a 1-step version of a sequential importance
+ resampler, also known as a particle filter 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "bishop2006pattern"
 
 \end_inset
 
 .
- While it is tempting to use sequential importance resampling (SIRS) to
- estimate posteriors in a fully online fashion, such methods are known to
- suffer from the problem of 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Give more cannonical citation
+\end_layout
+
+\end_inset
+
+ Note that proposals can be pre-generated before patients enter the clinic,
+ so that only the weights need to be calculated in real time.
+ Posterior means for each subject can then be computed in approximately
+ 2 seconds.
+ 
+\end_layout
+
+\begin_layout Standard
+By random chance, some patients will have data such that very few of the
+ pre-generated, proposed latent variables values will receive high weights.
+ This causes their posterior means to be less stable.
+ However, such scenarios can be detected by monitoring the effective sample
+ size of the posterior sample, also known as the effective number of particles.
+ When this number drops below 500, we repeat our procedure with a larger
+ set of pre-generated proposals.
+\end_layout
+
+\begin_layout Standard
+These fast estimates have a correlation of 0.9950 with the estimates from
+ running MCMC to estimate all parameters.
+ For reference, estimates from two different runs of the full MCMC have
+ a correlation of 0.9993, due to the stochastic nature of the posterior sampling.
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Agreement-between-MCMC"
+
+\end_inset
+
+ shows the high degree of agreement between posterior risk estimates from
+ MCMC, and from importance sampling.
+ We give further details of the importance sampling calculations in the
+ supplementary materials .
+\end_layout
+
+\begin_layout Standard
+Our approach still requires the periodic use of MCMC to update all other
+ parameters.
+ It is tempting to try to use sequential importance resampling (SIRS) to
+ estimate posteriors in a fully online fashion, removing the computation
+ costs of periodic MCMC.
+ However, such online methods are known to suffer from the problem of 
 \begin_inset Quotes eld
 \end_inset
 
@@ -186,16 +204,8 @@ degeneracy
 \end_inset
 
  when the model includes static parameters (e.g.
- 
-\begin_inset Formula $\Sigma$
-\end_inset
-
-) in addition to dynamic parameters (e.g.
- 
-\begin_inset Formula $b_{i}$
-\end_inset
-
-).
+ population-level parameters) in addition to dynamic parameters (e.g.
+ subject-specific latent variables).
  For an intuitive discussion of this degeneracy, see section II of 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -204,17 +214,121 @@ key "andrieu2005line"
 \end_inset
 
 .
- Some proposed alternatives include fixed lag, or batch updating methods
- (what's in Kantas, also caneni), augementation of the static parameters
- (), and variational bayes approaches 
+ Some proposed alternatives include fixed lag updating methods 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "polson2008practical"
+
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+Polish these citations up.
+ Need to read.
+\end_layout
+
+\end_inset
+
+; augementation of the static parameters 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "kitagawa1998self"
+
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+Polish these citations up.
+ Need to read.
+\end_layout
+
+\end_inset
+
+; and variational bayes approaches 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "hoffman2010online_variational_bayes_LDA_text_analysis"
 
 \end_inset
 
- (more VB from Beka?).
- See KANTAS 2014 for a recent literature review.
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+(more VB from Beka?)
+\end_layout
+
+\end_inset
+
+.
+ See 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "kantas2014particle"
+
+\end_inset
+
+ for a recent literature review.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename /Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo/plots/2015-07-01_compare_fits_manual-edit.png
+	scale 60
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Agreement between MCMC (via JAGS) and Importance Sampling - (!! THIS IS
+ A PLACEHOLDER FIGURE !!) for each subject, we plot the posterior mean value
+ of 
+\begin_inset Formula $\eta_{i}$
+\end_inset
+
+ from importance sampling, and from full MCMC.
+ The correlation between these two estimates is 0.9950.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Agreement-between-MCMC"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -237,7 +351,7 @@ p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\th
 \end_inset
 
  Where 
-\begin_inset Formula $y_{i}=...$
+\begin_inset Formula $y_{i}$
 \end_inset
 
  is the vector of measurements for subject 
@@ -253,7 +367,7 @@ p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\th
 \end_inset
 
  subjects, 
-\begin_inset Formula $b_{i}=...$
+\begin_inset Formula $b_{i}$
 \end_inset
 
  is a vector of latent variables for subject 
@@ -289,8 +403,8 @@ p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\th
 \end_inset
 
  are multivariate distributions coming from the likelihood in XX.
- The goal of this section is to use importance weighting to estimate latent
- for a new subject (indexed by 
+ In this section, we illustrate how importance weighting can be used to
+ estimate latent variables for a new subject (indexed by 
 \begin_inset Formula $n+1$
 \end_inset
 
@@ -328,12 +442,19 @@ reference "eq:posterior_n"
 \end_inset
 
 .
- We propose the posterior distribution based on the first 
+ We use the posterior distribution based on the first 
 \begin_inset Formula $n$
 \end_inset
 
- subjects, an approach equivalent to a 1-step particle filter (CITE PARTICLE
- FILTERS).
+ subjects as our proposal distribution.
+ This approach is analagous to a 1-step particle filter 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "bishop2006pattern"
+
+\end_inset
+
+.
 \begin_inset Formula 
 \begin{eqnarray*}
 q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})
@@ -378,11 +499,11 @@ reference "eq:posterior_n"
 \end_inset
 
 .
- We index each of the resulting draws 
+ We index each of the resulting draws as 
 \begin_inset Formula $(\theta^{(j)},b_{1:(n+1)}^{(j)})$
 \end_inset
 
- by 
+, with 
 \begin_inset Formula $j=1,\dots,J$
 \end_inset
 
@@ -440,6 +561,9 @@ The final weights
 \end_inset
 
 .
+ The unstandardized weights can also be used in a rejection sampling procedure,
+ although we found this approach to be less computationally efficient than
+ importance sampling for our scenario.
 \end_layout
 
 \begin_layout Subsection
