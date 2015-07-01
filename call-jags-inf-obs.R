@@ -129,7 +129,7 @@ p_eta<-rbeta(1,1,1)
 
 eta.hat<-pt.data$rc[is.na(eta.data)]
 
-xi<-rlnorm(d.Z)
+xi<-c(min(rlnorm(1),100), min(rlnorm(1),100))
 mu_raw<-as.matrix(cbind(rnorm(d.Z),rnorm(d.Z)))
 Tau_B_raw<-rwishart((d.Z+1),diag(d.Z)*var_vec)$W
 sigma_res<-min(rlnorm(1),1)
