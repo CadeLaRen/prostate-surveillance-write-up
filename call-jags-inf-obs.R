@@ -176,7 +176,7 @@ do.one(seed=SEED)
 # len.sim<-length(out$sims.list$p_eta)
 # saveRDS(out,file=paste0(Sys.Date(),'_posterior_full_nsim-',len.sim,'.rds'))
 # str(out$sims.list)
-# summary(out$sims.list$mu_spline)
+# summary(out$sims.list$mu_slope)
 
 
 

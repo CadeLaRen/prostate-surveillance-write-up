@@ -1,10 +1,12 @@
 rm(list=ls())
 # setwd("/Users/ryc/Dropbox/inhealth/prediction-model")
+# setwd("/Users/ryc/GitHub/prostate_surveillance")
 
 
 #import environment variable, used for running multiple chains in parallel
 (SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
 if(is.na(SEED)) SEED<-4
+
 
 #load necessary packages
 #library("splines")
@@ -21,21 +23,22 @@ star <- 0
 
 #get data
 psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
+#psa.data<-psa.data.full
 psa.data <- filter(psa.data.full, subj != star)#this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
-
 
 
 ##this data is already ordered
 
 pt.data.full<-read.csv("simulation-data/pt-data-sim.csv") 
+#pt.data<-pt.data.full
 pt.data<-filter(pt.data.full, id != star) #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
 (n<-dim(pt.data)[1]) #1000
 
-
 ##this biopsy data also contains information for predicting biopsies and surgery
 
-bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
-bx.data <- filter(bx.data.full, subj !=star)#biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
+data.use.full <- read.csv("simulation-data/bx-data-sim.csv")
+#data.use<-data.use.full
+data.use <- filter(data.use.full, subj !=star)#biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
 	
 
 ##this data is now part of pt. data 
@@ -82,20 +85,18 @@ summary(X.data)
 
 
 #outcome model (logistic regression for reclassification)
-bx.data<-bx.data[bx.data$bx.here==1,]
+rc.data<-data.use[data.use$bx.here==1 & !is.na(data.use$bx.here),]
 
-(n_obs_bx<-dim(bx.data)[1])
-RC<-as.numeric(bx.data$rc)
+(n_rc<-dim(rc.data)[1])
+RC<-as.numeric(rc.data$rc)
 #table(RC) #300
 
-subj_bx<-bx.data$subj
-
+subj_rc<-data.use$subj
 
 #covariates influencing risk of reclassification
-W.RC.data<-as.matrix(cbind(rep(1,n_obs_bx),  bx.data$age.std, bx.data$time, bx.data$time.ns, bx.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)    
+W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)    
 (d.W.RC<-dim(W.RC.data)[2])
 apply(W.RC.data,2,summary)
-
 
 
 ##get starting values, other functions necessary for call to JAGS
@@ -119,7 +120,7 @@ relabel_consecutive<-function(x){
 	as.numeric(rlfx)
 }
 subj_psa_consecutive <- relabel_consecutive(subj_psa)
-subj_bx_consecutive <- relabel_consecutive(subj_bx)
+subj_rc_consecutive <- relabel_consecutive(subj_rc)
 
 jags_data<-list(K=K,
 	n=n,
@@ -133,9 +134,9 @@ jags_data<-list(K=K,
 	d.Z=d.Z,
 	d.X=d.X,
 	I_d.Z=diag(d.Z),
-	n_obs_bx=n_obs_bx,
+	n_rc=n_rc,
 	RC=RC,
-	subj_bx=subj_bx_consecutive,#!! new
+	subj_rc=subj_rc_consecutive,#!! new
 	W.RC=W.RC.data,
 	d.W.RC=d.W.RC) 
 
@@ -156,7 +157,7 @@ mu_raw<-as.matrix(cbind(rnorm(d.Z),rnorm(d.Z)))
 Tau_B_raw<-rwishart((d.Z+1),diag(d.Z)*var_vec)$W
 sigma_res<-min(rlnorm(1),3)
 
-beta<-rnorm(d.X*2)
+beta<-rnorm(d.X)
 
 gamma.RC<-rnorm((d.W.RC+1),mean=0,sd=0.25)
 
@@ -195,7 +196,5 @@ do.one(seed=SEED)
 #out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
 #saveRDS(out,file='posterior_full_100k.rds')
 # str(out$sims.list)
-# summary(out$sims.list$mu_spline)
-
-
+# summary(out$sims.list$mu_int)
 

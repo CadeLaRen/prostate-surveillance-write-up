@@ -1,5 +1,4 @@
-
-cat("model {
+model {
 
 ###PRIORS FOR LATENT CLASS MODEL
 
@@ -75,4 +74,4 @@ for(j in 1:n_rc){
 	logit(p_rc[j]) <-inprod(gamma.RC[1:d.W.RC], W.RC[j,1:d.W.RC]) + gamma.RC[(d.W.RC+1)]*equals(eta[subj_rc[j]],2) 
 	RC[j] ~ dbern(p_rc[j]) }
 	
- }", fill=TRUE, file="model-for-jags-noninf-obs.txt")
+ }
