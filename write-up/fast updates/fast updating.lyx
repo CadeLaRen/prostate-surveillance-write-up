@@ -163,10 +163,11 @@ Give more cannonical citation
 
 \begin_layout Standard
 By random chance, some patients will have data such that very few of the
- pre-generated, proposed latent variables values will receive high weights.
- This causes their posterior means to be less stable.
- However, such scenarios can be detected by monitoring the effective sample
- size of the posterior sample, also known as the effective number of particles.
+ pre-generated, proposed latent variables values receive high weights.
+ This causes their posterior mean estimates from importance sampling to
+ be less stable.
+ However, such cases can be detected by monitoring the effective size of
+ the posterior sample, also known as the effective number of particles.
  When this number drops below 500, we repeat our procedure with a larger
  set of pre-generated proposals.
 \end_layout
@@ -336,7 +337,7 @@ Supplement
 \end_layout
 
 \begin_layout Subsection
-Importance Sampling Procedure
+Importance sampling procedure
 \end_layout
 
 \begin_layout Standard
@@ -403,17 +404,50 @@ p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\th
 \end_inset
 
  are multivariate distributions coming from the likelihood in XX.
- In this section, we illustrate how importance weighting can be used to
- estimate latent variables for a new subject (indexed by 
-\begin_inset Formula $n+1$
-\end_inset
-
-) entering the study.
+ 
 \end_layout
 
 \begin_layout Standard
-Our goal is to calculate expectations with respect to the posterior distribution
- based on all 
+In section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:new-subject"
+
+\end_inset
+
+, we illustrate how importance weighting can be used to estimate latent
+ variables for a new subject entering the study.
+ In section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:existing-subject"
+
+\end_inset
+
+, we show how similar calculations can be done to quickly incorporate newly
+ measured data on existing patients.
+\end_layout
+
+\begin_layout Subsubsection
+Fast estimates for a new patient
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:new-subject"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here, we focus on estimating latent variable posteriors for a new subject
+ (indexed by 
+\begin_inset Formula $n+1$
+\end_inset
+
+).
+ Our ultimate goal is to calculate expectations with respect to the posterior
+ distribution based on all 
 \begin_inset Formula $n+1$
 \end_inset
 
@@ -526,11 +560,11 @@ reference "eq:posterior_n"
 \color none
  are then proportional to 
 \begin_inset Formula 
-\begin{eqnarray*}
-w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\\
- & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\\
- & = & f(y_{i}|b_{i}^{(j)},\theta^{(j)})
-\end{eqnarray*}
+\begin{eqnarray}
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\nonumber \\
+ & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
+ & = & f(y_{i}|b_{i}^{(j)},\theta^{(j)})\label{eq:importance-weights}
+\end{eqnarray}
 
 \end_inset
 
@@ -564,6 +598,176 @@ The final weights
  The unstandardized weights can also be used in a rejection sampling procedure,
  although we found this approach to be less computationally efficient than
  importance sampling for our scenario.
+\end_layout
+
+\begin_layout Subsubsection
+Fast estimates for existing patients with new data
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:existing-subject"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For a patient 
+\begin_inset Formula $k$
+\end_inset
+
+ with existing data, where we already have a posterior sample for their
+ latent variable values, we instead use this posterior as our proposal distribut
+ion 
+\begin_inset Formula $q(\theta^{(j)},b_{1:n}^{(j)})$
+\end_inset
+
+, with 
+\begin_inset Formula $i\leq n$
+\end_inset
+
+.
+ Let 
+\begin_inset Formula $y_{1:n}^{k+}$
+\end_inset
+
+ refer to the data set after incorporating new data on patient 
+\begin_inset Formula $k$
+\end_inset
+
+, where 
+\begin_inset Formula $y_{i}^{+}=y_{i}$
+\end_inset
+
+ if 
+\begin_inset Formula $k\neq i$
+\end_inset
+
+.
+ The importance weights in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:importance-weights"
+
+\end_inset
+
+ then simplify to
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\begin_inset Formula 
+\begin{eqnarray*}
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:n}^{(j)}|y_{1:n}^{+})}{q(\theta^{(j)},b_{1:n}^{(j)})}\\
+ & \propto & \frac{\prod_{i=1}^{n}[f(\ensuremath{{\color{blue}y_{i}^{+}}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{\prod_{i=1}^{n}[f(\ensuremath{{\color{blue}y_{i}}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}\\
+ & = & \frac{f(\ensuremath{{\color{blue}y_{k}^{+}}}|b_{{\color{blue}k}}^{(j)},\theta^{(j)})}{f(\ensuremath{{\color{blue}y_{k}}}|b_{{\color{blue}k}}^{(j)},\theta^{(j)})}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $L_{k}$
+\end_inset
+
+ denote that number of measurements for which we've previously fit a posterior
+ for 
+\begin_inset Formula $b_{k}$
+\end_inset
+
+.
+ Let 
+\begin_inset Formula $N_{k}$
+\end_inset
+
+ denote the number of new measurements we wish to incorporate into this
+ posterior.
+ Then 
+\begin_inset Formula $y_{k}^{+}$
+\end_inset
+
+ can be expressed as the vector 
+\begin_inset Formula $y_{k}^{+}=(y_{k[1]},y_{k[2]},\dots y_{k[L_{k}]},y_{k[L_{k}+1]}^{+},\dots y_{k[L_{k}+N_{k}]}^{+})$
+\end_inset
+
+, where 
+\begin_inset Formula $y_{k[l]}^{+}$
+\end_inset
+
+ is the 
+\begin_inset Formula $l^{th}$
+\end_inset
+
+ measurement from subject 
+\begin_inset Formula $k$
+\end_inset
+
+.
+ If the repeated measures for each subject are independent conditional on
+ 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+, as is the case in our model, then the above ratio reduces to
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+w^{(j)} & \propto & \frac{\prod_{l=1}^{L_{k}+N_{k}}f(\ensuremath{{\color{blue}y_{k[l]}^{+}}}|b_{{\color{blue}k}}^{(j)},\theta^{(j)})}{\prod_{l=1}^{L_{i}}f(\ensuremath{{\color{blue}y_{k[l]}}}|b_{{\color{blue}k}}^{(j)},\theta^{(j)})}\\
+ & = & \prod_{l=L_{k}+1}^{L_{k}+N_{k}}f(\ensuremath{{\color{blue}y_{k[l]}^{+}}}|b_{{\color{blue}k}}^{(j)},\theta^{(j)})
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We then proceed as in section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:new-subject"
+
+\end_inset
+
+ to get a re-weighted posterior for the random effects of subject 
+\begin_inset Formula $k$
+\end_inset
+
+.
+ 
+\begin_inset Formula 
+\[
+\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
