@@ -4,9 +4,24 @@
 # setwd("/Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo")
 # setwd("/home/bst/student/afisher/inHealth_prostate")
 
+# cd /home/bst/student/afisher/inHealth_prostate
+# qsub -N fullJAGS -V -l mf=5G,h_vmem=5G -cwd -b y R CMD BATCH --no-save call-jags-inf-obs.R
+
+# qsub -N leaveOutJAGS -t 215-1000 -V -l mf=5G,h_vmem=5G -cwd -b y R CMD BATCH --no-save call-jags-inf-obs.R
+# rm leaveOutJAGS.e*
+# rm leaveOutJAGS.o*
+
+
 #import environment variable, used for running multiple chains in parallel
 (SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
 if(is.na(SEED)) SEED <- 0
+
+star <- SEED
+
+# !! When you do the importance sampling comparison for *new data* for person with existing data, don't just do last PSA, go back to last biopsy, and treat all data from that day on (including the biopsy) as "newly acquired" data.
+# !! Use age field (not age.std) to separate newly acquired from previously acquired data.
+# Make a plot of "new patient" and plot of "new data on existing patient".
+# Run on actual data eventually.
 
 
 #load necessary packages
@@ -14,11 +29,29 @@ library("lme4")
 library("bayesm")
 library("R2jags")
 library("splines")
+library("dplyr")
+
+
+#Adjust numbering so max(subj label) is 999, not 1000.
+#This way, subject numbers don't exceed the dimension of b.vec.
+closeAround <- function(x){
+	out<-x
+	switch <- x>star
+	out[switch] <- x[switch]-1
+	return(out)
+}
+dropStar <- function(x){
+	filter(x, !subj==star) %>%
+	mutate(subj = closeAround(subj) )
+}
 
 #get data
-psa.data<-read.csv("simulation-data/psa-data-sim.csv")
-pt.data<-read.csv("simulation-data/pt-data-sim.csv")
-data.use<-read.csv("simulation-data/bx-data-sim.csv")
+psa.data<-read.csv("simulation-data/psa-data-sim.csv") %>%
+	dropStar
+pt.data<-read.csv("simulation-data/pt-data-sim.csv") %>%
+	dropStar
+data.use<-read.csv("simulation-data/bx-data-sim.csv") %>%
+	dropStar
 #this contains one record per annual interval for each patient until surgery or censoring
 
 
@@ -37,7 +70,7 @@ get.ns.basis<-function(obs.data,knots){
 
 #Before call to JAGS, get the data into simple matrices and vectors to send to JAGS
 
-(n<-dim(pt.data)[1]) #1000
+(n<-dim(pt.data)[1]) #1000 with full data, 999 leaving one out
 
 #get observed latent class
 eta.data<-pt.data$obs.eta
@@ -85,7 +118,7 @@ RC<-as.numeric(rc.data$rc)
 subj_rc<-rc.data$subj
 
 #covariates influencing risk of reclassification
-W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std )) 
+W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std ))
 (d.W.RC<-dim(W.RC.data)[2])
 round(apply(W.RC.data,2,summary) ,2)
 
@@ -122,7 +155,7 @@ jags_data<-list(K=K, n=n, eta.data=eta.data, n_eta_known=n_eta_known, n_obs_psa=
 #note that not all "parameters" need to be initialized. specifically, don't initialize random effects, but do need to set initial values for mean and covariance of random effects
 # also need to set initial values for latent variables that are not observed (here, eta)
 
-inits <- function() {
+inits <- function(){
 		
 	p_eta<-rbeta(1,1,1)
 
@@ -149,6 +182,7 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 
 # MCMC settings
 #ni <- 100; nb <- 20; nt <- 5; nc <- 1
+#ni <- 1000; nb <- 20; nt <- 5; nc <- 1
 ni <- 50000; nb <- 25000; nt <- 20; nc <- 1
 #note, I am needing fewer sampling iterations here because I've solved mixing problems
 
@@ -168,18 +202,20 @@ do.one<-function(seed, return_R_obj=FALSE, save_output=TRUE){
 	if(return_R_obj) return(out)
 }
 
-do.one(seed=SEED)
-
-
-
 if(FALSE){
+do.one(seed=SEED)
+}
+
+
+if(TRUE){
+	cat('',file=paste0('leaveOneOut/',Sys.Date(),'_JAGS_started_star_',star,'.txt'))
 	out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
 	len.sim<-length(out$sims.list$p_eta)
-	saveRDS(out,file=paste0(Sys.Date(),'_posterior_full_inf-obs_nsim-',len.sim,'.rds'))
+	saveRDS(out,file=paste0('leaveOneOut/',Sys.Date(),'_posterior_full_inf-obs_nsim-',len.sim,'.rds'))
 	str(out$sims.list)
 	summary(out$sims.list$mu_slope)
 
-	
+	# screen -r 17
 }
 
 
