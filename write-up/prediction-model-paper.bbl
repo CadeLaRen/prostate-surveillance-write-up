@@ -1,0 +1,268 @@
+\begin{thebibliography}{10}
+
+\bibitem{Albert2009}
+Paul~S Albert and Dean~A Follmann.
+\newblock Shared-parameter models.
+\newblock {\em Longitudinal data analysis}, pages 433--452, 2009.
+
+\bibitem{Andrieu2005}
+Christophe Andrieu, Arnaud Doucet, and Vladislav~B Tadic.
+\newblock On-line parameter estimation in general state-space models.
+\newblock In {\em Decision and Control, 2005 and 2005 European Control
+  Conference. CDC-ECC'05. 44th IEEE Conference on}, pages 332--337. IEEE, 2005.
+
+\bibitem{Ankerst2015}
+Donna~P Ankerst, Jing Xia, Ian~M Thompson, Josef Hoefler, Lisa~F Newcomb,
+  James~D Brooks, Peter~R Carroll, William~J Ellis, Martin~E Gleave, Raymond~S
+  Lance, et~al.
+\newblock Precision medicine in active surveillance for prostate cancer:
+  Development of the canary--early detection research network active
+  surveillance biopsy risk calculator.
+\newblock {\em European urology}, 2015.
+
+\bibitem{Bishop2006}
+Christopher~M Bishop et~al.
+\newblock {\em Pattern recognition and machine learning}, volume~4.
+\newblock springer New York, 2006.
+
+\bibitem{Carter2007}
+H.Ballentine Carter, Anna Kettermann, Christopher Warlick, E.~Jeffrey Metter,
+  Patricia Landis, Patrick~C. Walsh, and Jonathan~I. Epstein.
+\newblock {Expectant management of prostate cancer with curative intent: an
+  update on the Johns Hopkins experience}.
+\newblock {\em {Journal of Urology}}, 178:2359--2364, 2007.
+
+\bibitem{Chou2011a}
+Roger Chou, Jennifer~M. Croswell, Dana Tracy, Christina Bougatsos, Ian Blazina,
+  Rongwei Fu, Ken Gleitsmann, Helen~C. Koenig, Clarence Lam, Ashley Maltz,
+  J.~Bruin Rugge, and Kenneth Lin.
+\newblock {Screening for prostate cancer: a review of the evidence for the U.S.
+  Preventive Services Task Force}.
+\newblock {\em {Annals of Internal Medicine}}, 155:762--771, 2011.
+
+\bibitem{Chou2011b}
+Roger Chou, Tracy Dana, Christina Bougatsos, Rongwei Fu, Ian Blazina, Ken
+  Gleitsmann, and J.~Bruin Rugge.
+\newblock {Treatments for Localized Prostate Cancer: Systematic Review to
+  Update the 2002 U.S. Preventive Services Task Force}.
+\newblock Evidence Synthesis No. 91. ARHQ Publication No. 12-0516-EF-2.
+  Rockville, MD: Agency for Healthcare Research and Quality, 2011.
+
+\bibitem{Cooperberg2010}
+Matthew~R. Cooperberg, Jeanette~M. Broering, and Peter~R. Carroll.
+\newblock {Time Trends and Local Variation in Primary Treatment of Localized
+  Prostate Cancer}.
+\newblock {\em {Journal of Clinical Oncology}}, 28:1117--1123, 2010.
+
+\bibitem{Cupples1988}
+L~Adrienne Cupples, Ralph~B D'Agostino, Keaven Anderson, and William~B Kannel.
+\newblock Comparison of baseline and repeated measure covariate techniques in
+  the framingham heart study.
+\newblock {\em Statistics in medicine}, 7(1-2):205--218, 1988.
+
+\bibitem{D'Agostino1990}
+Ralph~B D'Agostino, Mei-Ling Lee, Albert~J Belanger, L~Adrienne Cupples, Keaven
+  Anderson, and William~B Kannel.
+\newblock Relation of pooled logistic regression to time dependent cox
+  regression analysis: the framingham heart study.
+\newblock {\em Statistics in medicine}, 9(12):1501--1515, 1990.
+
+\bibitem{DeGruttola1994}
+Victor DeGruttola and Xin~Ming Tu.
+\newblock {Modelling progression of CD4-lymphocyte count and its relationship
+  to survival time}.
+\newblock {\em Biometrics}, 50:1003--1014, 1994.
+
+\bibitem{Epstein2012}
+Jonathan~I Epstein, Zhaoyong Feng, Bruce~J Trock, and Phillip~M Pierorazio.
+\newblock Upgrading and downgrading of prostate cancer from biopsy to radical
+  prostatectomy: incidence and predictive factors using the modified gleason
+  grading system and factoring in tertiary grades.
+\newblock {\em European urology}, 61(5):1019--1024, 2012.
+
+\bibitem{Epstein1994}
+Jonathan~I. Epstein, Patrick~C. Walsh, Marn\'{e} Carmichael, and Charles~B.
+  Brendler.
+\newblock {Pathologic and clinical findings to predict tumor extent of non
+  palpable (stage T1c) prostate cancer}.
+\newblock {\em {Journal of the American Medical Association}}, 271:368--374,
+  1994.
+
+\bibitem{Follmann1995}
+Dean Follmann and Margaret Wu.
+\newblock An approximate generalized linear model with random effects for
+  informative missing data.
+\newblock {\em Biometrics}, pages 151--168, 1995.
+
+\bibitem{Gelman2006}
+Andrew Gelman and Jennifer Hill.
+\newblock {\em Data analysis using regression and multilevel/hierarchical
+  models}.
+\newblock Cambridge University Press, 2006.
+
+\bibitem{Geweke1989}
+John Geweke.
+\newblock Bayesian inference in econometric models using monte carlo
+  integration.
+\newblock {\em Econometrica: Journal of the Econometric Society}, pages
+  1317--1339, 1989.
+
+\bibitem{Henderson2000}
+Robin Henderson, Peter Diggle, and Angela Dobson.
+\newblock Joint modelling of longitudinal measurements and event time data.
+\newblock {\em Biostatistics}, 1(4):465--480, 2000.
+
+\bibitem{Hosmer2013}
+David~W Hosmer~Jr, Stanley Lemeshow, and Rodney~X Sturdivant.
+\newblock {\em Applied logistic regression}, volume 398.
+\newblock John Wiley \& Sons, 2013.
+
+\bibitem{SEER2014}
+N.~Howlander, A.M. Noone, M.~Krapcho, J.~Garshell, D.~Miller, S.F. Altekruse,
+  C.L. Kosary, M.~Yu, J.~Ruhl, Z.~Tatalovich, A.~Mariotta, D.R. Lewis, H.S.
+  Chen, E.J. Feuer, and K.A.~(eds.) Cronin.
+\newblock {SEER Cancer Statistics Review, 1975-2011}.
+\newblock National Cancer Institute, Bethesda, MD,
+  \url{http://seer.cancer.gov/csr/1975_2011/}, 2014.
+\newblock based on November 2013 SEER data submission, posted to the SEER web
+  site, April 2014.
+
+\bibitem{Kantas2014}
+Nikolas Kantas, Arnaud Doucet, Sumeetpal~S Singh, Jan~M Maciejowski, and
+  Nicolas Chopin.
+\newblock On particle methods for parameter estimation in state-space models.
+\newblock {\em arXiv preprint arXiv:1412.8695}, 2014.
+
+\bibitem{Khatami2007}
+Ali Khatami, Damber Jan-Erik, Lilja Hans, Lodding P{\"a}r, and Hugosson Jonas.
+\newblock Psa doubling time predicts the outcome after active surveillance in
+  screening-detected prostate cancer: Results from the european randomized
+  study of screening for prostate cancer, sweden section.
+\newblock {\em International journal of cancer}, 120(1):170--174, 2007.
+
+\bibitem{Klotz2010}
+L~Klotz, L.~Zhang, A.~Lam, and et~al.
+\newblock Clinical results of long-term follow-up of a large, active
+  surveillance cohort with localized prostate cancer.
+\newblock {\em {Journal of Clinical Oncology}}, 2010:126--131, 2010.
+
+\bibitem{Laird1982}
+Nan~M Laird and James~H Ware.
+\newblock Random-effects models for longitudinal data.
+\newblock {\em Biometrics}, pages 963--974, 1982.
+
+\bibitem{Lee2002}
+Dominic~S Lee and Nicholas~KK Chia.
+\newblock A particle algorithm for sequential bayesian parameter estimation and
+  model selection.
+\newblock {\em Signal Processing, IEEE Transactions on}, 50(2):326--336, 2002.
+
+\bibitem{Lin2002}
+Haiqun Lin, Bruce~W Turnbull, Charles~E McCulloch, and Elizabeth~H Slate.
+\newblock Latent class models for joint analysis of longitudinal biomarker and
+  event process data: application to longitudinal prostate-specific antigen
+  readings and prostate cancer.
+\newblock {\em Journal of the American Statistical Association},
+  97(457):53--65, 2002.
+
+\bibitem{Little2014}
+Roderick~JA Little and Donald~B Rubin.
+\newblock {\em Statistical analysis with missing data}.
+\newblock John Wiley \& Sons, 2014.
+
+\bibitem{Porten2011}
+Sima~P Porten, Jared~M Whitson, Janet~E Cowan, Matthew~R Cooperberg, Katsuto
+  Shinohara, Nannette Perez, Kirsten~L Greene, Maxwell~V Meng, and Peter~R
+  Carroll.
+\newblock Changes in prostate cancer grade on serial biopsy in men undergoing
+  active surveillance.
+\newblock {\em Journal of Clinical Oncology}, 29(20):2795--2800, 2011.
+
+\bibitem{Proust2009}
+C{\'e}cile Proust-Lima and Jeremy~MG Taylor.
+\newblock Development and validation of a dynamic prognostic tool for prostate
+  cancer recurrence using repeated measures of posttreatment psa: a joint
+  modeling approach.
+\newblock {\em Biostatistics}, 10(3):535--549, 2009.
+
+\bibitem{Roy2003}
+Jason Roy.
+\newblock Modeling longitudinal data with nonignorable dropouts using a latent
+  dropout class model.
+\newblock {\em Biometrics}, 59(4):829--836, 2003.
+
+\bibitem{Roy2007}
+Jason Roy.
+\newblock Latent class models and their application to missing-data patterns in
+  longitudinal studies.
+\newblock {\em Statistical methods in medical research}, 2007.
+
+\bibitem{Schluchter1992}
+Mark~D Schluchter.
+\newblock Methods for the analysis of informatively censored longitudinal data.
+\newblock {\em Statistics in medicine}, 11(14-15):1861--1870, 1992.
+
+\bibitem{Smith2013}
+Mark Smith, Robert Saunders, Leigh Stuckhardt, J~Michael McGinnis, et~al.
+\newblock {\em Best care at lower cost: the path to continuously learning
+  health care in America}.
+\newblock National Academies Press, 2013.
+
+\bibitem{Soloway2008}
+Mark~S. Soloway, Cynthia~T. Soloway, Steve Williams, Ranjinkanth Ayyathurai,
+  Bruce Kava, and Murugesan Manoharan.
+\newblock {Active surveillance; A reasonable management alternative for
+  patients with prostate cancer: The Miami experience}.
+\newblock {\em {BJU} International}, 101:165--169, 2008.
+
+\bibitem{Tosoian2011}
+Jeffrey~J. Tosoian, Bruce~J. Trock, Patricia Landis, Zhaoyong Feng, Jonathan~I.
+  Epstein, and Alan~W. Partin.
+\newblock {Active Surveillance Program for Prostate Cancer: An Update of the
+  Johns Hopkins Experience}.
+\newblock {\em {Journal of Clinical Oncology}}, 29:2185--2190, 2011.
+
+\bibitem{Tseng2010}
+Kenneth~S Tseng, Patricia Landis, Jonathan~I Epstein, Bruce~J Trock, and
+  H~Ballentine Carter.
+\newblock Risk stratification of men choosing surveillance for low risk
+  prostate cancer.
+\newblock {\em The Journal of urology}, 183(5):1779--1785, 2010.
+
+\bibitem{vanAs2008}
+Nicholas~J. van As, Andrew~R. Norman, Karen Thomas, Vincent~S. Khoo, Alan
+  Thompson, Robert~A. Huddart, Alan Horwich, David~P. Dearnaley, and
+  Christopher~C. Parker.
+\newblock Predicting the probability of deferred radical treatment for
+  localised prostate cancer managed by active surveillance.
+\newblock {\em {European Urology}}, 54:1297--1305, 2008.
+
+\bibitem{vandenBergh2009}
+Roderick C.~N. van~den Bergh, Stijn Roemeling, Monique~J. Roobol, Gunner Aus,
+  Jonas Hugosson, Antti~S. Rannikko, Teuvo~L. Tammela, Chris~H. Bangma, and
+  Schr\"{o}der.
+\newblock Outcomes of men with screen-detected prostate cancer eligible for
+  active surveillance who were managed expectantly.
+\newblock {\em {European Urology}}, 55:1--8, 2009.
+
+\bibitem{Welch2009}
+H.~Gilbert Welch and Peter~C. Albertsen.
+\newblock Prostate cancer diagnosis and treatment after the introduction of
+  prostate-specific antigen screening: 1986-2005.
+\newblock {\em {Journal of the National Cancer Institute}}, 101:1325--1329,
+  2009.
+
+\bibitem{Wu1988}
+Margaret~C Wu and Raymond~J Carroll.
+\newblock Estimation and comparison of changes in the presence of informative
+  right censoring by modeling the censoring process.
+\newblock {\em Biometrics}, pages 175--188, 1988.
+
+\bibitem{Wu2015}
+Zhenke Wu, Maria Deloria-Knoll, Laura~L Hammitt, and Scott~L Zeger.
+\newblock Partially latent class models for case--control studies of childhood
+  pneumonia aetiology.
+\newblock {\em Journal of the Royal Statistical Society: Series C (Applied
+  Statistics)}, 2015.
+
+\end{thebibliography}

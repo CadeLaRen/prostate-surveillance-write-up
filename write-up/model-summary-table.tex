@@ -1,0 +1,220 @@
+\documentclass[11pt, letterpaper]{article}
+%\setlength{\parindent}{0in}
+\setlength{\textheight}{9.8in}
+\setlength{\textwidth}{6.8in}
+\setlength{\oddsidemargin}{-0.3in}
+\setlength{\evensidemargin}{0.0in}
+\addtolength{\topmargin}{-1in}
+\setlength{\parskip}{0.1in}
+
+\usepackage{amsmath, amsfonts}
+\usepackage{multirow}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{pdflscape}
+
+\newcommand{\bmeta}{\boldsymbol{\eta}}
+\newcommand{\bmtheta}{\boldsymbol{\theta}}
+\newcommand{\bmbeta}{\boldsymbol{\beta}}
+\newcommand{\bmphi}{\boldsymbol{\phi}}
+\newcommand{\bmpi}{\boldsymbol{\pi}}
+\newcommand{\bmxi}{\boldsymbol{\xi}}
+\newcommand{\bmnu}{\boldsymbol{\nu}}
+\newcommand{\bmmu}{\boldsymbol{\mu}}
+\newcommand{\bmalpha}{\boldsymbol{\alpha}}
+\newcommand{\bmzeta}{\boldsymbol{\zeta}}
+\newcommand{\bmgamma}{\boldsymbol{\gamma}}
+\newcommand{\bmomega}{\boldsymbol{\omega}}
+
+
+\newcommand{\bmY}{\mathbf{Y}}
+\newcommand{\bmZ}{\mathbf{Z}}
+\newcommand{\bmX}{\mathbf{X}}
+\newcommand{\bmV}{\mathbf{V}}
+\newcommand{\bmU}{\mathbf{U}}
+\newcommand{\bmW}{\mathbf{W}}
+\newcommand{\bmR}{\mathbf{R}}
+\newcommand{\bmS}{\mathbf{S}}
+\newcommand{\bmb}{\mathbf{b}}
+
+
+\newcommand{\bmM}{\mathbf{M}}
+\newcommand{\bmSigma}{\boldsymbol{\Sigma}}
+\newcommand{\bmI}{\mathbf{I}}
+\newcommand{\bmTheta}{\boldsymbol{\Theta}}
+
+\usepackage{color}
+\usepackage{xcolor}
+\newcommand{\shade}[1]{\colorbox{gray}{#1}}
+
+
+\begin{document}
+\pagenumbering{gobble}
+\begin{landscape}
+
+%\begin{small}
+{
+\renewcommand{\arraystretch}{1.25}
+\begin{table}
+\begin{center}
+\begin{tabular}{|cccccc|}
+\hline
+\multicolumn{2}{|c}{ } & \underline{Cancer State} & \underline{PSA} & \underline{Biopsy} & \underline{Surgery}\\ [10pt]
+\multirow{2}{*}{\underline{Data}} & Outcome & $\eta_i$ & $\bmY_i$ & ($B_{ij}$, $R_{ij}$), $j=1,\dots,J_i;$  & $S_{ij}, j=1,\dots,J_{S_i}$\\%[5pt]
+ & Covariates & & $\bmX_i, \bmZ_i$ & ($\bmU_{ij}$, $\bmV_{ij}$), $j=1,\dots,J_i $ & $\bmW_{ij},\, j=1,\dots,J_{S_i}$\\[10pt] 
+ \multicolumn{2}{|c}{\multirow{2}{*}{\underline{Model}} } &  \multirow{2}{*}{$\eta_i \sim Bern(\rho)$} & $\check{\bmb_i}|\eta_i=k \, \sim MVN(\bmmu_{k},\Sigma)$ & $B_{ij}|\eta_i=k \, \sim Bern\big(P(B_{ij}=1| \bmU_{ij}(k),\bmnu)\big)$ & $S_{ij}|\eta_i=k \, \sim \qquad \qquad \qquad \qquad $ \\%[5pt] 
+ & & & $\bmb_i = diag(\check{\bmb_i}\bmxi^T)$ & $R_{ij}|\eta_i=k \, \sim Bern\big(P(R_{ij}=1| \bmV_{ij}(k),\bmgamma)\big)$ & $ Bern\big(P(S_{ij}=1| \bmW_{ij}(k),\bmomega) \big)$  \\
+ & & & $\bmY_i \sim MVN(\bmX_i\bmbeta + \bmZ_i\bmb_i, \sigma^2\bmI_{M_i} )$ & & \\[10pt] 
+ \multicolumn{2}{|c}{\multirow{5}{*}{\underline{Priors}} } & \multirow{5}{*}{$\rho \sim Beta(1,1)$} &  $\bmmu_k \sim MVN(0,10^2\times\bmI_{D_Z}),\, k=0,1$ &\multirow{2}{*}{$\bmnu \sim MVN(0,10^2\times\bmI_{D_U})$} & \multirow{5}{*}{ $\bmomega \sim MVN(0,10^2\times\bmI_{D_W})$} \\%[5pt] 
+ &&& $\Sigma \sim InvWish(\bmI_{D_Z},D_Z+1)$ & &\\%[5pt]
+ &&&$ \xi_d \sim U(0,10),\, d=1,\dots,D_Z$ & \multirow{3}{*}{$\bmgamma \sim MVN(0,10^2\times\bmI_{D_V})$} & \\%[5pt]
+ &&& $\bmbeta \sim N(0,10^2\times\bmI_{D_X})$ & &\\%[5pt]
+ &&& $\sigma^2 \sim U(0,10)$ & &  \\[5pt]
+ \hline
+\end{tabular}
+%\caption{Model Summary. $D_X$ is the length of vector $\bmX$ and $\bmI_{D_X}$ is the identity matrix with dimension $D_X$.}
+\end{center}
+\end{table}
+}
+%\end{small}
+
+
+\end{landscape}
+
+
+\end{document}
+& \multirow{2}{*}{$S_{ij}|\eta_i=k \, \sim Bern\big(P(S_{ij}=1| \bmW_{ij}(k),\bmomega) \big)$} \\%[5pt] 
+
+
+
+
+%%this is the model summary for inverse wishart without scale parameter
+{
+\renewcommand{\arraystretch}{1.25}
+\begin{table}
+\begin{center}
+\begin{tabular}{|cccccc|}
+\hline
+\multicolumn{2}{|c}{ } & \underline{Cancer State} & \underline{PSA} & \underline{Biopsy} & \underline{Surgery}\\ [10pt]
+\multirow{2}{*}{\underline{Data}} & Outcome & $\eta_i$ & $\bmY_i$ & ($B_{ij}$, $R_{ij}$), $j=1,\dots,J_i;$  & $S_{ij}, j=1,\dots,J_{S_i}$\\%[5pt]
+ & Covariates & & $\bmX_i, \bmZ_i$ & ($\bmU_{ij}$, $\bmV_{ij}$), $j=1,\dots,J_i $ & $\bmW_{ij},\, j=1,\dots,J_{S_i}$\\[10pt] 
+ \multicolumn{2}{|c}{\multirow{2}{*}{\underline{Model}} } &  \multirow{2}{*}{$\eta_i \sim Bern(\rho)$} & $\bmb_i|\eta_i=k \, \sim MVN(\bmmu_{k},\Sigma)$ & $B_{ij}|\eta_i=k \, \sim Bern\big(P(B_{ij}=1| \bmU_{ij}(k),\bmnu)\big)$ & $S_{ij}|\eta_i=k \, \sim \qquad \qquad \qquad \qquad $ \\%[5pt] 
+ & & & $\bmY_i \sim MVN(\bmX_i\bmbeta + \bmZ_i\bmb_i, \sigma^2\bmI_{M_i} )$ & $R_{ij}|\eta_i=k \, \sim Bern\big(P(R_{ij}=1| \bmV_{ij}(k),\bmgamma)\big)$ & $ Bern\big(P(S_{ij}=1| \bmW_{ij}(k),\bmomega) \big)$ \\[10pt] 
+ \multicolumn{2}{|c}{\multirow{4}{*}{\underline{Priors}} } & \multirow{4}{*}{$\rho \sim Beta(1,1)$} &  $\bmmu_k \sim MVN(0,10^2\times\bmI_{D_Z}),\, k=0,1$ &\multirow{2}{*}{$\bmnu \sim MVN(0,10^2\times\bmI_{D_U})$} & \multirow{4}{*}{ $\bmomega \sim MVN(0,10^2\times\bmI_{D_W})$} \\%[5pt] 
+ &&& $\Sigma \sim InvWish(\bmI_{D_Z},D_Z+1)$ & &\\%[5pt]
+ &&& $\bmbeta \sim N(0,10^2\times\bmI_{D_X})$ & \multirow{2}{*}{$\bmgamma \sim MVN(0,10^2\times\bmI_{D_V})$} & \\%[5pt]
+ &&& $\sigma^2 \sim U(0,10)$ & &  \\[5pt]
+ \hline
+\end{tabular}
+\caption{Model Summary. $D_X$ is the length of vector $\bmX$ and $\bmI_{D_X}$ is the identity matrix with dimension $D_X$.}
+\end{center}
+\end{table}
+}
+
+
+
+{
+\renewcommand{\arraystretch}{1.25}
+\begin{table}
+\begin{center}
+\begin{tabular}{|ccccc|}
+\hline
+\multicolumn{2}{|c}{ } & \underline{Cancer State} & \underline{PSA} & \underline{Biopsy} \\ [10pt]
+\multirow{2}{*}{\underline{Data}} & Outcome & $\eta_i$ & $\bmY_i$ & ($B_{ij}$, $R_{ij}$), $j=1,\dots,J_i;$ $S_{ij}$, $j=1,\dots,J_{S_i} $\\%[5pt]
+ & Covariates & & $\bmX_i, \bmZ_i$ & ($\bmU_{ij}$, $\bmV_{ij}$, $\bmW_{ij}$), $j=1,\dots,J_i $ \\[10pt]
+ \multicolumn{2}{|c}{\multirow{3}{*}{\underline{Model}} } &  \multirow{3}{*}{$\eta_i \sim Bern(\rho)$} & $\bmb_i|\eta_i=k \, \sim MVN(\bmmu_{k},\Sigma)$ & $B_{ij}|\eta_i=k \, \sim Bern\big(P(B_{ij}=1| \bmU_{ij}(k),\bmnu)\big)$ \\%[5pt] 
+ & & & $\bmY_i \sim MVN(\bmX_i\bmbeta + \bmZ_i\bmb_i, \sigma^2\bmI_{M_i} )$ & $R_{ij}|\eta_i=k \, \sim Bern\big(P(R_{ij}=1| \bmV_{ij}(k),\bmgamma)\big)$\\
+ &&&& $S_{ij}|\eta_i=k \, \sim Bern\big(P(S_{ij}=1| \bmW_{ij}(k),\bmomega) \big)$\\[10pt] 
+ \multicolumn{2}{|c}{\multirow{4}{*}{\underline{Priors}} } & \multirow{4}{*}{$\rho \sim Beta(1,1)$} &  $\bmmu_k \sim MVN(0,10^2\times\bmI_{D_Z}),\, k=0,1$ & $\bmnu \sim MVN(0,\bmI_{D_U})$ \\%[5pt] 
+ &&& $\Sigma \sim InvWish(\bmI_{D_Z},D_Z+1)$ & $\bmgamma \sim MVN(0,\bmI_{D_V})$\\%[5pt]
+ &&& $\bmbeta \sim N(0,10^2\times\bmI_{D_X})$ & $\bmomega \sim MVN(0,\bmI_{D_W})$\\%[5pt]
+ &&& $\sigma^2 \sim U(0,10)$ & \\[5pt]
+ \hline
+\end{tabular}
+\caption{Model Summary. $D_X$ is the length of vector $\bmX$ and $\bmI_{D_X}$ is the identity matrix with dimension $D_X$.}
+\end{center}
+\end{table}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+{
+\renewcommand{\arraystretch}{1.25}
+\begin{table}
+\begin{center}
+\begin{tabular}{|ccccc|}
+\hline
+\multicolumn{2}{|c}{ } & \underline{Cancer State} & \underline{PSA} & \underline{Biopsy} \\ [10pt]
+\multirow{2}{*}{\underline{Data}} & Outcome & $\eta_i$ & $\bmY_i$ & ($B_{ij}$, $R_{ij}$, $S_{ij}$}), $j=1,\dots,J_i $\\%[5pt]
+ & Covariates & & $\bmX_i, \bmZ_i$ & ($\bmW^B_{ij}$}, $\bmW^R_{ij}$, $\bmW^S_{ij}$}), $j=1,\dots,J_i $ \\[10pt]
+ \multicolumn{2}{|c}{\multirow{3}{*}{\underline{Model}} } &  \multirow{3}{*}{$\eta_i \sim Bern(\rho)$} & $\bmb_i|\eta_i=k \, \sim MVN(\bmmu_{k},\Sigma)$ & $B_{ij}|\eta_i=k \, \sim Bern\big(P(B_{ij}=1| \bmW^B_{ij},k,\bmgamma^B)\big)$} \\%[5pt] 
+ & & & $\bmY_i \sim MVN(\bmX_i\bmbeta + \bmZ_i\bmb_i, \sigma^2\bmI_{M_i} )$ & $R_{ij}|\eta_i=k \, \sim Bern\big(P(R_{ij}=1| \bmW^R_{ij},k,\bmgamma^R)\big)$\\
+ &&&& $S_{ij}|\eta_i=k \, \sim Bern\big(P(S_{ij}=1| \bmW^S_{ij},k,\bmgamma^S) \big)$}\\[10pt] 
+ \multicolumn{2}{|c}{\multirow{4}{*}{\underline{Priors}} } & \multirow{4}{*}{$\rho \sim Beta(1,1)$} &  $\bmmu_k \sim MVN(0,10^2\times\bmI_{D_Z}),\, k=0,1$ & $\bmgamma^B \sim MVN(0,\bmI_{D_W^B})$} \\%[5pt] 
+ &&& $\Sigma \sim InvWish(\bmI_{D_Z},D_Z+1)$ & $\bmgamma^R \sim MVN(0,\bmI_{D_W^R})$\\%[5pt]
+ &&& $\bmbeta \sim N(0,\bmI_{D_X})$ & $\bmgamma^S \sim MVN(0,\bmI_{D_W^S})$}\\%[5pt]
+ &&& $\sigma^2 \sim U(0,10)$ & \\[5pt]
+ \hline
+\end{tabular}
+\caption{Model Summary (Informative Observation Process additions are shaded}) }
+\end{center}
+\end{table}
+}
+
+
+
+
+{
+\renewcommand{\arraystretch}{1.25}
+\begin{table}
+\begin{center}
+\begin{tabular}{|ccccc|}
+\hline
+\multicolumn{2}{|c}{ } & \underline{Cancer State} & \underline{PSA} & \underline{Biopsy} \\ [10pt]
+\multirow{2}{*}{\underline{Data}} & Outcome & $\eta_i$ & $\bmY_i$ & $R_{ij}, j=1,\dots,J_i $\\%[5pt]
+ & Covariates & & $\bmX_i, \bmZ_i$ & $\bmW_{ij}, j=1,\dots,J_i $ \\[10pt]
+ \multicolumn{2}{|c}{\multirow{2}{*}{\underline{Model}} } &  \multirow{2}{*}{$\eta_i \sim Bern(\rho)$} & $\bmb_i|\eta_i=k \, \sim MVN(\bmmu_{k},\Sigma)$ & \multirow{2}{*}{$R_{ij}|\eta_i=k \, \sim Bern\big(P(R_{ij}=1| \bmW_{ij},k,\bmgamma)\big)$} \\%[5pt] 
+ & & & $\bmY_i \sim MVN(\bmX_i\bmbeta + \bmZ_i\bmb_i, \sigma^2\bmI_{M_i} )$ & \\[10pt] 
+ \multicolumn{2}{|c}{\multirow{4}{*}{\underline{Priors}} } & \multirow{4}{*}{$\rho \sim Beta(1,1)$} &  $\bmmu_k \sim MVN(0,10^2\times\bmI_{D_Z}),\, k=0,1$ & \multirow{4}{*}{$\gamma \sim MVN(0,\bmI_{D_W})$} \\%[5pt] 
+ &&& $\Sigma \sim InvWish(\bmI_{D_Z},D_Z+1)$ & \\%[5pt]
+ &&& $\bmbeta \sim N(0,\bmI_{D_X})$ & \\%[5pt]
+ &&& $\sigma^2 \sim U(0,10)$ & \\[5pt]
+ \hline
+\end{tabular}
+\caption{Model Summary (Assuming MAR)}
+\end{center}
+\end{table}
+}
+
+
+{
+\renewcommand{\arraystretch}{1.25}
+\begin{table}
+\begin{center}
+\begin{tabular}{|ccccc|}
+\hline
+\multicolumn{2}{|c}{ } & \underline{Cancer State} & \underline{PSA} & \underline{Biopsy} \\ [10pt]
+\multirow{2}{*}{\underline{Data}} & Outcome & $\eta_i$ & $\bmY_i$ & $(B_{ij}, R_{ij}, S_{ij}), j=1,\dots,J_i $\\%[5pt]
+ & Covariates & & $\bmX_i, \bmZ_i$ & $(\bmW^B_{ij}, \bmW^R_{ij}, \bmW^S_{ij}), j=1,\dots,J_i $ \\[10pt]
+ \multicolumn{2}{|c}{\multirow{3}{*}{\underline{Model}} } &  \multirow{3}{*}{$\eta_i \sim Bern(\rho)$} & $\bmb_i|\eta_i=k \, \sim MVN(\bmmu_{k},\Sigma)$ & $B_{ij}|\eta_i=k \, \sim Bern\big(P(B_{ij}=1| \bmW^B_{ij},k,\bmgamma^B)\big)$ \\%[5pt] 
+ & & & $\bmY_i \sim MVN(\bmX_i\bmbeta + \bmZ_i\bmb_i, \sigma^2\bmI_{M_i} )$ & $R_{ij}|\eta_i=k \, \sim Bern\big(P(R_{ij}=1| \bmW^R_{ij},k,\bmgamma^R)\big)$\\
+ &&&& $S_{ij}|\eta_i=k \, \sim Bern\big(P(S_{ij}=1| \bmW^S_{ij},k,\bmgamma^S) \big)$\\[10pt] 
+ \multicolumn{2}{|c}{\multirow{4}{*}{\underline{Priors}} } & \multirow{4}{*}{$\rho \sim Beta(1,1)$} &  $\bmmu_k \sim MVN(0,10^2\times\bmI_{D_Z}),\, k=0,1$ & $\bmgamma^B \sim MVN(0,\bmI_{D_W^B})$ \\%[5pt] 
+ &&& $\Sigma \sim InvWish(\bmI_{D_Z},D_Z+1)$ & $\bmgamma^R \sim MVN(0,\bmI_{D_W^R})$\\%[5pt]
+ &&& $\bmbeta \sim N(0,\bmI_{D_X})$ & $\bmgamma^S \sim MVN(0,\bmI_{D_W^S})$\\%[5pt]
+ &&& $\sigma^2 \sim U(0,10)$ & \\[5pt]
+ \hline
+\end{tabular}
+\caption{Model Summary (Assuming MNAR) }
+\end{center}
+\end{table}
+}

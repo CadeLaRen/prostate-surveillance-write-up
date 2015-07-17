@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2014)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: prediction-model-paper.aux
+The style file: plain.bst
+Database file #1: /Users/ryc/Dropbox/inhealth/inhealth-bib.bib
+Warning--can't use both volume and number fields in Bishop2006
+You've used 40 entries,
+            2118 wiz_defined-function locations,
+            768 strings with 13659 characters,
+and the built_in function-call counts, 16066 in all, are:
+= -- 1526
+> -- 1011
+< -- 8
++ -- 400
+- -- 358
+* -- 1269
+:= -- 2733
+add.period$ -- 122
+call.type$ -- 40
+change.case$ -- 291
+chr.to.int$ -- 0
+cite$ -- 41
+duplicate$ -- 492
+empty$ -- 1053
+format.name$ -- 358
+if$ -- 3248
+int.to.chr$ -- 0
+int.to.str$ -- 40
+missing$ -- 43
+newline$ -- 204
+num.names$ -- 80
+pop$ -- 278
+preamble$ -- 1
+purify$ -- 256
+quote$ -- 0
+skip$ -- 363
+stack$ -- 0
+substring$ -- 981
+swap$ -- 100
+text.length$ -- 8
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 150
+warning$ -- 1
+while$ -- 133
+width$ -- 42
+write$ -- 436
+(There was 1 warning)
