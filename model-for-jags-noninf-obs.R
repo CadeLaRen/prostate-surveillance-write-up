@@ -31,7 +31,7 @@ sigma_int <- sigma[1]
 sigma_slope <- sigma[2] 
 
 rho_int_slope <- Sigma_B_raw[1, 2]/sqrt(Sigma_B_raw[1, 1] * Sigma_B_raw[2, 2])
-cov_int_slope <- rho_int_slope*sigma_int*sigma_slope
+cov_int_slope <- rho_int_slope*sigma_int*sigma_slope * xi[1] * xi[2] #again, take into account scaling (xi) when saving the covariance  
 
 
 ##residual variance, independent of correlated random effects, same across classes
