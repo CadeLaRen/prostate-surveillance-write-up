@@ -4,19 +4,7 @@
 # setwd("/Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo")
 # setwd("/home/bst/student/afisher/inHealth_prostate")
 
-# cd /home/bst/student/afisher/inHealth_prostate
-# qsub -N fullJAGS -V -l mf=5G,h_vmem=5G -cwd -b y R CMD BATCH --no-save call-jags-inf-obs.R
 
-# qsub -N leaveOutJAGS -t 215-1000 -V -l mf=5G,h_vmem=5G -cwd -b y R CMD BATCH --no-save call-jags-inf-obs.R
-# rm leaveOutJAGS.e*
-# rm leaveOutJAGS.o*
-
-
-#import environment variable, used for running multiple chains in parallel
-(SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
-if(is.na(SEED)) SEED <- 0
-
-star <- SEED
 
 # !! When you do the importance sampling comparison for *new data* for person with existing data, don't just do last PSA, go back to last biopsy, and treat all data from that day on (including the biopsy) as "newly acquired" data.
 # !! Use age field (not age.std) to separate newly acquired from previously acquired data.
@@ -183,44 +171,20 @@ inits <- function(){
 params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "gamma.BX", "gamma.RC", "gamma.RRP", "p_bx", "p_rc", "p_rrp")  #you may not need to monitor p_bx, p_rc, and p_rrp. taking them out of the list should improve computing time a bit
 
 # MCMC settings
-#ni <- 100; nb <- 20; nt <- 5; nc <- 1
-#ni <- 1000; nb <- 20; nt <- 5; nc <- 1
-ni <- 50000; nb <- 25000; nt <- 20; nc <- 1
-#note, I am needing fewer sampling iterations here because I've solved mixing problems
+#ni, nb, nt, and nc are now set in separate files.
 
 source("model-for-jags-inf-obs.R")
 
-do.one<-function(seed, return_R_obj=FALSE, save_output=TRUE){
+do.one<-function(seed){
 	set.seed(seed)	
 	outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="model-for-jags-inf-obs.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
 
-	out<-outj$BUGSoutput
-
-	if(save_output){
-		for(j in 1:length(out$sims.list)){
-		write.csv(out$sims.list[[j]], paste("jags-prediction-inf-obs-", names(out$sims.list)[j],"-",seed,".csv",sep=""))}
-	}
-
-	if(return_R_obj) return(out)
-}
-
-if(FALSE){
-do.one(seed=SEED)
+	return(outj$BUGSoutput)
 }
 
 
-if(TRUE){
-	cat('',file=paste0('leaveOneOut/',Sys.Date(),'_JAGS_started_star_',star,'.txt'))
-	out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
-	len.sim<-length(out$sims.list$p_eta)
-	saveRDS(out,file=paste0('leaveOneOut/',Sys.Date(),'_posterior_full_inf-obs_nsim-',len.sim,'.rds'))
-	str(out$sims.list)
-	summary(out$sims.list$mu_slope)
 
-	# screen -r 17
-}
-
-
+outJAGS <- do.one(seed=SEED) #final output of this script
 
 
 
