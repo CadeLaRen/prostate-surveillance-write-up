@@ -5,7 +5,7 @@ rm(list=ls())
 
 #import environment variable, used for running multiple chains in parallel
 (SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
-if(is.na(SEED)) SEED<-4
+if(is.na(SEED)) SEED<-5
 
 
 #load necessary packages
@@ -19,7 +19,7 @@ library("plyr")
 
 #exclude this subject from JAGS model fit
 	# if set to zero, or "blank", no subjects will be excluded
-star <- 0 
+star <- 0
 
 #get data
 psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
@@ -29,7 +29,7 @@ psa.data <- filter(psa.data.full, subj != star)#this has data on psa observation
 
 ##this data is already ordered
 
-pt.data.full<-read.csv("simulation-data/pt-data-sim.csv") 
+pt.data.full<-read.csv("simulation-data/pt-data-sim.csv")
 #pt.data<-pt.data.full
 pt.data<-filter(pt.data.full, id != star) #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
 (n<-dim(pt.data)[1]) #1000
@@ -41,7 +41,7 @@ data.use.full <- read.csv("simulation-data/bx-data-sim.csv")
 data.use <- filter(data.use.full, subj !=star)#biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
 	
 
-##this data is now part of pt. data 
+##this data is now part of pt. data
 
 #eta.data.full<-read.csv("simulation-data/eta-data-sim.csv") #this dataset has all the observed gleason scores (from surgery) and NA for those without surgery. data is ordered based on value (0,1,NA) and the order corresponds to the "subj" variable in all the other data sets
 #eta.data<-eta.data.full[ eta.data.full[,1] != star,2] #gets all people if star=0 or 'none'
@@ -68,7 +68,7 @@ subj_psa<-psa.data$subj #unique id that corresponds to the vector eta.data and w
 
 
 #covariates with random effects
-Z.data<-as.matrix(cbind(rep(1,n_obs_psa), psa.data$age.std)) 
+Z.data<-as.matrix(cbind(rep(1,n_obs_psa), psa.data$age.std))
 
 #this is the design matrix for the random effects
 #age.std is standardized age, i.e., centered at mean of all ages for PSA observations and divided by the sd of those ages
@@ -79,7 +79,7 @@ round(apply(Z.data,2,summary),2) #this is just here to check that I defined thin
 
 
 #covariates with only fixed effects
-X.data<-as.matrix(cbind(psa.data$std.vol)) 
+X.data<-as.matrix(cbind(psa.data$std.vol))
 (d.X<-dim(X.data)[2])
 summary(X.data)
 
@@ -94,7 +94,7 @@ RC<-as.numeric(rc.data$rc)
 subj_rc<-data.use$subj
 
 #covariates influencing risk of reclassification
-W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)    
+W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)   
 (d.W.RC<-dim(W.RC.data)[2])
 round(apply(W.RC.data,2,summary),2)
 
@@ -138,7 +138,7 @@ jags_data<-list(K=K,
 	RC=RC,
 	subj_rc=subj_rc_consecutive,#!! new
 	W.RC=W.RC.data,
-	d.W.RC=d.W.RC) 
+	d.W.RC=d.W.RC)
 
 
 #initialize model
@@ -161,19 +161,19 @@ beta<-rnorm(d.X)
 
 gamma.RC<-rnorm((d.W.RC+1),mean=0,sd=0.1)
 
-list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, gamma.RC=gamma.RC) } 
+list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, gamma.RC=gamma.RC) }
 
 
 # parameters to track
-params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "gamma.RC") 
+params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "gamma.RC")
 
 # MCMC settings
-#ni <- 250; nb <- 50; nt <- 5; nc <- 1 
+#ni <- 250; nb <- 50; nt <- 5; nc <- 1
 #ni <- 25000; nb <- 5000; nt <- 20; nc <- 1 #mixing usually good by here
 ni <- 100000; nb <- 50000; nt <- 20; nc <- 1
 
 
-source("model-for-jags-noninf-obs.R") 
+source("model-for-jags-noninf-obs.R")
 
 
 #seed<-SEED
