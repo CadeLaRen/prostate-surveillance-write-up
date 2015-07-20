@@ -34,24 +34,26 @@ library("dplyr")
 
 #Adjust numbering so max(subj label) is 999, not 1000.
 #This way, subject numbers don't exceed the dimension of b.vec.
-closeAround <- function(x){
+closeAround <- function(x,star){
 	out<-x
-	switch <- x>star
-	out[switch] <- x[switch]-1
+	if(star>0){
+		switch <- x>star
+		out[switch] <- x[switch]-1
+	}
 	return(out)
 }
-dropStar <- function(x){
+dropStar <- function(x,star){
 	filter(x, !subj==star) %>%
-	mutate(subj = closeAround(subj) )
+	mutate(subj = closeAround(subj,star=star) )
 }
 
 #get data
 psa.data<-read.csv("simulation-data/psa-data-sim.csv") %>%
-	dropStar
+	dropStar(.,star=star)
 pt.data<-read.csv("simulation-data/pt-data-sim.csv") %>%
-	dropStar
+	dropStar(.,star=star)
 data.use<-read.csv("simulation-data/bx-data-sim.csv") %>%
-	dropStar
+	dropStar(.,star=star)
 #this contains one record per annual interval for each patient until surgery or censoring
 
 
