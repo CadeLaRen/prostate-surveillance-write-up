@@ -120,15 +120,12 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	for(oo_ind in 1:P){ #index for oo
 		p <- (r-1)*P+oo_ind #index along the extended particles we're creating.
 
-		cov_for_bvec[[p]] <- diag(c(oo$sigma_int[oo_ind]^2,oo$sigma_slope[oo_ind]^2,oo$sigma_spline[oo_ind]^2))
-		cov_for_bvec[[p]][1,2]<-
-		cov_for_bvec[[p]][2,1]<-oo$cov_int_slope[oo_ind]
-		cov_for_bvec[[p]][1,3]<-
-		cov_for_bvec[[p]][3,1]<-oo$cov_int_spline[oo_ind]
-		cov_for_bvec[[p]][2,3]<-
-		cov_for_bvec[[p]][3,2]<-oo$cov_slope_spline[oo_ind]
-		b.vec.star[p,]<-mvrnorm(1,mu=mu[p,,eta[p]+1], Sigma=cov_for_bvec[[p]])
-			#note, eta[i] is *not* nessecarily the same as eta[i+P] due to random draws.
+		cov_for_bvec_p <- diag(c(oo$sigma_int[oo_ind]^2,oo$sigma_slope[oo_ind]^2))
+		cov_for_bvec_p[1,2]<-
+		cov_for_bvec_p[2,1]<-oo$cov_int_slope[oo_ind]
+		b.vec.star[p,]<-mvrnorm(1,mu=mu[p,,eta[p]+1], Sigma=cov_for_bvec_p)
+			#note, eta[i] is *not* nessecarily the same as eta[i+n_post] due to random draws.
+
 
 		if(talk) setTxtProgressBar(pb_sim,p)
 	}}})) #~ 2 min for nreps=50, P=25000
