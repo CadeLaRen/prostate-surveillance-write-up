@@ -184,7 +184,6 @@ do.one<-function(seed){
 
 
 
-outJAGS <- do.one(seed=SEED) #final output of this script
 
 
 

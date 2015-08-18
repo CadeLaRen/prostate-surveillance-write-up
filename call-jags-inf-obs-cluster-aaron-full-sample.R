@@ -21,7 +21,8 @@ ni <- 50000; nb <- 25000; nt <- 20; nc <- 1
 
 cat('',file=paste0('batches/1/',Sys.Date(),'_JAGS_started_SEED_',SEED,'_star_',star,'.txt'))
 
-source('call-jags-inf-obs.R') #returns object `outJAGS`
+source('call-jags-inf-obs.R') #returns function `do.one`
+outJAGS <- do.one(seed=SEED) #final output of this script
 
 len.sim<-length(outJAGS$sims.list$p_eta)
 saveRDS(outJAGS,file=paste0('batches/1/',Sys.Date(),'_posterior_inf-obs_SEED-',SEED,'_star-',star,'_nsim-',len.sim,'.rds'))
