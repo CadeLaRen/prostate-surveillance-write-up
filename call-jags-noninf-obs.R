@@ -3,9 +3,6 @@ rm(list=ls())
 # setwd("/Users/ryc/GitHub/prostate_surveillance")
 
 
-#import environment variable, used for running multiple chains in parallel
-(SEED<-as.numeric(Sys.getenv("SGE_TASK_ID")))
-if(is.na(SEED)) SEED<-5
 
 
 #load necessary packages
@@ -172,12 +169,7 @@ inits <- function(){
 params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "gamma.RC")
 
 # MCMC settings
-#ni <- 250; nb <- 50; nt <- 5; nc <- 1
-#ni <- 25000; nb <- 5000; nt <- 20; nc <- 1 #mixing usually good by here
-ni <- 50000; nb <- 25000; nt <- 20; nc <- 1
-
-
-
+#ni, nb, nt, and nc are now set in separate files.
 
 
 do.one<-function(seed){
@@ -186,3 +178,13 @@ do.one<-function(seed){
 
 	return(outj$BUGSoutput)
 }
+
+
+
+
+
+
+
+
+
+
