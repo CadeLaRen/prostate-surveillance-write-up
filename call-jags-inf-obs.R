@@ -20,29 +20,23 @@ library("splines")
 library("dplyr")
 
 
-#Adjust numbering so max(subj label) is 999, not 1000.
-#This way, subject numbers don't exceed the dimension of b.vec.
-closeAround <- function(x,star){
-	out<-x
-	if(star>0){
-		switch <- x>star
-		out[switch] <- x[switch]-1
-	}
-	return(out)
-}
-dropStar <- function(x,star){
-	filter(x, !subj==star) %>%
-	mutate(subj = closeAround(subj,star=star) )
-}
-
 #get data
-psa.data<-read.csv("simulation-data/psa-data-sim.csv") %>%
-	dropStar(.,star=star)
-pt.data<-read.csv("simulation-data/pt-data-sim.csv") %>%
-	dropStar(.,star=star)
-data.use<-read.csv("simulation-data/bx-data-sim.csv") %>%
-	dropStar(.,star=star)
+pt.data<-read.csv("simulation-data/pt-data-sim.csv")
+psa.data.all<-read.csv("simulation-data/psa-data-sim.csv")
+data.use.all<-read.csv("simulation-data/bx-data-sim.csv")
 #this contains one record per annual interval for each patient until surgery or censoring
+#data frames with '.all' suffix will be cropped in some cases to for "leave one out" JAGS fits.
+
+#Crop out data for "leave-one-out" model fits.
+data.use.star<- filter(data.use.all, subj==star)
+bx.inds <- which(data.use.star$bx.here==1)
+last.bx.ind <- bx.inds[length(bx.inds)-1] #Take all data since the 2nd to last biopsy as "new data."
+last.age <- data.use.star$age[last.bx.ind]
+
+
+if(!crop | length(last.age)==0 ) last.age <- 0 #there could be some PSA measurements before you're enrolled in this biopsy study.
+psa.data <- filter(psa.data.all, !(subj==star & age>=last.age))
+data.use <- filter(data.use.all, !(subj==star & age>=last.age))
 
 
 
@@ -60,7 +54,8 @@ get.ns.basis<-function(obs.data,knots){
 
 #Before call to JAGS, get the data into simple matrices and vectors to send to JAGS
 
-(n<-dim(pt.data)[1]) #1000 with full data, 999 leaving one out
+(n<-dim(pt.data)[1]) #there are 1000 patients
+#This matrix will always be fully intact, but psa and bx data may not be.
 
 #get observed latent class
 eta.data<-pt.data$obs.eta
