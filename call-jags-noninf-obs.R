@@ -4,46 +4,58 @@ rm(list=ls())
 
 
 
+# !! When you do the importance sampling comparison for *new data* for person with existing data, don't just do last PSA, go back to last biopsy, and treat all data from that day on (including the biopsy) as "newly acquired" data.
+# !! Use age field (not age.std) to separate newly acquired from previously acquired data.
+# Make a plot of "new patient" and plot of "new data on existing patient".
+# Run on actual data eventually.
+
 
 #load necessary packages
-#library("splines")
 library("lme4")
 library("bayesm")
 library("R2jags")
+library("splines")
 library("dplyr")
-library("plyr")
 
-
-#exclude this subject from JAGS model fit
-	# if set to zero, or "blank", no subjects will be excluded
-star <- 0
 
 #get data
-psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
-#psa.data<-psa.data.full
-psa.data <- filter(psa.data.full, subj != star)#this has data on psa observations for all the individuals in the analysis. there is one record per test. data includes unique pt id, date of test, total PSA
+pt.data<-read.csv("simulation-data/pt-data-sim.csv")
+psa.data.all<-read.csv("simulation-data/psa-data-sim.csv")
+data.use.all<-read.csv("simulation-data/bx-data-sim.csv")
+#this contains one record per annual interval for each patient until surgery or censoring
+#data frames with '.all' suffix will be cropped in some cases to for "leave one out" JAGS fits.
+
+#Crop out data for "leave-one-out" model fits.
+data.use.star<- filter(data.use.all, subj==star)
+bx.inds <- which(data.use.star$bx.here==1)
+last.bx.ind <- bx.inds[length(bx.inds)-1] #Take all data since the 2nd to last biopsy as "new data."
+last.age <- data.use.star$age[last.bx.ind]
 
 
-##this data is already ordered
+if(!crop | length(last.age)==0 ) last.age <- 0 #there could be some PSA measurements before you're enrolled in this biopsy study.
+psa.data <- filter(psa.data.all, !(subj==star & age>=last.age))
+data.use <- filter(data.use.all, !(subj==star & age>=last.age))
 
-pt.data.full<-read.csv("simulation-data/pt-data-sim.csv")
-#pt.data<-pt.data.full
-pt.data<-filter(pt.data.full, id != star) #this is a dataset that has one record per person. variables include unique pt id, diagnosis date, and if any reclassification is observed. data set is ordered following eta.data (below)
-(n<-dim(pt.data)[1]) #1000
 
-##this biopsy data also contains information for predicting biopsies and surgery
 
-data.use.full <- read.csv("simulation-data/bx-data-sim.csv")
-#data.use<-data.use.full
-data.use <- filter(data.use.full, subj !=star)#biopsy data, one record per person per post-dx biopsy, includes pt id, time of biopsy, results
-	
+#function to get natrual spline basis
+get.ns.basis<-function(obs.data,knots){
+#	knots<-quantile(obs.data,p=c(0.25,0.5,0.75))
+	od.k1<- obs.data-knots[1]
+	od.k1[od.k1<0]<-0
+	od.k2<- obs.data-knots[2]
+	od.k2[od.k2<0]<-0
+	od.k3<- obs.data-knots[3]
+	od.k3[od.k3<0]<-0
+	return(as.vector((od.k1^3 - od.k3^3)/(knots[3]-knots[1]) - (od.k2^3 - od.k3^3)/(knots[3]-knots[2])))}
 
-##this data is now part of pt. data
 
-#eta.data.full<-read.csv("simulation-data/eta-data-sim.csv") #this dataset has all the observed gleason scores (from surgery) and NA for those without surgery. data is ordered based on value (0,1,NA) and the order corresponds to the "subj" variable in all the other data sets
-#eta.data<-eta.data.full[ eta.data.full[,1] != star,2] #gets all people if star=0 or 'none'
-#(n_eta_known<-sum(!is.na(eta.data)))
+#Before call to JAGS, get the data into simple matrices and vectors to send to JAGS
 
+(n<-dim(pt.data)[1]) #there are 1000 patients
+#This matrix will always be fully intact, but psa and bx data may not be.
+
+#get observed latent class
 eta.data<-pt.data$obs.eta
 table(eta.data) #107 in each
 (n_eta_known<-sum(!is.na(eta.data))) #214
