@@ -42,7 +42,7 @@ for(index in 1:d.X){
 	beta[index] ~ dnorm(0,0.01)}
 
 
-###PRIORS FOR OUTCOME MODEL
+###PRIORS FOR OUTCOME MODEL & BIOPSY DATA
 #Add 1 because last element in gamma is coefficients for class membership eta=1
 for(index in 1:(d.W.RC+1)){gamma.RC[index] ~ dnorm(0,0.01)}
 
