@@ -1,6 +1,8 @@
-rm(list=ls())
-# setwd("/Users/ryc/Dropbox/inhealth/prediction-model")
-# setwd("/Users/ryc/GitHub/prostate_surveillance")
+#rm(list=ls())
+#setwd("/Users/ryc/Dropbox/inhealth/prediction-model-final/sim-data")
+#setwd("/Users/ryc/GitHub/prostate_surveillance")
+# setwd("/Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo")
+# setwd("/home/bst/student/afisher/inHealth_prostate")
 
 
 
@@ -61,20 +63,12 @@ table(eta.data) #107 in each
 (n_eta_known<-sum(!is.na(eta.data))) #214
 
 
-#Before call to JAGS, get the data into simple matrices and vectors to send to JAGS
-
-#latent class model
-#no regression model here
 
 #PSA model
 (n_obs_psa<-dim(psa.data)[1])
-	#this is the number of PSA observations we have, so it is >>number subjects
-	#I will loop through all 1:n_obs_psa observations in the JAGS code
-
 Y<-psa.data$log.psa
 summary(Y)
-subj_psa<-psa.data$subj #unique id that corresponds to the vector eta.data and will be used to index the random effects
-
+subj_psa<-psa.data$subj
 
 #covariates with random effects
 Z.data<-as.matrix(cbind(rep(1,n_obs_psa), psa.data$age.std))
@@ -87,6 +81,20 @@ X.data<-as.matrix(cbind(psa.data$std.vol))
 summary(X.data)
 
 
+###bx data
+
+#observation model
+bx.data<-data.use[!is.na(data.use$bx.here),] #remove patients who have already had RC observed but haven't had surgery or been censored
+(n_bx<-dim(bx.data)[1])
+BX<-as.numeric(bx.data$bx.here) #indicator of bx
+subj_bx<-bx.data$subj
+
+
+W.BX.data<-as.matrix(cbind(rep(1,n_bx), bx.data$age.std, bx.data$age.ns, ns(bx.data$time,4), bx.data$num.prev.bx, ns(bx.data$sec.time.std,4)  ))
+(d.W.BX<-dim(W.BX.data)[2]) #12
+round(apply(W.BX.data,2,summary),2)
+
+
 
 #outcome model (logistic regression for reclassification)
 rc.data<-data.use[data.use$bx.here==1 & !is.na(data.use$bx.here),] #only use records where a biopsy occurred
@@ -95,51 +103,36 @@ RC<-as.numeric(rc.data$rc)
 subj_rc<-rc.data$subj
 
 #covariates influencing risk of reclassification
-W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)   
+W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std ))
 (d.W.RC<-dim(W.RC.data)[2])
-round(apply(W.RC.data,2,summary),2)
+round(apply(W.RC.data,2,summary) ,2)
+
+
+
+#logistic regression for RRP
+#this uses all records, because patients always at risk of choosing surgery
+RRP<-as.numeric(data.use$rrp)
+(n_rrp<-dim(data.use)[1])
+subj_rrp<-data.use$subj
+
+
+W.RRP.data<-as.matrix(cbind(rep(1,n_rrp), data.use$age.std, data.use$age.ns, ns(data.use$time,4), ns(data.use$sec.time.std,3) , data.use$num.prev.bx.rrp, data.use$prev.G7)) #
+(d.W.RRP<-dim(W.RRP.data)[2])
+round(apply(W.RRP.data,2,summary) ,2)
 
 
 ##get starting values, other functions necessary for call to JAGS
 
-
 #lmer fit for initializing parameters
 #do this to get the starting value for a variance paramter in JAGS
 mod.lmer<-lmer(log.psa~ std.vol + (1+ age.std |id), data=psa.data)
-(var_vec <- apply(coef(mod.lmer)$id, 2, var)[1:d.Z]) #not sure why these aren't printed in the right order...
-(var_vec<- c(var_vec[2], var_vec[1])) #fixing order
+(var_vec <- apply(coef(mod.lmer)$id, 2, var)[1:d.Z])
+(var_vec <- c(var_vec[2], var_vec[1]))
 
 #bundle data for call to JAGS
 #this is observed data and constant variables that have already been assigned values (e.g. number of class K=2, number of subjects n, etc.)
 K<-2
-
-relabel_consecutive<-function(x){
-	fx<-as.factor(x)
-	rlfx<-mapvalues(fx,
-		from=levels(fx),
-		to=1:length(levels(fx)))
-	as.numeric(rlfx)
-}
-subj_psa_consecutive <- relabel_consecutive(subj_psa)
-subj_rc_consecutive <- relabel_consecutive(subj_rc)
-
-jags_data<-list(K=K,
-	n=n,
-	eta.data=eta.data,
-	n_eta_known=n_eta_known,
-	n_obs_psa=n_obs_psa,
-	Y=Y,
-	subj_psa=subj_psa_consecutive, #!! new
-	Z=Z.data,
-	X=X.data,
-	d.Z=d.Z,
-	d.X=d.X,
-	I_d.Z=diag(d.Z),
-	n_rc=n_rc,
-	RC=RC,
-	subj_rc=subj_rc_consecutive,#!! new
-	W.RC=W.RC.data,
-	d.W.RC=d.W.RC)
+jags_data<-list(K=K, n=n, eta.data=eta.data, n_eta_known=n_eta_known, n_obs_psa=n_obs_psa, Y=Y, subj_psa=subj_psa, Z=Z.data, X=X.data, d.Z=d.Z, d.X=d.X, I_d.Z=diag(d.Z), BX=BX, n_bx=n_bx, subj_bx=subj_bx, W.BX=W.BX.data, d.W.BX=d.W.BX, RC=RC, n_rc=n_rc, subj_rc=subj_rc, W.RC=W.RC.data, d.W.RC=d.W.RC, RRP=RRP, n_rrp=n_rrp, subj_rrp=subj_rrp, W.RRP=W.RRP.data, d.W.RRP=d.W.RRP)
 
 
 #initialize model
@@ -170,7 +163,7 @@ inits <- function(){
 
 
 # parameters to track
-params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "gamma.RC")
+params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "gamma.BX", "gamma.RC", "gamma.RRP", "p_bx", "p_rc", "p_rrp")  #you may not need to monitor p_bx, p_rc, and p_rrp. taking them out of the list should improve computing time a bit
 
 # MCMC settings
 #ni, nb, nt, and nc are now set in separate files.
