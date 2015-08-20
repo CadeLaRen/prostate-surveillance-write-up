@@ -170,30 +170,15 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 # MCMC settings
 #ni <- 250; nb <- 50; nt <- 5; nc <- 1
 #ni <- 25000; nb <- 5000; nt <- 20; nc <- 1 #mixing usually good by here
-ni <- 100000; nb <- 50000; nt <- 20; nc <- 1
+ni <- 50000; nb <- 25000; nt <- 20; nc <- 1
 
 
 
 
-#seed<-SEED
 
+do.one<-function(seed){
+	set.seed(seed)	
+	outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="model-for-jags-inf-obs.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
 
-do.one<-function(seed,return_R_obj=FALSE, save_output=TRUE){
-set.seed(seed)	
-outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="model-for-jags-noninf-obs.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
-
-out<-outj$BUGSoutput
-
-if(save_output){
-	for(j in 1:length(out$sims.list)){
-		write.csv(out$sims.list[[j]], paste("jags-prediction-",names(out$sims.list)[j],"-",seed,".csv",sep=""))}}
-
-if(return_R_obj) return(out)
+	return(outj$BUGSoutput)
 }
-
-do.one(seed=SEED)
-#out<-do.one(seed=SEED,return_R_obj=TRUE, save_output=FALSE)
-#saveRDS(out,file='posterior_full_100k.rds')
-# str(out$sims.list)
-# summary(out$sims.list$mu_int)
-
