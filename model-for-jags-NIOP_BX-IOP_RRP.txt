@@ -1,9 +1,6 @@
 model {
 
 
-# Note - to get model without informative observation of biopsies or surgery,
-# remove sections of this code tagged with IOP_BX and IOP_RRP
-	# (If so, also remove this note)
 
 
 
@@ -52,7 +49,6 @@ for(index in 1:d.X){
 ###PRIORS FOR OUTCOME MODEL & BIOPSY DATA
 #Add 1 because last element in gamma is coefficients for class membership eta=1
 for(index in 1:(d.W.RC+1)){gamma.RC[index] ~ dnorm(0,0.01)}
-for(index in 1:(d.W.BX+1)){gamma.BX[index] ~ dnorm(0,0.01)} #IOP_BX
 for(index in 1:(d.W.RRP+2)){gamma.RRP[index] ~ dnorm(0,0.01)} #+2 because includes an interaction; IOP_RRP
 
 
@@ -88,11 +84,6 @@ for(j in 1:n_rc){
 	RC[j] ~ dbern(p_rc[j])
 }
 
-#logistic regression for biopsy (prob of observation) (IOP_BX)
-for(j in 1:n_bx){
-	logit(p_bx[j]) <-inprod(gamma.BX[1:d.W.BX], W.BX[j,1:d.W.BX]) + gamma.BX[(d.W.BX+1)]*equals(eta[subj_bx[j]],2)  
-	BX[j] ~ dbern(p_bx[j]) 
-}
 
 #logistic regression for surgery (IOP_RRP)
 for(j in 1:n_rrp){
