@@ -173,7 +173,6 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 # MCMC settings
 #ni, nb, nt, and nc are now set in separate files.
 
-source("model-for-jags-inf-obs.R")
 
 do.one<-function(seed){
 	set.seed(seed)	

@@ -173,7 +173,6 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 ni <- 100000; nb <- 50000; nt <- 20; nc <- 1
 
 
-source("model-for-jags-noninf-obs.R")
 
 
 #seed<-SEED
