@@ -3,6 +3,7 @@ model {
 ###PRIORS FOR LATENT CLASS MODEL
 
 #flat prior on probability of latent class membership for all subjects
+#(rho in pdf)
 p_eta ~ dbeta(1,1)
 
 
@@ -28,8 +29,8 @@ for (index in 1:d.Z){
 sigma_int <- sigma[1] # again, this is to track elements of the cov matrix with easier labels
 sigma_slope <- sigma[2] 
 
-rho_int_slope <- Sigma_B_raw[1,2]/sqrt(Sigma_B_raw[1,1] * Sigma_B_raw[2,2])
-cov_int_slope<- rho_int_slope * sigma_int * sigma_slope * xi[1] * xi[2] #again, take into account scaling (xi) when saving the covariance  
+rho_int_slope <- Sigma_B_raw[1,2] / sqrt(Sigma_B_raw[1,1] * Sigma_B_raw[2,2])
+cov_int_slope <- rho_int_slope * sigma_int * sigma_slope * xi[1] * xi[2] #again, take into account scaling (xi) when saving the covariance  
 
 
 ##residual variance, independent of correlated random effects, same across classes
@@ -61,6 +62,7 @@ for(i in (n_eta_known+1):n){
 
 ##linear mixed effects model for PSA 
 #generate random intercept and slope for individual given latent class
+#in pdf, B_raw is b_i with a 'u' shape on top. (Official term??)
 for (i in 1:n) {
 	B_raw[i,1:d.Z] ~ dmnorm(mu_raw[1:d.Z,eta[i]], Tau_B_raw[1:d.Z, 1:d.Z])
 	for(index in 1:d.Z){b.vec[i,index] <- xi[index]*B_raw[i,index]} }
@@ -73,20 +75,23 @@ for(j in 1:n_obs_psa){
 
 ##all biopsy data
 
-#logistic regression for biopsy (prob of observation)
-for(j in 1:n_bx){
-	logit(p_bx[j]) <-inprod(gamma.BX[1:d.W.BX], W.BX[j,1:d.W.BX]) + gamma.BX[(d.W.BX+1)]*equals(eta[subj_bx[j]],2)  
-	BX[j] ~ dbern(p_bx[j]) }
-
 #logistic regression for reclassification 	
 for(j in 1:n_rc){
 	logit(p_rc[j]) <-inprod(gamma.RC[1:d.W.RC], W.RC[j,1:d.W.RC]) + gamma.RC[(d.W.RC+1)]*equals(eta[subj_rc[j]],2) 
-	RC[j] ~ dbern(p_rc[j]) }
+	RC[j] ~ dbern(p_rc[j])
+}
+
+#logistic regression for biopsy (prob of observation)
+for(j in 1:n_bx){
+	logit(p_bx[j]) <-inprod(gamma.BX[1:d.W.BX], W.BX[j,1:d.W.BX]) + gamma.BX[(d.W.BX+1)]*equals(eta[subj_bx[j]],2)  
+	BX[j] ~ dbern(p_bx[j]) 
+}
 
 #logistic regression for surgery 	
 for(j in 1:n_rrp){
 	logit(p_rrp[j]) <-inprod(gamma.RRP[1:d.W.RRP], W.RRP[j,1:d.W.RRP]) + gamma.RRP[(d.W.RRP+1)]*equals(eta[subj_rrp[j]],2)  + gamma.RRP[(d.W.RRP+2)]*equals(eta[subj_rrp[j]],2)*W.RRP[j,d.W.RRP]  
-	RRP[j] ~ dbern(p_rrp[j]) }
+	RRP[j] ~ dbern(p_rrp[j])
+}
 
 	
- }
+}
