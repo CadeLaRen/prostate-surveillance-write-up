@@ -43,7 +43,7 @@ for(index in 1:d.X){
 
 
 ###PRIORS FOR OUTCOME MODEL
-#last element in gamma is coefficient for class membership eta=1
+#Add 1 because last element in gamma is coefficients for class membership eta=1
 for(index in 1:(d.W.RC+1)){gamma.RC[index] ~ dnorm(0,0.01)}
 
 
