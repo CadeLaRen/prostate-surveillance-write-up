@@ -210,10 +210,9 @@ if(crop){ #if `crop`, save subj-specific posterior for subj star. Otherwise do n
 outJAGS2$sims.list <- outJAGS2_sl
 
 
-len.sim<-length(outJAGS2$sims.list$p_eta)
 str(outJAGS2$sims.list)
 
-saveRDS(outJAGS2,file=paste0('_posterior_SEED-',SEED,'_star-',star,'_crop-',crop,'_nsim-',len.sim,'.rds'))
+saveRDS(outJAGS2,file=paste0('posterior_SEED-',SEED,'_star-',star,'_crop-',crop,'.rds'))
 
 
 
