@@ -1,0 +1,214 @@
+rm(list=ls())
+setwd("/Users/ryc/GitHub/prostate_surveillance")
+library("lme4")#
+library("bayesm")#
+library("R2jags")#
+library("dplyr")#
+library("plyr")
+star <- 0
+psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
+pt.data.full<-read.csv("simulation-data/pt-data-sim.csv")
+data.use.full <- read.csv("simulation-data/bx-data-sim.csv")
+head(data.use.full)
+data.use.full$eta
+names(pt.data)
+names(pt.data.full)
+c(1:n)[obs.eta==0 & !is.na(obs.eta)]
+as.numeric(obs.eta==0 & !is.na(obs.eta))[c(1:n)]
+c(1:n)[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)]
+c(1:n)[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)]
+table(pt.data.full$pbs.eta)
+table(pt.data.full$obs.eta)
+pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)
+c(1:n)*as.numeric(pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta))
+c(1:1000)[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)]
+as.numeric(pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)) [c(1:1000)]
+pt.data.full$subj[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)]
+cbind(pt.data.full$idpt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)],pt.data.full$subj[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)])
+cbind(pt.data.full$id[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)],pt.data.full$subj[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)])
+cbind(pt.data.full$id[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)],pt.data.full$subj[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)], colnames=c("id","subj"))
+cbind(pt.data.full$id[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)],pt.data.full$subj[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)])
+pt.data.full$id[1:20]
+pt.data.full$subj[pt.data.full$obs.eta==0 & !is.na(pt.data.full$obs.eta)]
+pt.data.full$subj[pt.data.full$obs.eta==1 & !is.na(pt.data.full$obs.eta)]
+rm(list=ls())#
+#
+##load packages#
+library(survival, timeROC, Bolstad2)#
+library(glmnet)#
+#
+set.seed(1)#
+#
+source("/Users/ryc/Documents/dream-challenge/score.R")#
+##get data#
+load('~/Documents/dream-challenge/final-submission/DatCleaned_withNA.RData')#
+#
+test.data.RPT<-Dat.nonPredictor$RPT[grep("validation",Dat.nonPredictor$SetIndex)]#
+n.test<-length(test.data.RPT)#
+#
+train.time<-as.numeric(Dat.nonPredictor$LKADT_P[-grep("AZ",Dat.nonPredictor$RPT)])#
+train.event<-as.numeric(Dat.nonPredictor$DEATH[-grep("AZ",Dat.nonPredictor$RPT)]=="YES")#
+cv.groups<-Dat.nonPredictor$cvIndex[-grep("AZ",Dat.nonPredictor$RPT)]#
+n<-1600#
+#
+events<-read.csv("~/Documents/dream-challenge/final-submission/time-specific-event-data.csv")#
+events.mat<-as.matrix(events[,2:26])#
+#
+ipcw<-read.csv("~/Documents/dream-challenge/final-submission/time-specific-icp-weights.csv")#
+ipcw.mat<-as.matrix(ipcw[,2:26])
+imp<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/CensorImputedRegressions.RData')#
+train.imp1<-OutOfSamplePrediction$pred.1#
+train.imp2<-OutOfSamplePrediction$pred.2#
+train.imp3<-OutOfSamplePrediction$pred.3#
+train.imp4<-OutOfSamplePrediction$pred.4#
+train.imp5<-OutOfSamplePrediction$pred.5#
+#
+test.imp1<-ScoreSetPrediction[,"pred.1"]#
+test.imp2<-ScoreSetPrediction[,"pred.2"]#
+test.imp3<-ScoreSetPrediction[,"pred.3"]#
+test.imp4<-ScoreSetPrediction[,"pred.4"]#
+test.imp5<-ScoreSetPrediction[,"pred.5"]#
+#coxboosting#
+cox.boost<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/coxboosting.RData')#
+train.cox.boost<-pred.train.coxboosting#
+test.cox.boost<-pred.test.coxboosting#
+#coxgam#
+coxgam<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/coxgam.RData')#
+train.cox.gam<-pred.train.gam#
+test.cox.gam<-pred.test.gam#
+#
+#coxgbm#
+coxgbm<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/coxgbm.RData')#
+train.cox.gbm<-pred.train.gbm#
+test.cox.gbm<-pred.test.gbm
+cox.lasso<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/coxphlasso.RData')
+str(cox.lasso)
+train.cox.lasso<-pred.for.train#
+test.cox.lasso<-pred.for.test
+summary(train.cox.lasso)
+summary(test.cox.lasso)
+score_q1a(time=train.time, death=train.event, riskScoreGlobal=train.cox.lasso)
+#ipcl2boosting#
+ipc.l2<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/IPCl2boosting.RData')#
+train.ipc.l2<-pred.train.ipcl2#
+test.ipc.l2<-pred.test.ipcl2#
+#
+#ipcl2huber#
+ipc.huber<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/IPCl2Huber.RData')#
+train.ipc.huber<-pred.train.IPCl2Huber#
+test.ipc.huber<-pred.test.IPCl2Huber#
+#
+#ipctree#
+ipc.linear<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/IPClinear.RData')#
+train.ipc.linear<-pred.train.ipclinear#
+test.ipc.linear<-pred.test.ipclinear#
+#
+#ipctree#
+ipc.tree<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/IPCtree.RData')#
+train.ipc.tree<-pred.train.ipctree#
+test.ipc.tree<-pred.test.ipctree#
+#
+#mcp#
+mcp<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/mcp-predictions.RData')#
+train.mpc<-mcp.train.predictions#
+test.mpc<-mcp.test.predictions#
+#
+#random forest#
+train.rf<-matrix(nrow=n, ncol=5)#
+test.rf<-matrix(nrow=n.test, ncol=5)#
+for(k in 1:5){#
+	rf<-load(paste("~/Documents/dream-challenge/final-submission/predictions-for-superlearner/random_forest/random_forest_global_score_imputed_",k,".RData",sep=""))#
+	for(g in 1:10){train.rf[cv.groups==g,k]<-random_forest_cv_prediction[[g]]$RISK}#
+	test.rf[,k]<-random_forest_validation_prediction$RISK}#
+train.rf<-apply(train.rf,1,mean)#
+test.rf<-apply(test.rf,1,mean)#
+#
+#scad#
+scad<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/scad-predictions.RData')#
+train.scad<-scad.train.predictions#
+test.scad<-scad.test.predictions#
+#
+#super pc#
+super.pc<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/super-pc-predictions.RData')#
+train.super.pc<-super.pc.train.predictions#
+test.super.pc<-super.pc.test.predictions#
+##month-specific predictions based on binary data and ipcw#
+#binary-gbm#
+train.binary.gbm<-matrix(nrow=n, ncol=25)#
+test.binary.gbm<-matrix(nrow=n.test, ncol=25)#
+for(j in 1:25){#
+	bin.gbm<-load(paste("~/Documents/dream-challenge/final-submission/predictions-for-superlearner/binary-gbm-predictions/binary-gbm-predictions-",j,".RData",sep=""))#
+	train.binary.gbm[,j]<-gbm.train.predictions#
+	test.binary.gbm[,j]<-gbm.test.predictions}#
+#best is j=24#
+#binary-plr#
+train.binary.plr<-matrix(nrow=n, ncol=25)#
+test.binary.plr<-matrix(nrow=n.test, ncol=25)#
+for(j in 1:25){#
+	bin.plr<-load(paste("~/Documents/dream-challenge/final-submission/predictions-for-superlearner/binary-plr-predictions/binary-plr-predictions-",j,".RData",sep=""))#
+	train.binary.plr[,j]<-plr.train.predictions#
+	test.binary.plr[,j]<-plr.test.predictions}#
+#best is j=24
+nnet<-load('~/Documents/dream-challenge/final-submission/predictions-for-superlearner/NNET_month_spec.RData')#
+train.nnet<-pred.train.nnet#
+test.nnet<-pred.test.nnet
+apply(train.nnet,2,summary)
+apply(test.nnet,2,summary)
+for(j in 1:25){#
+	print(timeROC(T=train.time, delta=train.event, marker=train.nnet[,j], cause=1, times=(j+5)*30.5, ROC=FALSE)$AUC[2])}
+lambdas<-seq(0.05,0.1,0.01)#
+(nt<-length(lambdas))
+combos<-expand.grid(c(2:6),c(2:6))
+str(clusters)
+clusters<-load('~/Documents/dream-challenge/final-submission/clusters.Rdata')
+str(clusters)
+dim(cls.array)
+nc
+nc<-dim(combos)[1]
+combos
+nm
+cls.train<-cls.array[-grep("AZ",Dat.nonPredictor$RPT),,]
+dim(cls.train)
+cls.test<-cls.array[grep("validation",Dat.nonPredictor$SetIndex),,]
+dim(cls.test)
+dim(events.mat)
+combos[j,1]
+j
+table(cls.train[,j,1])
+?glmnet
+train.data<-as.matrix(cbind(train.super.pc, train.binary.plr[,m]))
+m<-1
+train.data<-as.matrix(cbind(train.super.pc, train.binary.plr[,m]))
+names(train.data)<-
+names(train.data)
+colnames(train.data)
+combos<-rbind(c(1,1),combos)
+(nc<-dim(combos)[1])
+combos<-expand.grid(c(2:6),c(2:6))
+combos<-rbind(combos,c(1,1))
+(nc<-dim(combos)[1])
+m<-g<-j<-1
+events <- events.mat[,m]#
+	ipcw <- ipcw.mat[,m]
+num.cls<-combos[j,1]
+if(num.cls>1){cluster.vec<-(cls.train[,j,k]+1)}#
+else{cluster.vec<-rep(1,n)}
+if(num.cls>1){cluster.vec<-(cls.train[,j,k]+1)}#
+else{cluster.vec<-rep(1,n)}
+if(num.cls>1){cluster.vec<-(cls.train[,j,k]+1)}#
+else{cluster.vec<-rep(1,n)}
+train.data<-as.matrix(cbind(train.super.pc, train.binary.plr[,m]))
+colnames(train.data)<-c("super.pc","binary.plr")
+if(numcls>1){risk.scores<-matrix(nrow=n, ncol=5) } #different model for each clustering method#
+			else{risk.scores<-vector(length=n)}
+num.cls<-combos[j,1]
+if(num.cls>1){cluster.vec<-(cls.train[,j,k]+1)}
+num.cls
+train.data<-as.matrix(cbind(train.super.pc, train.binary.plr[,m]))#
+colnames(train.data)<-c("super.pc","binary.plr")
+if(num.cls>1){risk.scores<-matrix(nrow=n, ncol=5) } #different model for each clustering method#
+			else{risk.scores<-vector(length=n)}
+if(num.cls>1){risk.scores<-matrix(nrow=n, ncol=5) } #different model for each clustering method#
+if(num.cls==1){risk.scores<-vector(length=n)}
+inc<-as.numeric(!is.na(events) & !cv.groups==g & cluster.vec==cls)
+cls<-1
