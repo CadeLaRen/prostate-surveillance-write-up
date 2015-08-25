@@ -1,4 +1,4 @@
-\documentclass[12pt, letterpaper]{article}
+\documentclass[letterpaper]{article}
 %\setlength{\parindent}{0in}
 \setlength{\textheight}{8.9in}
 \setlength{\textwidth}{6.8in}
@@ -45,17 +45,8 @@
 \newcommand{\bmI}{\mathbf{I}}
 \newcommand{\bmTheta}{\boldsymbol{\Theta}}
 
+ 
 
-\newcommand{\bea}{\begin{eqnarray}} 
-\newcommand{\eea}{\end{eqnarray}} 
-\newcommand{\beas}{\begin{eqnarray*}} 
-\newcommand{\eeas}{\end{eqnarray*}} 
-\newcommand{\benum}{\begin{enumerate}} 
-\newcommand{\eenum}{\end{enumerate}} 
-\newcommand{\bd}{\begin{description}}
-\newcommand{\ed}{\end{description}}
-\newcommand{\bi}{\begin{itemize}}
-\newcommand{\ei}{\end{itemize}}
 
 \newcommand{\mydots}{...}
 
@@ -74,19 +65,24 @@
 \newcommand{\tcp}[1]{\textcolor{mypurple}{#1}}
 \newcommand{\tcbk}[1]{\textcolor{black}{#1}}
 
+
+
+
+
 \begin{document}
 
-\begin{center}
-\large Technical Report: Fast Updating for Bayesian Joint Hierarchical Model for Prediction of Latent Health States\\
-R Yates Coley,  Aaron J Fisher,  Scott L Zeger\\
-August 24, 2015\\
-\end{center}
+\title{Technical Report: Fast Updating for Bayesian Joint Hierarchical Model for Prediction of Latent Health States}
+\author{ Aaron J Fisher, R Yates Coley, Scott L Zeger}
+\date{\today}
 
-\begin{center}
-\textbf{Abstract}
+\maketitle
 
-This technical report presents an importance sampling algorithm for rapidly obtaining updated individualized predictions for the Bayesian joint model proposed in Coley at al. (2015). Algorithm details are given and performance is assessed. Data and code are available at \texttt{http://github.com/rycoley/XXX}.
-\end{center}
+
+\section*{Abstract}
+This technical report presents an importance sampling algorithm for rapidly obtaining updated individualized predictions for the Bayesian joint model proposed in Coley at al. (2015). Algorithm details are given and performance is assessed. Data and code are available at \url{http://github.com/rycoley/XXX}.
+
+\smallskip{}
+
 
 
 \section{Introduction}
@@ -104,37 +100,37 @@ In this section, we briefly summarize the joint model proposed in Coley et al. (
 Let $\eta_i$ indicate the true cancer state for individual $i$, $i=1,\dots,n$, defined using the the Gleason score \cite{Gleason1977, Gleason1992} that would be assigned if his entire prostate were to be removed and pathologic analysis performed: $\eta_i=0$ if Gleason $\leq$ 6 or \textit{indolent} and $\eta_i=1$ if Gleason $\geq$ 7 or \textit{aggressive}. True cancer state then follows a Bernoulli distribution-- $\eta_i\sim Bernoulli(\rho)$-- where we assume here, for simplicity, a shared underlying probability of aggressive cancer, $\rho$. This true cancer state is observed in a subset of patients who choose to have their prostate surgically removed; as such, $\eta_i$ is a partially latent variable.
 
 Next, define the following mixed effects model \cite{Laird1982} for an individual's PSA over time where mean effects for predictors are allowed to vary across groups defined by the partially latent true cancer state:
-\beas
+\begin{eqnarray*}
 \big[\, Y_{im} | \eta_i=k, \bmX_{im}, \bmZ_{im}\,\big] = \bmX_{im}\bmbeta + \bmZ_{im}\bmb_i + \epsilon_{im}
-\eeas
+\end{eqnarray*}
 where $Y_{im}$ is the observed (log-transformed) PSA, $\bmX_{im}$ and $\bmZ_{im}$ are vectors of covariates for individual $i$'s $m$th PSA measurement, $\bmbeta$ is a parameter vector for fixed effects, and $\bmb_i$ is the patient-specific vector of random effects. Following the specification of a Bayesian mixed effects model presented by Gelman and Hill (2006)\nocite{Gelman2006}, unscaled random effects are centered at the mean effects for each latent class $k$, $\bmmu_k$:
-\beas
+\begin{eqnarray*}
 \big[\check{\bmb_i} | \eta_i=k\big] \sim MVN ( \bmmu_k, \Sigma_k), \quad k=0,1 
-\eeas
+\end{eqnarray*}
 where $\Sigma_k$ is a covariance matrix that allows for correlation between random effects. Random effects are then scaled with parameter vector $\bmxi$: $\bmb_i = diag(\check{\bmb_i}\bmxi^T)$. Lastly, residuals $\epsilon_{im}$ are assumed to follow a normal distribution with mean 0 and variance $\sigma^2$.
 
 Finally, let $(B_{ij}, R_{ij})$ denote binary variables for individual $i$ in annual interval $j$ indicating, respectively, whether a biopsy was performed and, when it was, if \textit{reclassification} was observed, i.e. a determination of Gleason $\geq$ 7 made. $(B_{ij}, R_{ij})$ is defined for $j=1,\dots, J_i$ where $J_i$ is the time of reclassification or censoring for patient $i$. For each time interval with a biopsy, $B_{ij}=1$, we use logistic regression to model its result conditional on true cancer state:
-\bea
+\begin{eqnarray}
 \label{eq:p_rc}
 P(R_{ij}=1 | B_{ij}=1, \eta_i=k, \bmV_{ij}, \bmgamma) = \text{logit}^{-1}\big( \bmV_{ij}(k)\bmgamma \big)
-\eea
+\end{eqnarray}
 where $\bmV_{ij}(k)$ is a matrix of time-varying predictors including $\eta_i$ and $\bmgamma$ is a parameter vector. 
 
 We then define the joint probability of the parameters given data and unobserved latent variables: 
-\bea
+\begin{eqnarray}
 &&L\Big(\rho, \bmbeta, (\bmmu_k, \Sigma_k), \bmgamma\, | \,\big( \eta_i, (\bmY_i, \bmb_i, \underline{\bmX_i}, \underline{\bmZ_i}), (\mathbf{B}_{i}, \mathbf{R}_{i}, \underline{\bmV_{i}}) \big), i=1,\mydots,n \Big) \nonumber \\
 && \quad =  \prod_{i=1}^{n}  \,  \rho^{\eta_i}\,(1-\rho)^{1-\eta_i}\, f(\bmY_i | \eta_i, \underline{\bmX_i}, \underline{\bmZ_i}, \bmb_i, \bmbeta, \sigma^2) \, g(\bmb_i |  \bmmu_{\eta_i}, \Sigma_{\eta_i})  \nonumber \\
 \label{eq:lik-inf}
 && \qquad \qquad \prod_{j=1}^{J_i}  \big(P(R_{ij}=1 | \eta_i, \bmV_{ij}, \bmgamma) ^{R_{ij}} P(R_{ij}=0 | \eta_i, \bmV_{ij}, \bmgamma)^{1-R_{ij}} \big)^{B_{ij}} 
-\eea
+\end{eqnarray}
 where $f$ and $g$ are multivariate normal densities for the vector of log-transformed PSAs $\bmY_i$, and random effects $\bmb_i$, respectively, each with mean and covariance as defined above, given covariance matrices $\underline{\bmX_i} = [X_{i1},\dots, X_{iM_i}]$ and $\underline{\bmZ_i} = [Z_{i1},\dots, Z_{iM_i}]$. $\mathbf{B}_{i}, \mathbf{R}_{i}$ represent vectors for biopsy and reclassification for individual $i$ with associated covariance matrix $\underline{\bmV_{i}}$.
 
 Bayesian methods are used to identify posteriors for model parameters and latent variables. Discussion of prior specification can be found in Coley et al. (2015). After specifying priors for all model parameters, the join posterior distribution of the parameter and latent variables is:
-\bea
+\begin{eqnarray}
 && p\Big(\rho, \bmbeta, (\bmmu_k,\Sigma_k), \bmgamma, (\eta_i,\bmb_i) \,| \, \big( (\bmY_i, \underline{\bmX_i}, \underline{\bmZ_i}), (\mathbf{B}_{i}, \mathbf{R}_{i}, \underline{\bmV_{i}}) \big); \bmTheta\Big) \nonumber\\
 \label{eq:post-inf}
 &&\qquad  \propto L\Big(\rho,  \bmbeta, (\bmmu_k, \Sigma_k), \bmgamma \, | \,\big(\eta_i, (\bmY_i, \bmb_i, \underline{\bmX_i}, \underline{\bmZ_i},(\mathbf{B}_{i}, \mathbf{R}_{i}, \underline{\bmV_{i}})\big) \Big) \times \bmpi\big(\rho,\bmbeta, (\bmmu_k, \Sigma_k),\bmgamma |\bmTheta\big)
-\eea
+\end{eqnarray}
 where $\bmpi(\cdot|\bmTheta)$ denotes the joint prior density for model parameters with hyperparameters $\bmTheta$ with indexing on $i,\,j,$ and $k$ suppressed for clarity in presentation.
 
 
@@ -206,7 +202,7 @@ The proposed importance sampling approach still requires the periodic use of MCM
 
 
 \bibliographystyle{plain}
-\bibliography{/Users/ryc/Dropbox/inhealth/inhealth-bib}
+\bibliography{inhealth-bib}
 
 
 \end{document}
