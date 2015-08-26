@@ -391,7 +391,7 @@ for(star in missing_etas){
 	setTxtProgressBar(pb, star)
 }
 
-# save.image(file='checkpoint_IS_fit.RData')
+save.image(file='checkpoint_IS_fit.RData')
 # load('checkpoint_IS_fit.RData')
 
 

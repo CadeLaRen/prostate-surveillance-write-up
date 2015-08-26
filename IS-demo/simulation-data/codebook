@@ -1,0 +1,34 @@
+
+1yr interavls
+You don't have biopsies after you reclassify. Of course, you can't reclassify twice either.
+rc - did you reclassify in this year. This is only ever 1 once. 
+num.prev.bx always starts at one because
+Is it alwasy consistent that everyone starts with 1 biopsy
+You're all the time at risk for RRP, once you have it you're not in the study.
+
+
+sec.time (calendar time, relatative a certain date)
+	because practices change over time
+time (in 1 years intervals since diagnosis, relative to patient)
+age.ns - age natural spline - get intercept (1), slope ( coeff for age), and curvature (age.ns). This is similar to a cubic spline term
+rm - internal use bookkeeping (don't pay attention too). Was used in building the data, but is not used in analysis.
+bx.here - NA is when you've already reclassified but they haven't done anything about it yet, so we still monitor for rrp surgery. They could also be doing other therapies like radiation, as long as it's not surgery. 2 years max of NA. If you have more than that, people are dropped. Nobody who had surgery had it more than 2 years later anyway.
+prev.G7 - have you reclassified before. This is one the first year you reclassify, and 1 every year after. This means that the reclassification influenced their decision to get surgery (so it's in our model for surgery, and just for surgery).
+num.prev.bx - how many biopsies before this interval (because that's our predictor for if you get a biopsy in this interval) (used in bx model, but not in RC model because this would autocorrelate with eta which is already in the model)
+	Only things that could be *causal* with RC are included in model, not stuff that correlates (like # prev bx, but not psa. It's similar to the idea of conditional independence.).
+num.prev.bx.rrp - # biopsies up to and including this time interval, because biopsies in this interval are predictive of rrp in this interval (used in rrp model)
+eta is the unknown truth.
+subj - the unique ID to use - these are ordered by their status (whether they had eta observed or not)
+id - for internal use id. This is a chronological in terms of when they were acquired.
+
+
+
+
+
+
+
+
+
+
+
+
