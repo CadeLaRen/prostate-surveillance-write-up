@@ -122,12 +122,12 @@
 \begin_body
 
 \begin_layout Title
-Technical Report: Fast Updating for Bayesian Joint Hierarchical Model for
- Prediction of Latent Health States
+Fast Predictions for Bayesian Hierarchical Models of Latent Health States
+ (Technical Report)
 \end_layout
 
 \begin_layout Author
- Aaron J Fisher, R Yates Coley, Scott L Zeger
+Aaron J Fisher, R Yates Coley, Scott L Zeger
 \end_layout
 
 \begin_layout Date
@@ -151,29 +151,21 @@ Abstract
 \end_layout
 
 \begin_layout Standard
-This technical report presents an importance sampling algorithm for rapidly
- obtaining updated individualized predictions for the Bayesian joint model
- proposed in 
+This technical report discusses the use of importance sampling in precision
+ medicine settings, to obtain fast, in-clinic risk estimates for out-of-sample
+ patients with new data.
+ We apply importance sampling to the heirarchical model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "coley2015prostateSurvaillence"
 
 \end_inset
 
-.
- Algorithm details are given and performance is assessed.
- Data and code are available at 
-\begin_inset Flex Flex:URL
-status collapsed
-
-\begin_layout Plain Layout
-
-http://github.com/rycoley/XXX
-\end_layout
-
-\end_inset
-
-.
+ for predicting risk of aggressive prostate cancer.
+ Estimates can be obtained in 2-5 seconds per person, and have high agreement
+ with estimates coming from longer-running Markov Chain Monte Carlo (MCMC)
+ methods.
+ Alternative options for online updating of the model are also discussed.
 \end_layout
 
 \begin_layout Standard
@@ -232,6 +224,7 @@ key "coley2015prostateSurvaillence"
 \end_inset
 
  to get fast risk estimates for new, simulated patients.
+ Here, the procedure only takes approximately 2-5 seconds per patient.
  This approach can be combined with periodic refitting of the entire model
  via MCMC, in order to update estimates of the population-level parameters
  
@@ -289,7 +282,7 @@ Online, or streaming, model fitting has been explored in the literature
  on topic modeling for corpuses of texts.
  Text corpuses are often too large to fit an entire model on at once, making
  online fitting a more feasible option.
- For example, 
+ 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "hoffman2010online_variational_bayes_LDA_text_analysis"
@@ -308,11 +301,248 @@ key "hoffman2010online_variational_bayes_LDA_text_analysis"
  be easily ported to other applications within precision medicine.
 \end_layout
 
-\begin_layout Section
-Introduction
+\begin_layout Standard
+Some proposed alternatives for online updates include fixed lag updating
+ methods 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "polson2008practical"
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Polish these citations up.
+ Need to read.
+\end_layout
+
+\end_inset
+
+, and augementation of the static parameters 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "kitagawa1998self"
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Polish these citations up.
+ Need to read.
+\end_layout
+
+\end_inset
+
+.
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Canini2009"
+
+\end_inset
+
+ propose a particle filter approach, in a context where the static parameters
+ can be integrated out.
+ See 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "kantas2014particle"
+
+\end_inset
+
+ for a recent literature review of online methods.
 \end_layout
 
 \begin_layout Standard
+The remainder of this document is organized as follows.
+ In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Clinical-Application-&"
+
+\end_inset
+
+ we give a clinical overview of our motivating data example of prostate
+ cancer risk estimation.
+ In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Importance-Sampling-Algorithm"
+
+\end_inset
+
+ we detail the general approach for applying IS in heirarchical models.
+ We use an abbreviated notation that can be readily generalized to other
+ precision medicine settings.
+ In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Simulation"
+
+\end_inset
+
+ we apply IS to simulated data, and compare the results to risk estimates
+ obtained from MCMC.
+\end_layout
+
+\begin_layout Section
+Clinical Application & Motivation
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Clinical-Application-&"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Our application is based on the clinical framework of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "coley2015prostateSurvaillence"
+
+\end_inset
+
+, who develop a latent class model to predict whether a patient's prostate
+ cancer is indolent or aggressive.
+ This latent cancer state can be interpreted as corresponding to the Gleason
+ score 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Gleason1977,Gleason1992"
+
+\end_inset
+
+ that would be assigned to the patient if his entire prostate were to be
+ removed and a pathologic analysis was performed.
+ Gleason scores 
+\begin_inset Formula $<6$
+\end_inset
+
+ are classified as indolent, and Gleason scores 
+\begin_inset Formula $\geq7$
+\end_inset
+
+ are classified as aggressive.
+ Latent state predictions can be used by clinicians to decide whether further
+ biopsies are nessecary.
+ This is an important issue within precision medicine, as unneeded biopsies
+ have side effects of...
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+I'm not sure!!?? Incontinence? Yates!!! Help!!!
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset citation
+LatexCommand citet
+key "coley2015prostateSurvaillence"
+
+\end_inset
+
+ derive a hierarchical model, which includes submodels for longitudinal
+ prostate specific antigen (PSA) measurements, and for longitudinal biopsy
+ results.
+ Both of these submodels incorporate information about the patients latent
+ state.
+ The (log-transformed) PSA measurements are modeled as multivariate normal,
+ with a mean defined by a linear predictor that includes subject-specific
+ random effects.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+right? see Yates' part for more info on this
+\end_layout
+
+\end_inset
+
+ Biopsy results are coded as binary outcomes, denoting whether the clinician
+ reclassified the patient's cancer as aggressive.
+ The log-odds of reclassification is also modeled with a linear predictor
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Is there a better way to describe this general glm form?
+\end_layout
+
+\end_inset
+
+.
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Patients are modeled to have the same latent class throughout their participatio
+n in the study.
+ As the study progresses, clinicians reclassify patients with the goal of
+ better aligning all patients with their true latent status.
+\end_layout
+
+\end_inset
+
+ The final version of the hierarchical model in 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "coley2015prostateSurvaillence"
+
+\end_inset
+
+ also includes submodels for informative observation processes associated
+ with biopsies and surgeries.
+ As a first step though, we look here only at the model version that treats
+ the data as missing at random.
+\end_layout
+
+\begin_layout Standard
+In this context, the subject-level variables refer to the latent classes,
+ and the random effects used in the submodel for PSA.
+ The population-level parameters refer to the coefficients in each submodel,
+ and the variance parameters for the subject-level variables.
+ See 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "coley2015prostateSurvaillence"
+
+\end_inset
+
+ for a full model description.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Add footnote briefly listing subj level and pop level parameters, without
+ further explanation?
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
 \begin_inset CommandInset citation
 LatexCommand citet
 key "coley2015prostateSurvaillence"
@@ -347,7 +577,7 @@ key "Little2014"
  and patients to inform decision making.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 For this prediction model to be most useful in a clinical setting, however,
  it is necessary to be able to update posterior estimates quickly to incorporate
  new biopsy or PSA results during a patient's visit.
@@ -366,7 +596,7 @@ key "Bishop2006"
  new data on an existing patient in a matter of seconds.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Many options exist for performing online updating of Bayesian models.
  We chose to use an importance sampling approach because...
  
@@ -379,7 +609,7 @@ key "Geweke1989"
 .
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 In this this technical report, we first provide an overview of the latent
  class prediction model before detailing the importance sampling algorithm
  we have developed for enabling real-time updates.
@@ -388,11 +618,20 @@ In this this technical report, we first provide an overview of the latent
  Finally, we close with a discussion of future research.
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
 \begin_layout Section
 Bayesian Joint Hierarchical Latent Class Model
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 In this section, we briefly summarize the joint model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -418,7 +657,7 @@ key "coley2015prostateSurvaillence"
 .
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Let 
 \begin_inset Formula $\eta_{i}$
 \end_inset
@@ -431,7 +670,7 @@ Let
 \begin_inset Formula $i=1,\dots,n$
 \end_inset
 
-, defined using the the Gleason score 
+, defined using the Gleason score 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Gleason1977,Gleason1992"
@@ -482,7 +721,7 @@ aggressive
  is a partially latent variable.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Next, define the following mixed effects model 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -579,7 +818,7 @@ where
 .
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Finally, let 
 \begin_inset Formula $(B_{ij},R_{ij})$
 \end_inset
@@ -648,7 +887,7 @@ where
  is a parameter vector.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 We then define the joint probability of the parameters given data and unobserved
  latent variables: 
 \begin_inset Formula 
@@ -702,7 +941,7 @@ where
 .
 \end_layout
 
-\begin_layout Standard
+\begin_layout Plain Layout
 Bayesian methods are used to identify posteriors for model parameters and
  latent variables.
  Discussion of prior specification can be found in 
@@ -743,22 +982,33 @@ where
  suppressed for clarity in presentation.
 \end_layout
 
-\begin_layout Section
-Importance Sampling Algorithm for Fast Prediction Updates
+\end_inset
+
+
 \end_layout
 
-\begin_layout Standard
-Next, we detail an importance sampling algorithm that enables rapid updates
- of joint latent class model predictions.
- To simplify presentation, we abbreviate notation for the joint posterior
- given above in Equation 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:post-inf"
+\begin_layout Section
+Importance Sampling Algorithm for Fast Prediction Updates
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Importance-Sampling-Algorithm"
 
 \end_inset
 
-: 
+
+\end_layout
+
+\begin_layout Standard
+In this section we detail an importance sampling algorithm that enables
+ rapid updates of joint latent class model predictions.
+ This method is meant to be applied to out-of-sample data, after MCMC has
+ been applied to get a posterior sample based on all current training data.
+ We present the algorithm in a simple, abbreviated notation that is applicable
+ in many clinical settings.
+\end_layout
+
+\begin_layout Standard
+Let the joint posterior of interest be 
 \begin_inset Formula 
 \begin{equation}
 p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\theta)]\pi(\theta)\label{eq:posterior_n}
@@ -770,7 +1020,8 @@ where
 \begin_inset Formula $y_{i}$
 \end_inset
 
- is the vector of clinical measurements (PSA and biopsy) for patient 
+ is the vector of clinical measurements (here, PSA and biopsy measurements)
+ for patient 
 \begin_inset Formula $i$
 \end_inset
 
@@ -786,8 +1037,8 @@ where
 \begin_inset Formula $b_{i}$
 \end_inset
 
- is a vector of latent variables (latent class and random effects) for patient
- 
+ is a vector of latent variables (here, latent class and random effects)
+ for patient 
 \begin_inset Formula $i$
 \end_inset
 
@@ -819,15 +1070,8 @@ where
 \begin_inset Formula $g$
 \end_inset
 
- are multivariate distributions coming from the model likelihood in Equation
- 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:lik-inf"
-
-\end_inset
-
-.
+ are multivariate distributions, which will depend on the application and
+ context.
 \end_layout
 
 \begin_layout Standard
@@ -837,7 +1081,7 @@ After posterior samples from the joint model are obtained for current data,
  updated, second, calculating weights for proposed values, and, third, weighting
  proposed values to estimate an updated posterior.
  We first illustrate how this process can be used to quickly estimate latent
- variables for a new patient before showing how similar calculations can
+ variables for a new patient, and then show how similar calculations can
  be done to incorporate newly measured data on existing patients in real-time.
 \end_layout
 
@@ -890,14 +1134,7 @@ q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})
 \end_layout
 
 \begin_layout Standard
-This approach is analogous to a one-step particle filter 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "Bishop2006"
-
-\end_inset
-
- and, practically, consists of taking 
+Practically, this step consists of taking 
 \begin_inset Formula $J$
 \end_inset
 
@@ -1102,45 +1339,76 @@ We then proceed as above to get a re-weighted posterior for the latent variables
 
 \begin_layout Standard
 For implementation in clinical practice, proposals for new patients can
- be re-generated prior to actually observing new data, so that only weight
+ be generated prior to actually observing new data, so that only weight
  calculating and re-weighting of the proposal distribution needs to be done
  in real-time.
  Then, predictions for each patient can be obtained in a matter of seconds.
- By random chance, some patients will have data such that very few of the
- pre-generated proposed latent values will receive high weights; this can
- cause instability in posterior means.
- However, such scenarios can be detected by monitoring the effective size
- of the posterior sample, also known as the effective number of particles.
+\end_layout
+
+\begin_layout Standard
+In cases when the 
+\begin_inset Formula $J$
+\end_inset
+
+ is small, some patients may have data such that very few of the pre-generated
+ proposed latent values will receive high weights.
+ This can cause instability in posterior means.
+ Such scenarios can may be expected to occur due to random chance, but can
+ also be detected by monitoring the effective size of the posterior sample,
+ also known as the effective number of particles.
  When this number drops below a pre-specified threshold (e.g., 500), the procedure
  can be repeated with a larger set of pre-generated proposals.
+ In our simulations below though, 
+\begin_inset Formula $J$
+\end_inset
+
+ is sufficiently large such that each patient's risk is estimated with a
+ relatively large effective sample size.
 \end_layout
 
 \begin_layout Section
-Application
+Simulation 
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Simulation"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 We assessed performance of the proposed importance sampling approach in
  a simulated dataset.
- We compared the posterior probability of latent class membership (specifically,
  
-\begin_inset Formula $P(\eta_{i}=1)$
+\end_layout
+
+\begin_layout Subsection
+Simulation setup
+\end_layout
+
+\begin_layout Standard
+Details about simulation process and motivation for data generating mechanisms?
+\end_layout
+
+\begin_layout Subsection
+Results
+\end_layout
+
+\begin_layout Standard
+We compared the posterior probability of latent class membership obtained
+ from MCMC (via the R2jags software package 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "R2jags2015"
+
 \end_inset
 
-) obtained from MCMC performed in 
-\family typewriter
-RJAGS
-\family default
- to the predictions obtained by the proposed importance sampling algorithm
+) to the predictions obtained by the proposed importance sampling algorithm
  for each patient for whom true state was not observed.
  Agreement was examined for the new patient scenario, that is, proposal
  values for an individual's latent state were generated from population-level
  parameters and all his available data was used to calculate sampling weights.
- Code for simulating data and obtaining estimates is available at 
-\family typewriter
-http://github.com/rycoley/XXX
-\family default
-.
 \end_layout
 
 \begin_layout Standard
@@ -1172,7 +1440,7 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename 2015-07-01_compare_fits_manual-edit.png
+	filename fast updates/2015-07-01_compare_fits_manual-edit.png
 	width 70text%
 
 \end_inset
@@ -1208,7 +1476,7 @@ Effective sample size...
 \end_layout
 
 \begin_layout Section
-Conclusion
+Discussion
 \end_layout
 
 \begin_layout Standard
@@ -1223,49 +1491,44 @@ key "coley2015prostateSurvaillence"
  health predictions and recommendations.
  Development of such 
 \shape italic
+\emph on
 precision medicine
 \shape default
+\emph default
  methods must occur within a framework for clinical implementation.
  Specifically, concerns about convenience, security, and effective communication
  must be addressed alongside statistical considerations.
- In this technical report, we have presented an importance sampling algorithm
- for obtaining fast predictions of latent health state based on the joint
- modeling framework of 
+ In this technical report, we present a fast implementation of the of latent
+ health state model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "coley2015prostateSurvaillence"
 
 \end_inset
 
-.
+, using importance sampling to generate in-clinic predictions.
  This approach informs decision-making by enabling doctors and patients
  to access updated predictions in real-time in a clinical setting.
 \end_layout
 
+\begin_layout Section*
+Supplemental Code
+\end_layout
+
 \begin_layout Standard
-The proposed importance sampling approach still requires the periodic use
- of MCMC to perform full model updates, similar to the procedure described
- in Lee and Chia (2002)
-\begin_inset CommandInset citation
-LatexCommand nocite
-key "Lee2002"
+Code for simulating data, obtaining IS estimates, and comparing the results
+ against MCMC estiamtes, is available at: 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+https://github.com/aaronjfisher/prostate_surveillance/tree/master/IS-demo
+\end_layout
 
 \end_inset
 
-.
- While fully online updating of all posteriors (that is, updating not dependent
- on periodic MCMC) via sequential importance resampling would be ideal,
- such online methods are known to suffer from the problem of degeneracy
- when the model includes static parameters (such as the population-level
- parameters in our model), as explained in Andrieu et al.
- (2005, section II)
-\begin_inset CommandInset citation
-LatexCommand nocite
-key "Andrieu2005"
 
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Standard
