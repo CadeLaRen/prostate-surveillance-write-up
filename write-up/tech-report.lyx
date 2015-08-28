@@ -154,7 +154,7 @@ Abstract
 This technical report discusses the use of importance sampling in precision
  medicine settings, to obtain fast, in-clinic risk estimates for out-of-sample
  patients with new data.
- We apply importance sampling to the heirarchical model proposed in 
+ We apply importance sampling to the hierarchical model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "coley2015prostateSurvaillence"
@@ -180,10 +180,10 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-Heirarchical bayes models can be especially useful in the context of precision
+Hierarchical bayes models can be especially useful in the context of precision
  medicine, when scientists are interested not only in estimating treatment
  effects, but also in estimating the risk for any individual patient.
- In the context of heirarchical models, treatment effects can be estimated
+ In the context of hierarchical models, treatment effects can be estimated
  from population-level parameters, and the risk for any specific patient
  can be described by a patient-level latent class.
  For example, 
@@ -247,7 +247,7 @@ y update population-level parameters at a constant computational cost over
  importance sampler (SIS), also known as particle filter.
  Employing a generic particle filter to get updated estimates of the population
  parameters would seem to be a natural extension, but particle filters are
- known to suffer from the problem of degeneracy in the precense of 
+ known to suffer from the problem of degeneracy in the presence of 
 \begin_inset Quotes eld
 \end_inset
 
@@ -275,6 +275,24 @@ key "Lee2002"
  can be used to update population-level posteriors, but is not fully online
  as the computational cost of each MCMC iteration increases as more data
  is acquired.
+ See 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Kantas2014"
+
+\end_inset
+
+ for a recent literature review of online methods relating to particle filtering.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+re-edit later
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -290,18 +308,41 @@ key "hoffman2010online_variational_bayes_LDA_text_analysis"
 \end_inset
 
  propose a online variational bayes approach for topic modeling.
- Our specific context within personalized medicine is different in that
- while the model may be complex and contain several layes, the data can
- be fully stored in memory at once.
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Canini2009"
+
+\end_inset
+
+ propose a particle filter approach, in a context where the static parameters
+ can be integrated out
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+add caveat about their methods not doing as well as batch MCMC
+\end_layout
+
+\end_inset
+
+.
+ Our specific context within personalized medicine is different that of
+ topic modeling in that while the model is complex and contains several
+ layers, the data can be fully stored in memory at once.
  Thus, while the approach of combining IS with periodic MCMC is not fully
- online, and not feasible for topic modeling, it is still a feasible option
+ online and not feasible for topic modeling, it is still a feasible option
  for limited sample sizes in our problem.
- An additional benefit of IS, in contrast to variational bayes approaches,
- is that the formulas required to apply IS are simple to derive, and can
- be easily ported to other applications within precision medicine.
+ An additional benefit of IS is that, relative to variational bayes approaches,
+ the formulas required to apply IS are simple to derive, and can be easily
+ ported to other applications within precision medicine.
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
 Some proposed alternatives for online updates include fixed lag updating
  methods 
 \begin_inset CommandInset citation
@@ -321,7 +362,7 @@ Polish these citations up.
 
 \end_inset
 
-, and augementation of the static parameters 
+, and augmentation of the static parameters 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "kitagawa1998self"
@@ -340,23 +381,11 @@ Polish these citations up.
 \end_inset
 
 .
- 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "Canini2009"
+\end_layout
 
 \end_inset
 
- propose a particle filter approach, in a context where the static parameters
- can be integrated out.
- See 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "kantas2014particle"
 
-\end_inset
-
- for a recent literature review of online methods.
 \end_layout
 
 \begin_layout Standard
@@ -377,7 +406,7 @@ reference "sec:Importance-Sampling-Algorithm"
 
 \end_inset
 
- we detail the general approach for applying IS in heirarchical models.
+ we detail the general approach for applying IS in hierarchical models.
  We use an abbreviated notation that can be readily generalized to other
  precision medicine settings.
  In Section 
@@ -431,8 +460,10 @@ key "Gleason1977,Gleason1992"
 \end_inset
 
  are classified as aggressive.
- Latent state predictions can be used by clinicians to decide whether further
- biopsies are nessecary.
+ This model is used to estimate probabilities of latent class membership,
+ or, in other words, the risk of having aggressive cancer.
+ Risk predictions can be used by clinicians to decide whether further biopsies
+ or surgeries are necessary.
  This is an important issue within precision medicine, as unneeded biopsies
  have side effects of...
  
@@ -440,7 +471,8 @@ key "Gleason1977,Gleason1992"
 status open
 
 \begin_layout Plain Layout
-I'm not sure!!?? Incontinence? Yates!!! Help!!!
+I'm not sure..
+ Incontinence?? Yates, what was the big downside here? Are they just painful?
 \end_layout
 
 \end_inset
@@ -455,10 +487,10 @@ key "coley2015prostateSurvaillence"
 
 \end_inset
 
- derive a hierarchical model, which includes submodels for longitudinal
+ derive a hierarchical model, which includes sub-models for longitudinal
  prostate specific antigen (PSA) measurements, and for longitudinal biopsy
  results.
- Both of these submodels incorporate information about the patients latent
+ Both of these sub-models incorporate information about the patients latent
  state.
  The (log-transformed) PSA measurements are modeled as multivariate normal,
  with a mean defined by a linear predictor that includes subject-specific
@@ -468,7 +500,7 @@ key "coley2015prostateSurvaillence"
 status open
 
 \begin_layout Plain Layout
-right? see Yates' part for more info on this
+right?
 \end_layout
 
 \end_inset
@@ -505,16 +537,16 @@ key "coley2015prostateSurvaillence"
 
 \end_inset
 
- also includes submodels for informative observation processes associated
+ also includes sub-models for informative observation processes associated
  with biopsies and surgeries.
  As a first step though, we look here only at the model version that treats
  the data as missing at random.
 \end_layout
 
 \begin_layout Standard
-In this context, the subject-level variables refer to the latent classes,
- and the random effects used in the submodel for PSA.
- The population-level parameters refer to the coefficients in each submodel,
+In our context, the subject-level variables refer to the latent classes
+ and the random effects used in the sub-model for PSA.
+ The population-level parameters refer to the coefficients in each sub-model,
  and the variance parameters for the subject-level variables.
  See 
 \begin_inset CommandInset citation
@@ -1008,7 +1040,11 @@ In this section we detail an importance sampling algorithm that enables
 \end_layout
 
 \begin_layout Standard
-Let the joint posterior of interest be 
+Let the joint posterior based on training data from 
+\begin_inset Formula $n$
+\end_inset
+
+ subjects be denoted as 
 \begin_inset Formula 
 \begin{equation}
 p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\theta)]\pi(\theta)\label{eq:posterior_n}
@@ -1124,9 +1160,9 @@ reference "eq:posterior_n"
 
 : 
 \begin_inset Formula 
-\begin{eqnarray*}
-q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})
-\end{eqnarray*}
+\begin{eqnarray}
+q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})\label{eq:drawing-subj-level-vars}
+\end{eqnarray}
 
 \end_inset
 
@@ -1185,7 +1221,7 @@ reference "eq:posterior_n"
 \begin{eqnarray}
 w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\nonumber \\
  & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
- & = & f(y_{i}|b_{i}^{(j)},\theta^{(j)})\label{eq:importance-weights}
+ & = & f(y_{n+1}|b_{n+1}^{(j)},\theta^{(j)})\label{eq:importance-weights}
 \end{eqnarray}
 
 \end_inset
@@ -1217,9 +1253,26 @@ The final weights
 \end_inset
 
 .
- The unstandardized weights can also be used in a rejection sampling procedure,
+ 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+The unstandardized weights can also be used in a rejection sampling procedure,
  although we found this approach to be less computationally efficient than
- importance sampling for our scenario.
+ IS for our scenario (see Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Results"
+
+\end_inset
+
+).
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1338,6 +1391,48 @@ We then proceed as above to get a re-weighted posterior for the latent variables
 \end_layout
 
 \begin_layout Standard
+By random chance, some patients may have data such that very few of the
+ pre-generated, proposed latent variables values receive high weights.
+ This can cause their posterior mean estimates to be less stable.
+ This problem is due to higher Monte Carlo error, and is thus more likely
+ when the number of pre-generated latent variables 
+\begin_inset Formula $(J)$
+\end_inset
+
+ is low.
+ However, we can flag patients who might have high error by monitoring the
+ effective size of the posterior sample, also known as the effective number
+ of particles.
+ When this number drops below a given threshold (e.g.
+ 500), we can repeat our procedure with a larger set of pre-generated proposals.
+ If limited computing is available for MCMC, we can also approximate a larger
+ sample from Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+ by drawing multiple 
+\begin_inset Formula $b_{n+1}$
+\end_inset
+
+ values for each 
+\begin_inset Formula $\theta^{(j)}$
+\end_inset
+
+, rather than drawing just one (see Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:drawing-subj-level-vars"
+
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Standard
 For implementation in clinical practice, proposals for new patients can
  be generated prior to actually observing new data, so that only weight
  calculating and re-weighting of the proposal distribution needs to be done
@@ -1345,29 +1440,8 @@ For implementation in clinical practice, proposals for new patients can
  Then, predictions for each patient can be obtained in a matter of seconds.
 \end_layout
 
-\begin_layout Standard
-In cases when the 
-\begin_inset Formula $J$
-\end_inset
-
- is small, some patients may have data such that very few of the pre-generated
- proposed latent values will receive high weights.
- This can cause instability in posterior means.
- Such scenarios can may be expected to occur due to random chance, but can
- also be detected by monitoring the effective size of the posterior sample,
- also known as the effective number of particles.
- When this number drops below a pre-specified threshold (e.g., 500), the procedure
- can be repeated with a larger set of pre-generated proposals.
- In our simulations below though, 
-\begin_inset Formula $J$
-\end_inset
-
- is sufficiently large such that each patient's risk is estimated with a
- relatively large effective sample size.
-\end_layout
-
 \begin_layout Section
-Simulation 
+Simulation & Performance 
 \begin_inset CommandInset label
 LatexCommand label
 name "sec:Simulation"
@@ -1379,40 +1453,118 @@ name "sec:Simulation"
 
 \begin_layout Standard
 We assessed performance of the proposed importance sampling approach in
- a simulated dataset.
- 
-\end_layout
-
-\begin_layout Subsection
-Simulation setup
+ a simulated dataset....
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
 Details about simulation process and motivation for data generating mechanisms?
 \end_layout
 
-\begin_layout Subsection
-Results
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-We compared the posterior probability of latent class membership obtained
- from MCMC (via the R2jags software package 
+Using this data as our initial sample 
+\begin_inset Formula $y_{1:n}$
+\end_inset
+
+, we generate 62,500 draws from the posterior for the populational-level
+ and subject-level variables (see Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+).
+ Let 
+\begin_inset Formula $\mathcal{P}$
+\end_inset
+
+ denote this specific posterior sample.
+ Averaging over 
+\begin_inset Formula $\mathcal{P}$
+\end_inset
+
+, we estimate the risk of having aggressive cancer for each subject who's
+ latent class is unknown.
+ This task was run across 50 parallel jobs on a x86-based linux cluster.
+ All jobs were run simultaneously, with a total computation time of 5 hours
+ and 26 minutes
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+05:26:15; last job to finish was 7141655.29.
+ See email Job-array task 7141655.29 (noBX_noRRP) Complete.
+ Array job id was 7141655.
+\end_layout
+
+\end_inset
+
+.
+ Within each job, MCMC was implemented using the R2jags software package
+ 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "R2jags2015"
 
 \end_inset
 
-) to the predictions obtained by the proposed importance sampling algorithm
- for each patient for whom true state was not observed.
- Agreement was examined for the new patient scenario, that is, proposal
- values for an individual's latent state were generated from population-level
- parameters and all his available data was used to calculate sampling weights.
+.
 \end_layout
 
 \begin_layout Standard
-Results of this comparison are shown in Figure 
+We then re-estimate each patient's risk using IS, taking as input only the
+ population-level parameter posteriors from the MCMC step.
+ When generating values for the subject-level variables 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+ we further increase the diversity of the proposal set by we drawing 10
+ values from 
+\begin_inset Formula $g(b_{i}|\theta^{(j)})$
+\end_inset
+
+ for each posterior draw 
+\begin_inset Formula $\theta^{(j)}$
+\end_inset
+
+.
+ Proposals are then weighted to obtain IS risk estimates.
+ These steps are meant to approximate the procedure of using IS to get risk
+ estimates for a new patient, under the assumption that any individual patient
+ has only a minor affect on the population-level parameter posteriors.
+ In section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Results"
+
+\end_inset
+
+, we assess coherence between IS risk estimates and MCMC risk estimates.
+\end_layout
+
+\begin_layout Subsection
+Results
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Results"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We find a high degree of coherence between estimated risk of aggressive
+ cancer from IS and from MCMC, as shown if Figure 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "fig:jags-vs-pf"
@@ -1420,15 +1572,82 @@ reference "fig:jags-vs-pf"
 \end_inset
 
 .
- Agreement between methods for newly introduced patients is strong; correlation
- between posterior probabilities from 
-\family typewriter
-JAGS
-\family default
- and the importance sampler is 0.XX.
- These findings indicate that the proposed importance sampling algorithm
- is an appropriate substitute for full MCMC runs in order to provide real-time
- updates in a clinical setting.
+ The root mean square of the difference (rMSD) between these two sets of
+ risk estimates was 0.74% (on the probability scale, from 0% to 100%).
+ The maximum absolute difference was 4.8%, with 95% of patients having a
+ difference less than 1.6%.
+ Estimation time per patient ranged from approximately 5-13 seconds, depending
+ on the number of measurements to be incorporated for that patient.
+ We also considered a rejection sampling approach using the unstandardized
+ weights in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:importance-weights"
+
+\end_inset
+
+, but found the results to have a greater deviation from the MCMC estimates
+ (rMSD = 1.1%).
+ A small portion of these differences between these risk estimates is to
+ be expected simply due to the nature of stochastic posterior sampling --
+ for example, the rMSD between two separately run sets of MCMC risk estimates
+ has a rMSD of 0.2%.
+\end_layout
+
+\begin_layout Standard
+The bottom panel of Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:effective-ss-v-deviation"
+
+\end_inset
+
+ illustrates the roughly inverse relationship between the effective sample
+ size used for IS, and the difference between IS and MCMC risk estimates.
+ Even with a large posterior sample 
+\begin_inset Formula $\mathcal{P}$
+\end_inset
+
+, we still found it advantageous to draw 10 values of 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+ for each draw 
+\begin_inset Formula $\theta^{(j)}$
+\end_inset
+
+ from 
+\begin_inset Formula $\mathcal{P}$
+\end_inset
+
+.
+ The top panel of Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:effective-ss-v-deviation"
+
+\end_inset
+
+ shows what happens if we instead draw only one value of 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+ for each 
+\begin_inset Formula $\theta^{(j)}$
+\end_inset
+
+.
+ Here, effective sample sizes drop, and deviations between MCMC and IS estimates
+ increase.
+ Large deviations could still be flagged though, by setting a threshold
+ for effective sample size anywhere between 50 and 500.
+ 
+\end_layout
+
+\begin_layout Standard
+These findings suggest that the proposed IS algorithm can be an appropriate
+ substitute for full MCMC runs in order to provide real-time updates in
+ a clinical setting.
 \end_layout
 
 \begin_layout Standard
@@ -1440,8 +1659,8 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename fast updates/2015-07-01_compare_fits_manual-edit.png
-	width 70text%
+	filename plots/2015-08-27_agreement_MCMC_IS.png
+	width 50text%
 
 \end_inset
 
@@ -1449,8 +1668,8 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-Agreement between importance sampling and JAGS posterior predictions of
- aggressive prostate cancer state for a new patient.
+Agreement between IS and MCMC estimates for the posterior predictions of
+ aggressive prostate cancer state in a new patient.
  (Dashed line indicates the axis of equality, i.e., perfect agreement.)
 \begin_inset CommandInset label
 LatexCommand label
@@ -1472,7 +1691,50 @@ name "fig:jags-vs-pf"
 \end_layout
 
 \begin_layout Standard
-Effective sample size...
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename plots/2015-08-28_effective_ss_facet.png
+	width 50text%
+
+\end_inset
+
+ 
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TO BE FILLED IN!!!!
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:effective-ss-v-deviation"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -1517,7 +1779,7 @@ Supplemental Code
 
 \begin_layout Standard
 Code for simulating data, obtaining IS estimates, and comparing the results
- against MCMC estiamtes, is available at: 
+ against MCMC estimates, is available at: 
 \begin_inset Flex URL
 status collapsed
 
