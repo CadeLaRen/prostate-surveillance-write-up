@@ -11,6 +11,7 @@ set.seed(1)
 #function to get natural spline basis
 expit<-function(x){return(exp(x)/(1+exp(x)))}
 
+#this is an alternate natural spline representation with 2 knots. see Wakefield (2013) Ch 11
 get.ns.basis<-function(obs.data,knots){
 	od.k1<- obs.data-knots[1]
 	od.k1[od.k1<0]<-0

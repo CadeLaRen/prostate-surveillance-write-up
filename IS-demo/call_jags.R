@@ -66,6 +66,7 @@ data.use <- filter(data.use.all, !(subj==star & age>=last.age))
 
 
 #get observed latent class
+#NA when no surgery, true cancer state not observed
 eta.data<-pt.data$obs.eta
 table(eta.data) #107 in each
 (n_eta_known<-sum(!is.na(eta.data))) #214
