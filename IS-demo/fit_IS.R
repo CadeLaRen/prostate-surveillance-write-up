@@ -139,7 +139,7 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 
 
 #' Get likelihood of each particle,
-#' given subj_star's data (Y, Z, X, and W),
+#' given subj_star's data (Y, Z, X, and V),
 #' and a proposed set of random effects (b-vec & eta) and
 #' hyper-params (beta, gamma.RC)
 #'
@@ -163,11 +163,11 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 	couldve_had_biopsy_star <- !(is.na(bx.data_star$bx.here))
 	did_have_biopsy_star <- couldve_had_biopsy_star & bx.data_star$bx.here
 
-	W.RC_star <- dplyr::mutate(bx.data_star, intercept=1) %>%
+	V.RC_star <- dplyr::mutate(bx.data_star, intercept=1) %>%
 		dplyr::select(intercept, age.std, time, time.ns, sec.time.std) %>%
 		dplyr::filter(did_have_biopsy_star)
 
-	d.W.RC<-dim(W.RC_star)[2] #Note, these don't include eta yet
+	d.V.RC<-dim(V.RC_star)[2] #Note, these don't include eta yet
 	d.Z<-dim(Z_star)[2]
 
 	
@@ -207,22 +207,22 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 	#' This returns a vector of length P, with the joint log-likelihood of all visits, under each particle
 	#' It works under the model that for any particle p,
 	#' we have a bernoulli outcome with:
-	#'  logit(mean)= W %*% gamma[p,1:dim(W)] + eta * gamma[p,dim(W)+1]
-	get_joint_LL_measurements<-function(W,outcomes,gamma,eta){
+	#'  logit(mean)= V %*% gamma[p,1:dim(V)] + eta * gamma[p,dim(V)+1]
+	get_joint_LL_measurements<-function(V,outcomes,gamma,eta){
 		
 		if(length(outcomes)==0) return(0)
 
 		nVisits <- length(outcomes)
-		if(nVisits != dim(W)[1]) error('Outcome length does not match covariate length')
+		if(nVisits != dim(V)[1]) error('Outcome length does not match covariate length')
 
 		P <- dim(gamma)[1]
-		d_W <- dim(W)[2]
+		d_V <- dim(V)[2]
 		p_ind <- rep(1:P,each=nVisits) #particle index to group
 
-		eta_gamma <- gamma[,d_W+1] * eta
+		eta_gamma <- gamma[,d_V+1] * eta
 		eta_gamma_exp <- rep(eta_gamma, each = nVisits)
-		W_gamma_exp <-  c(tcrossprod(as.matrix(W), gamma[,1:d_W] ))
-		logit_p_exp <- eta_gamma_exp + W_gamma_exp
+		V_gamma_exp <-  c(tcrossprod(as.matrix(V), gamma[,1:d_V] ))
+		logit_p_exp <- eta_gamma_exp + V_gamma_exp
 
 		p_exp<-c(t(invLogit(logit_p_exp)))
 		outcomes_exp<-rep(outcomes,times=P)		
@@ -239,15 +239,15 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 
 
 	LL_RC <- get_joint_LL_measurements(
-		W=W.RC_star,
+		V=V.RC_star,
 		outcomes=RC_star,
 		gamma=ps$gamma.RC,
 		eta=ps$eta)
 
-	W <- exp(LL_Y + LL_RC)
+	V <- exp(LL_Y + LL_RC)
 
 
-	return(W)
+	return(V)
 }
 
 

@@ -44,7 +44,7 @@ for(index in 1:d.X){
 
 ###PRIORS FOR OUTCOME MODEL & BIOPSY DATA
 #Add 1 because last element in gamma is coefficients for class membership eta=1
-for(index in 1:(d.W.RC+1)){gamma.RC[index] ~ dnorm(0,0.01)}
+for(index in 1:(d.V.RC+1)){gamma.RC[index] ~ dnorm(0,0.01)}
 
 
 ###LIKELIHOOD
@@ -75,7 +75,7 @@ for(j in 1:n_obs_psa){
 
 #logistic regression for reclassification 	
 for(j in 1:n_rc){
-	logit(p_rc[j]) <-inprod(gamma.RC[1:d.W.RC], W.RC[j,1:d.W.RC]) + gamma.RC[(d.W.RC+1)]*equals(eta[subj_rc[j]],2) 
+	logit(p_rc[j]) <-inprod(gamma.RC[1:d.V.RC], V.RC[j,1:d.V.RC]) + gamma.RC[(d.V.RC+1)]*equals(eta[subj_rc[j]],2) 
 	RC[j] ~ dbern(p_rc[j])
 }
 
