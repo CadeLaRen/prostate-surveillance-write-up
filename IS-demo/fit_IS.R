@@ -287,19 +287,17 @@ posterior_star<-function(star,ps,runifs,rej_const=NULL){
 	
 	## Importance Weighting ##
 	W <- likelihood/sum(likelihood)
-	etas_IS_star <- crossprod(W,ps$eta) #!!?? why did these have <<- ??
-	effective_ss_star <- 1/crossprod(W) #!!?? why did these have <<- ??
-	if(FALSE) plot(density(ps$eta))
-	if(FALSE) plot(density(ps$eta,weights=W))
-
+	etas_IS_star <- crossprod(W,ps$eta) 
+	effective_ss_star <- 1/crossprod(W)
+	
 
 	## Rejection Sampling ##
 
 	#we don't know integrating constant. Does that matter if we just set this to max(likelihood)??
 	if(is.null(rej_const)) rej_const <- max(likelihood)
 	accept_ind <- (likelihood/rej_const) >= runifs
-	num_accepted_star <<- sum(accept_ind)
-	etas_RS_star <<- mean(ps$eta[accept_ind])
+	num_accepted_star <- sum(accept_ind)
+	etas_RS_star <- mean(ps$eta[accept_ind])
 
 	return(list(
 		etas_IS_star = etas_IS_star,
@@ -407,13 +405,12 @@ save.image(file='checkpoint_IS_fit.RData')
 
 
 #Show the distribution (over patients) for effective sample sizes for IS.
-
 if(interactive()) 
 	ggplot(as.data.frame(effective_ss))+ geom_histogram(aes(x=effective_ss))+scale_x_log10() + labs(title='Effective Sample Size')
 
 
 #IS and RS give very similar results
-plotTitle <- 'Estimated posterior probability\nof aggressive cancer'
+plotTitle <- 'Agreement between Estimated Probabilities\nof Having Aggressive Cancer'
 
 if(interactive()){
 	plot(etas_IS,etas_RS,cex=.5,xlim=0:1,ylim=0:1,main=plotTitle,xlab='Importance Sampling', ylab='Rejection Sampling')
@@ -421,33 +418,34 @@ if(interactive()){
 }
 
 #However, IS appears to have a slightly closer resemblance to MCMC draws
-mean((etas_IS - eta_true_or_jags^2),na.rm=TRUE) #IS mean squared error
-mean((etas_RS - eta_true_or_jags^2),na.rm=TRUE) #RS mean squared error
-
-
-countSubj <- group_by(bx.data.full,subj)%>%
-	summarise(
-		nCouldBX=sum(!is.na(bx.here)),
-		nDidBX=sum(bx.here==1,na.rm=TRUE),
-		nCouldRRP=n(),
-		everRC=sum(rc)
-		)
-countSubj$RCfactor<-factor(countSubj$everRC,labels=c('Never RC','Eventually RC'))
-
-plotData<-data.frame(etas_IS,eta_true_or_jags,effective_ss,countSubj)
-tail(plotData)
-
-#Explore relationship with expected sample size
-if(interactive()){
-	ggplot(plotData) + geom_point(aes(x=etas_IS,y=eta_true_or_jags,color=effective_ss<300),pch=1) + labs(x='IS',y='JAGS', title='Agreement between JAGS and\n Importance Sampling (IS),\nby effective sample size') + geom_abline(intercept=0, slope=1, size = .5, lty=2)
-	#If only a small posterior sample is available, caution should be taken when interpreting risk estimates from patients with low effective sample sizes.
-}
+squared_errors_IS <- (etas_IS - eta_true_or_jags)^2
+squared_errors_RS <- (etas_RS - eta_true_or_jags)^2
+mean(squared_errors_IS,na.rm=TRUE) #IS mean squared error
+mean(squared_errors_RS,na.rm=TRUE) #RS mean squared error
 
 
 
 
 
-######### Save plot of results
-png(paste0('MCMC_IS_agreement.png'),pointsize=17,width = 530, height = 480,)
-ggplot(plotData) + geom_point(aes(x=etas_IS,y=eta_true_or_jags,color=RCfactor),pch=1) + labs(color='Whether\npatients\nreclassify (RC)',x='Importance Sampling',y='Markov chain Monte Carlo (via JAGS)',title=plotTitle) + geom_abline(intercept=0, slope=1, size = .5, lty=2) + theme(text = element_text(size=15))
+
+
+
+######### Save plots of results
+
+eff_ss_error_data<-data.frame(etas_IS,eta_true_or_jags,squared_errors_IS,squared_errors_RS,effective_ss)
+tail(eff_ss_error_data)
+
+png(paste0('effective_SS_and_error.png'),pointsize=17,width = 530, height = 480,)
+ggplot(eff_ss_error_data) + 
+	geom_point(aes(y=sqrt(squared_errors_IS),x=effective_ss),alpha=.5)+ 
+	labs(title='Effective Sample Size v. Absolute Error\n(plotted on log scale)',x='Effective Sample Size for IS',y='Absolute Error')+
+	theme(text=element_text(size=18)) +
+	scale_x_continuous(breaks=10^(1:6)/2) +
+	scale_y_continuous(breaks=c(.03,.01,.005,.001)) +
+	coord_trans(y = "log10",x= "log10")
+dev.off()
+
+png(paste0('agreement_MCMC_IS.png'),pointsize=17,width = 530, height = 480,)
+plot(x=etas_IS,y=eta_true_or_jags,cex=.5,xlim=0:1,ylim=0:1,ylab='Estimates from MCMC',xlab='Estimates from Importance Sampling',main='Agreement between Estimated Probabilities\nof Having Aggressive Cancer')
+abline(0,1)
 dev.off()
