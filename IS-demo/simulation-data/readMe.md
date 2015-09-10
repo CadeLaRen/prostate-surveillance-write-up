@@ -1,6 +1,6 @@
 # Codebook
 
-### Abbreviations and Acronyms:
+### Abbreviations and Acronyms
 * PSA: prostate-specific antigen
 * PCa: prostate cancer
 * BX: biopsy
