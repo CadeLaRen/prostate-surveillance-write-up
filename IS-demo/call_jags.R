@@ -66,6 +66,7 @@ data.use <- filter(data.use.all, !(subj==star & age>=last.age))
 
 
 #get observed latent class
+#NA when no surgery, true cancer state not observed
 eta.data<-pt.data$obs.eta
 table(eta.data) #107 in each
 (n_eta_known<-sum(!is.na(eta.data))) #214
@@ -100,9 +101,9 @@ RC<-as.numeric(rc.data$rc)
 subj_rc<-rc.data$subj
 
 #covariates influencing risk of reclassification
-W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std ))
-(d.W.RC<-dim(W.RC.data)[2])
-round(apply(W.RC.data,2,summary) ,2)
+V.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std ))
+(d.V.RC<-dim(V.RC.data)[2])
+round(apply(V.RC.data,2,summary) ,2)
 #########
 
 
@@ -124,7 +125,7 @@ K<-2
 
 jags_data<-list(K=K, n=n, eta.data=eta.data, n_eta_known=n_eta_known,
 	Y=Y, subj_psa=subj_psa, Z=Z.data, X=X.data, d.Z=d.Z, d.X=d.X, I_d.Z=diag(d.Z), n_obs_psa=n_obs_psa,
-	RC=RC, n_rc=n_rc, subj_rc=subj_rc, W.RC=W.RC.data, d.W.RC=d.W.RC)
+	RC=RC, n_rc=n_rc, subj_rc=subj_rc, V.RC=V.RC.data, d.V.RC=d.V.RC)
 
 
 #initialize model
@@ -145,7 +146,7 @@ inits <- function(){
 
 	beta<-rnorm(d.X)
 
-	gamma.RC<-rnorm((d.W.RC+1), mean=0, sd=0.1) #last coefficient is effect of eta=1
+	gamma.RC<-rnorm((d.V.RC+1), mean=0, sd=0.1) #last coefficient is effect of eta=1
 
 	
 	out<-list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta,

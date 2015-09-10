@@ -11,6 +11,7 @@ set.seed(1)
 #function to get natural spline basis
 expit<-function(x){return(exp(x)/(1+exp(x)))}
 
+#this is an alternate natural spline representation with 2 knots. see Wakefield (2013) Ch 11
 get.ns.basis<-function(obs.data,knots){
 	od.k1<- obs.data-knots[1]
 	od.k1[od.k1<0]<-0
@@ -33,13 +34,13 @@ sigma_res <- 0.3
 
 beta <- c(0.31)
 
-gam.bx<-c(-1, 0.2, -0.8, 2.3, -1.5, 2.3, -2.7, 0.1, 0.9, 1.2, 2.5, -2.5, -0.5)
+nu.bx<-c(-1, 0.2, -0.8, 2.3, -1.5, 2.3, -2.7, 0.1, 0.9, 1.2, 2.5, -2.5, -0.5)
 #took out ns(num.prev.bx,3) and added small effect
-#gam.bx<-c(-1, 0.2, -0.8, 2.3, -1.5, 2.3, -2.7, 1.2, -1.9, 1.4, 0.9, 1.2, 2.5, -2.5, -0.5)
+#nu.bx<-c(-1, 0.2, -0.8, 2.3, -1.5, 2.3, -2.7, 1.2, -1.9, 1.4, 0.9, 1.2, 2.5, -2.5, -0.5)
 
 gam.rc<-c(-2.5, 0.6, -0.4, 0.1, 0.3, 1.7)
 
-gam.rrp<-c(-5.4, -0.4, -1.6, 1.8, 1, 6.5, 2.7, 0.8, -2, -0.8, -0.2, 1.1, 0.6, 2.5)
+omega.surg<-c(-5.4, -0.4, -1.6, 1.8, 1, 6.5, 2.7, 0.8, -2, -0.8, -0.2, 1.1, 0.6, 2.5)
 #took out max.prev.npc and max.prev.mpc, made intercept higher
 #c(-6, -0.4, -1.6, 1.8, 1, 6.5, 2.7, 0.8, -2, -0.8, -0.2, 0.4, 0.03, 1.1, 0.6, 2.5)
 
@@ -116,10 +117,10 @@ bx.sim$num.prev.bx<-rep(1,N)
 
 bx.sub<-bx.sim[bx.sim$time==1,]
 (n_bx<-dim(bx.sub)[1])
-W.BX<-as.matrix(cbind( rep(1,n_bx), bx.sub$age.std, bx.sub$age.ns, time.ns.bx.mat[bx.sim$time==1,], bx.sub$num.prev.bx, sec.time.ns.bx.mat[bx.sim$time==1,], bx.sub$eta  ))
-summary(as.vector(expit(W.BX%*%gam.bx)))
+U.BX<-as.matrix(cbind( rep(1,n_bx), bx.sub$age.std, bx.sub$age.ns, time.ns.bx.mat[bx.sim$time==1,], bx.sub$num.prev.bx, sec.time.ns.bx.mat[bx.sim$time==1,], bx.sub$eta  ))
+summary(as.vector(expit(U.BX%*%nu.bx)))
 
-bx.sim$bx.here[bx.sim$time==1]<-rbinom(n,1,as.vector(expit(W.BX%*%gam.bx)))
+bx.sim$bx.here[bx.sim$time==1]<-rbinom(n,1,as.vector(expit(U.BX%*%nu.bx)))
 #table(bx.sim$bx.here[bx.sim$time==1])
 
 for(j in 2:10){
@@ -128,18 +129,18 @@ for(j in 2:10){
 
 	bx.sub<-bx.sim[bx.sim$time==j,]
 	(n_bx<-dim(bx.sub)[1])
-	W.BX<-as.matrix(cbind(rep(1,n_bx), bx.sub$age.std, bx.sub$age.ns, time.ns.bx.mat[bx.sim$time==j,], bx.sub$num.prev.bx, sec.time.ns.bx.mat[bx.sim$time==j,], bx.sub$eta ))
+	U.BX<-as.matrix(cbind(rep(1,n_bx), bx.sub$age.std, bx.sub$age.ns, time.ns.bx.mat[bx.sim$time==j,], bx.sub$num.prev.bx, sec.time.ns.bx.mat[bx.sim$time==j,], bx.sub$eta ))
 	
-	bx.sim$bx.here[bx.sim$time==j]<-rbinom(n,1,as.vector(expit(W.BX%*%gam.bx)))}
+	bx.sim$bx.here[bx.sim$time==j]<-rbinom(n,1,as.vector(expit(U.BX%*%nu.bx)))}
 #table(bx.sim$bx.here)	
 
 #reclassifications
 bx.sim$rc<-bx.sim$prev.G7<-rep(0,N)
 rc.sub<-bx.sim[bx.sim$bx.here==1,]
 (n_rc<-dim(rc.sub)[1])
-W.RC<-as.matrix(cbind(rep(1,n_rc), rc.sub$age.std, rc.sub$time, rc.sub$time.ns, rc.sub$sec.time.std, rc.sub$eta))
+V.RC<-as.matrix(cbind(rep(1,n_rc), rc.sub$age.std, rc.sub$time, rc.sub$time.ns, rc.sub$sec.time.std, rc.sub$eta))
 
-bx.sim$rc[bx.sim$bx.here==1]<-rbinom(n_rc,1,as.vector(expit(W.RC%*%gam.rc)))
+bx.sim$rc[bx.sim$bx.here==1]<-rbinom(n_rc,1,as.vector(expit(V.RC%*%gam.rc)))
 
 for(i in 1:n){
 	if(sum(bx.sim$rc[bx.sim$id==i]==1)>0){
@@ -151,12 +152,12 @@ for(i in 1:n){
 		bx.sim$rm[bx.sim$id==i & bx.sim$time>(rc.time+2)]<-1}}
 
 
-bx.sim$rrp<-rep(0,N)
+bx.sim$rrp<-rep(0,N) #rrp is surgery (radical retropubic prostatectomy)
 bx.sim$num.prev.bx.rrp <- bx.sim$num.prev.bx + bx.sim$bx.here
 
-W.RRP<-as.matrix(cbind(rep(1,N), bx.sim$age.std, bx.sim$age.ns, time.ns.bx.mat, sec.time.ns.rrp.mat, bx.sim$num.prev.bx.rrp, bx.sim$prev.G7, bx.sim$eta, (bx.sim$prev.G7*bx.sim$eta) ))
+W.SURG<-as.matrix(cbind(rep(1,N), bx.sim$age.std, bx.sim$age.ns, time.ns.bx.mat, sec.time.ns.rrp.mat, bx.sim$num.prev.bx.rrp, bx.sim$prev.G7, bx.sim$eta, (bx.sim$prev.G7*bx.sim$eta) ))
 
-bx.sim$rrp<-rbinom(N,1,as.vector(expit(W.RRP%*%gam.rrp)))
+bx.sim$rrp<-rbinom(N,1,as.vector(expit(W.SURG%*%omega.surg)))
 
 #messes up design matrices to delete columns earlier
 bx.sim<-bx.sim[bx.sim$rm==0,]
@@ -181,6 +182,15 @@ table(pt.data$rc)
 
 pt.data$obs.eta<-rep(NA,n)
 pt.data$obs.eta[pt.data$rrp==1]<-pt.data$eta.true[pt.data$rrp==1]
+
+
+for(i in 1:n){
+	if(max(bx.sim$rc[bx.sim$id==i])==1){
+		rc.time<-bx.sim$time[bx.sim$rc==1 & bx.sim$id==i]
+		bx.sim$bx.here[bx.sim$id==i & bx.sim$time>rc.time]<-NA	} }
+
+table(bx.sim$bx.here)
+
 
 
 write.csv(pt.data,"pt-data-sim.csv")
@@ -256,14 +266,5 @@ write.csv(bx.sim,"bx-data-sim.csv")
 
 
 
-##later additions
 
-bx.sim<-data.use
-
-for(i in 1:n){
-	if(max(bx.sim$rc[bx.sim$id==i])==1){
-		rc.time<-bx.sim$time[bx.sim$rc==1 & bx.sim$id==i]
-		bx.sim$bx.here[bx.sim$id==i & bx.sim$time>rc.time]<-NA	} }
-
-table(bx.sim$bx.here)
 
