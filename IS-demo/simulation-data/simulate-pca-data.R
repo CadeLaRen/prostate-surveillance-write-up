@@ -1,5 +1,4 @@
 rm(list=ls())
-setwd("/Users/ryc/Dropbox/inhealth/prediction-model-final/sim-data")
 
 
 library(MASS)

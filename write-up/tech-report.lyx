@@ -122,8 +122,8 @@
 \begin_body
 
 \begin_layout Title
-Fast Predictions for Bayesian Hierarchical Models of Latent Health States
- (Technical Report)
+Fast Out-of-Sample Predictions from Bayesian Hierarchical Models of Latent
+ Health States (Technical Report)
 \end_layout
 
 \begin_layout Author
@@ -162,7 +162,7 @@ key "coley2015prostateSurvaillence"
 \end_inset
 
  for predicting risk of aggressive prostate cancer.
- Estimates can be obtained in 2-5 seconds per person, and have high agreement
+ Estimates can be obtained in 5-13 seconds per person, and have high agreement
  with estimates coming from longer-running Markov Chain Monte Carlo (MCMC)
  methods.
  Alternative options for online updating of the model are also discussed.
@@ -180,9 +180,9 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-Hierarchical bayes models can be especially useful in the context of precision
- medicine, when scientists are interested not only in estimating treatment
- effects, but also in estimating the risk for any individual patient.
+Hierarchical Bayesian models can be especially useful in the context of
+ precision medicine, when scientists are interested in estimating not only
+ treatment effects, but also the risk for any individual patient.
  In the context of hierarchical models, treatment effects can be estimated
  from population-level parameters, and the risk for any specific patient
  can be described by a patient-level latent class.
@@ -193,9 +193,9 @@ key "coley2015prostateSurvaillence"
 
 \end_inset
 
- use a patient specific latent class to identify patients as having either
+ use a patient-specific latent class to identify patients as having either
  benign cancer, or aggressive cancer.
- In a bayesian setting, estimation at both levels of the model, the population
+ In a Bayesian setting, estimation at both levels of the model, the population
  level and the patient level, can be done by averaging over the posterior.
  When such models are fit on a training dataset using Markov Chain Monte
  Carlo (MCMC), risk estimates are immediately available for any patient
@@ -224,7 +224,7 @@ key "coley2015prostateSurvaillence"
 \end_inset
 
  to get fast risk estimates for new, simulated patients.
- Here, the procedure only takes approximately 2-5 seconds per patient.
+ In this case, the procedure only takes approximately 5-13 seconds per patient.
  This approach can be combined with periodic refitting of the entire model
  via MCMC, in order to update estimates of the population-level parameters
  
@@ -238,16 +238,17 @@ key "Lee2002"
 \end_layout
 
 \begin_layout Standard
-This IS approach is related to online learning methods, which aim to continuousl
-y update population-level parameters at a constant computational cost over
- time.
- We avoid a fully online approach though, due to additional known challenges
- in online learning.
+This IS approach is related to online (or streaming) learning methods, which
+ aim to continuously update population-level parameters with a constant
+ computational cost over time.
+ We avoid a fully online approach here though, due to additional known challenge
+s in online learning.
  Specifically, our use of IS can be viewed as a 1-step version of a sequential
  importance sampler (SIS), also known as particle filter.
- Employing a generic particle filter to get updated estimates of the population
- parameters would seem to be a natural extension, but particle filters are
- known to suffer from the problem of degeneracy in the presence of 
+ Employing a standard particle filter to update estimates of the population
+ parameters would seem to be a natural extension.
+ However, particle filters are known to suffer from the problem of degeneracy,
+ which makes it difficult to estimate posteriors for 
 \begin_inset Quotes eld
 \end_inset
 
@@ -255,7 +256,17 @@ static
 \begin_inset Quotes erd
 \end_inset
 
- parameters (see section II of 
+ parameters (
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+more citations,
+\end_layout
+
+\end_inset
+
+see section II of 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Andrieu2005"
@@ -264,17 +275,17 @@ key "Andrieu2005"
 
  for an intuitive explanation).
  This applies in our case, where the population-level parameters are modeled
- as static, and changing as more data is acquired.
- A combination of IS and periodic MCMC 
+ as static, and not changing as more data is acquired.
+ Instead, we combine IS with periodic MCMC 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Lee2002"
 
 \end_inset
 
- can be used to update population-level posteriors, but is not fully online
- as the computational cost of each MCMC iteration increases as more data
- is acquired.
+ to update the posteriors for all parameters at all levels.
+ This is technically not a fully online method as the computational cost
+ of each MCMC iteration increases as more data is acquired.
  See 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -282,7 +293,7 @@ key "Kantas2014"
 
 \end_inset
 
- for a recent literature review of online methods relating to particle filtering.
+ for a recent literature review of online methods relating to particle filters.
 \begin_inset Note Note
 status open
 
@@ -296,8 +307,8 @@ re-edit later
 \end_layout
 
 \begin_layout Standard
-Online, or streaming, model fitting has been explored in the literature
- on topic modeling for corpuses of texts.
+Online model fitting has also been explored in the literature on topic modeling
+ for corpuses of texts.
  Text corpuses are often too large to fit an entire model on at once, making
  online fitting a more feasible option.
  
@@ -307,7 +318,7 @@ key "hoffman2010online_variational_bayes_LDA_text_analysis"
 
 \end_inset
 
- propose a online variational bayes approach for topic modeling.
+ propose a online variational Bayes approach for topic modeling.
  
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -316,24 +327,27 @@ key "Canini2009"
 \end_inset
 
  propose a particle filter approach, in a context where the static parameters
- can be integrated out
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-add caveat about their methods not doing as well as batch MCMC
-\end_layout
+ can be integrated out.
+ However, in the setting of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Canini2009"
 
 \end_inset
 
-.
- Our specific context within personalized medicine is different that of
- topic modeling in that while the model is complex and contains several
- layers, the data can be fully stored in memory at once.
+, even the best performing online methods generally did not improve in accuracy
+ as more data was incorporated.
+ These online methods were also less accurate than batch (non-online) MCMC.
+\end_layout
+
+\begin_layout Standard
+Our specific context within personalized medicine is different that of topic
+ modeling in that while the model is complex and contains several layers,
+ the data can be fully stored in memory at once.
  Thus, while the approach of combining IS with periodic MCMC is not fully
  online and not feasible for topic modeling, it is still a feasible option
  for limited sample sizes in our problem.
- An additional benefit of IS is that, relative to variational bayes approaches,
+ An additional benefit of IS is that, relative to variational Bayes approaches,
  the formulas required to apply IS are simple to derive, and can be easily
  ported to other applications within precision medicine.
 \end_layout
@@ -406,7 +420,7 @@ reference "sec:Importance-Sampling-Algorithm"
 
 \end_inset
 
- we detail the general approach for applying IS in hierarchical models.
+ we detail our approach for applying IS in hierarchical models.
  We use an abbreviated notation that can be readily generalized to other
  precision medicine settings.
  In Section 
@@ -460,10 +474,10 @@ key "Gleason1977,Gleason1992"
 \end_inset
 
  are classified as aggressive.
- This model is used to estimate probabilities of latent class membership,
+ The model is used to estimate probabilities of latent class membership,
  or, in other words, the risk of having aggressive cancer.
- Risk predictions can be used by clinicians to decide whether further biopsies
- or surgeries are necessary.
+ Risk predictions can then be used by clinicians to decide whether further
+ biopsies or surgeries are necessary.
  This is an important issue within precision medicine, as unneeded biopsies
  have side effects of...
  
@@ -481,15 +495,15 @@ I'm not sure..
 \end_layout
 
 \begin_layout Standard
+The hierarchical model of 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "coley2015prostateSurvaillence"
 
 \end_inset
 
- derive a hierarchical model, which includes sub-models for longitudinal
- prostate specific antigen (PSA) measurements, and for longitudinal biopsy
- results.
+ includes sub-models for longitudinal prostate specific antigen (PSA) measuremen
+ts, and for longitudinal biopsy results.
  Both of these sub-models incorporate information about the patients latent
  state.
  The (log-transformed) PSA measurements are modeled as multivariate normal,
@@ -1494,9 +1508,13 @@ reference "eq:posterior_n"
 
 , we estimate the risk of having aggressive cancer for each subject who's
  latent class is unknown.
- This task was run across 50 parallel jobs on a x86-based linux cluster.
- All jobs were run simultaneously, with a total computation time of 5 hours
- and 26 minutes
+ The task of generating 
+\begin_inset Formula $\mathcal{P}$
+\end_inset
+
+ was run across 50 parallel jobs on a x86-based linux cluster.
+ All jobs were run simultaneously, with a total elapsed computation time
+ of 5 hours and 26 minutes
 \begin_inset Note Note
 status collapsed
 
