@@ -1,5 +1,5 @@
-#LyX 2.0 created this file. For more info see http://www.lyx.org/
-\lyxformat 413
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
 \textclass article
@@ -73,13 +73,13 @@
 \font_roman default
 \font_sans default
 \font_typewriter default
+\font_math auto
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -90,15 +90,24 @@
 \use_hyperref false
 \papersize letterpaper
 \use_geometry false
-\use_amsmath 2
-\use_esint 1
-\use_mhchem 0
-\use_mathdots 0
-\cite_engine natbib_authoryear
+\use_package amsmath 2
+\use_package amssymb 2
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 0
+\use_package mathtools 1
+\use_package mhchem 0
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine natbib
+\cite_engine_type authoryear
+\biblio_style plainnat
 \use_bibtopic false
 \use_indices false
 \paperorientation portrait
 \suppress_date false
+\justification true
 \use_refstyle 0
 \index Index
 \shortcut idx
@@ -157,7 +166,7 @@ This technical report discusses the use of importance sampling in precision
  We apply importance sampling to the hierarchical model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -189,14 +198,14 @@ Hierarchical Bayesian models can be especially useful in the context of
  For example, 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
  use a patient-specific latent class to identify patients as having either
- benign cancer, or aggressive cancer.
- In a Bayesian setting, estimation at both levels of the model, the population
- level and the patient level, can be done by averaging over the posterior.
+ indolent or aggressive cancer.
+ In a Bayesian setting, estimation at both levels of the model-- the population
+ level and the patient level-- can be done by summarizing the posterior.
  When such models are fit on a training dataset using Markov Chain Monte
  Carlo (MCMC), risk estimates are immediately available for any patient
  in the training dataset.
@@ -219,7 +228,7 @@ In this technical report we describe how importance sampling (IS) can instead
  We apply this to a version of the prostate cancer model proposed by 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -242,7 +251,18 @@ This IS approach is related to online (or streaming) learning methods, which
  aim to continuously update population-level parameters with a constant
  computational cost over time.
  We avoid a fully online approach here though, due to additional known challenge
-s in online learning.
+s in online learning
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Needs citation here.
+ Kantas?
+\end_layout
+
+\end_inset
+
+.
  Specifically, our use of IS can be viewed as a 1-step version of a sequential
  importance sampler (SIS), also known as particle filter.
  Employing a standard particle filter to update estimates of the population
@@ -275,7 +295,17 @@ key "Andrieu2005"
 
  for an intuitive explanation).
  This applies in our case, where the population-level parameters are modeled
- as static, and not changing as more data is acquired.
+ as static, and not changing as more data is acquired
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+This sentence is confusing to me
+\end_layout
+
+\end_inset
+
+.
  Instead, we combine IS with periodic MCMC 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -314,7 +344,7 @@ Online model fitting has also been explored in the literature on topic modeling
  
 \begin_inset CommandInset citation
 LatexCommand citet
-key "hoffman2010online_variational_bayes_LDA_text_analysis"
+key "Hoffman2010"
 
 \end_inset
 
@@ -361,7 +391,7 @@ Some proposed alternatives for online updates include fixed lag updating
  methods 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "polson2008practical"
+key "Polson2008"
 
 \end_inset
 
@@ -379,7 +409,7 @@ Polish these citations up.
 , and augmentation of the static parameters 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "kitagawa1998self"
+key "Kitagawa1998"
 
 \end_inset
 
@@ -426,7 +456,7 @@ reference "sec:Importance-Sampling-Algorithm"
  In Section 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:Simulation"
+reference "sec:Application"
 
 \end_inset
 
@@ -449,22 +479,23 @@ name "sec:Clinical-Application-&"
 Our application is based on the clinical framework of 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
-, who develop a latent class model to predict whether a patient's prostate
- cancer is indolent or aggressive.
- This latent cancer state can be interpreted as corresponding to the Gleason
- score 
+, who develop a latent class model to predict underlying prostate cancer
+ state in men participating in an active sureveillance program for low risk
+ disease.
+ The latent cancer state is defined as being indolent or aggrssive, correspondin
+g to the Gleason score 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Gleason1977,Gleason1992"
 
 \end_inset
 
- that would be assigned to the patient if his entire prostate were to be
- removed and a pathologic analysis was performed.
+ that would be assigned if a patient's entire prostate were to be removed
+ and analyzed.
  Gleason scores 
 \begin_inset Formula $<6$
 \end_inset
@@ -475,19 +506,17 @@ key "Gleason1977,Gleason1992"
 
  are classified as aggressive.
  The model is used to estimate probabilities of latent class membership,
- or, in other words, the risk of having aggressive cancer.
- Risk predictions can then be used by clinicians to decide whether further
- biopsies or surgeries are necessary.
- This is an important issue within precision medicine, as unneeded biopsies
- have side effects of...
- 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-I'm not sure..
- Incontinence?? Yates, what was the big downside here? Are they just painful?
-\end_layout
+ or, in other words, the risk of having an aggressive cancer with the potential
+ to metastasize.
+ Risk predictions can then be used by clinicians and patients to make decisions
+ about future treatment or biopsies.
+ This prediction tool addresses a pressing need in prostate cancer care
+ as the most common treatments for prostate cancer have a high risk of persisten
+t side effects including erectile dysfunction and urinary incontience, while
+ prostate biopsies are painful and pose a risk of infection 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Chou2011a,Chou2011b"
 
 \end_inset
 
@@ -498,7 +527,7 @@ I'm not sure..
 The hierarchical model of 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -508,46 +537,23 @@ ts, and for longitudinal biopsy results.
  state.
  The (log-transformed) PSA measurements are modeled as multivariate normal,
  with a mean defined by a linear predictor that includes subject-specific
- random effects.
- 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-right?
-\end_layout
-
-\end_inset
-
- Biopsy results are coded as binary outcomes, denoting whether the clinician
- reclassified the patient's cancer as aggressive.
+ random effects whose distribution depends on latent class membership.
+ Biopsy results are coded as binary outcomes, denoting 
+\shape italic
+grade reclassification
+\shape default
+ on a biopsy, that is the biopsied tissue was aside a Gleason score of 7
+ or higher.
  The log-odds of reclassification is also modeled with a linear predictor
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Is there a better way to describe this general glm form?
-\end_layout
-
-\end_inset
-
-.
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Patients are modeled to have the same latent class throughout their participatio
-n in the study.
- As the study progresses, clinicians reclassify patients with the goal of
- better aligning all patients with their true latent status.
-\end_layout
-
-\end_inset
-
+ whose value depends on a patient's latent state, reflecting the imperfect
+ sensitivity and specificity of the biopsy procedure.
+ Each patient's latent class is assumed constant over the surveillance period.
+ As a patient continues in active surveillance, additional PSA and biopsy
+ measurements are accrued and the accuracy of latet class predictions improves.
  The final version of the hierarchical model in 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -555,17 +561,39 @@ key "coley2015prostateSurvaillence"
  with biopsies and surgeries.
  As a first step though, we look here only at the model version that treats
  the data as missing at random.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+We can change this now that we have the IOP model working, especially since
+ we don't give the likelihood explicity.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-In our context, the subject-level variables refer to the latent classes
- and the random effects used in the sub-model for PSA.
+In our context, the subject-level variables
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+parameters?
+\end_layout
+
+\end_inset
+
+ refer to the latent classes and the random effects used in the sub-model
+ for PSA.
  The population-level parameters refer to the coefficients in each sub-model,
  and the variance parameters for the subject-level variables.
  See 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -582,6 +610,17 @@ Add footnote briefly listing subj level and pop level parameters, without
 \end_inset
 
  
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+This is also confusing because you haven't used this distinction between
+ subject- and population-level parameters yet and the need is unclear.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -591,7 +630,7 @@ status open
 \begin_layout Plain Layout
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -681,7 +720,7 @@ Bayesian Joint Hierarchical Latent Class Model
 In this section, we briefly summarize the joint model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -696,7 +735,7 @@ key "coley2015prostateSurvaillence"
  For more model details and application background, please see 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -780,7 +819,7 @@ key "Laird1982"
  state: 
 \begin_inset Formula 
 \begin{eqnarray*}
-\big[\, Y_{im}|\eta_{i}=k,\bmX_{im},\bmZ_{im}\,\big]=\bmX_{im}\bmbeta+\bmZ_{im}\bmb_{i}+\epsilon_{im}
+\big[\,Y_{im}|\eta_{i}=k,\bmX_{im},\bmZ_{im}\,\big]=\bmX_{im}\bmbeta+\bmZ_{im}\bmb_{i}+\epsilon_{im}
 \end{eqnarray*}
 
 \end_inset
@@ -939,7 +978,7 @@ We then define the joint probability of the parameters given data and unobserved
 \begin_inset Formula 
 \begin{eqnarray}
  &  & L\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma\,|\,\big(\eta_{i},(\bmY_{i},\bmb_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}}),(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big),i=1,\mydots,n\Big)\nonumber \\
- &  & \quad=\prod_{i=1}^{n}\,\rho^{\eta_{i}}\,(1-\rho)^{1-\eta_{i}}\, f(\bmY_{i}|\eta_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}},\bmb_{i},\bmbeta,\sigma^{2})\, g(\bmb_{i}|\bmmu_{\eta_{i}},\Sigma_{\eta_{i}})\nonumber \\
+ &  & \quad=\prod_{i=1}^{n}\,\rho^{\eta_{i}}\,(1-\rho)^{1-\eta_{i}}\,f(\bmY_{i}|\eta_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}},\bmb_{i},\bmbeta,\sigma^{2})\,g(\bmb_{i}|\bmmu_{\eta_{i}},\Sigma_{\eta_{i}})\nonumber \\
  &  & \qquad\qquad\prod_{j=1}^{J_{i}}\big(P(R_{ij}=1|\eta_{i},\bmV_{ij},\bmgamma)^{R_{ij}}P(R_{ij}=0|\eta_{i},\bmV_{ij},\bmgamma)^{1-R_{ij}}\big)^{B_{ij}}\label{eq:lik-inf}
 \end{eqnarray}
 
@@ -993,7 +1032,7 @@ Bayesian methods are used to identify posteriors for model parameters and
  Discussion of prior specification can be found in 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -1018,7 +1057,7 @@ where
 \end_inset
 
  with indexing on 
-\begin_inset Formula $i,\, j,$
+\begin_inset Formula $i,\,j,$
 \end_inset
 
  and 
@@ -1455,10 +1494,10 @@ For implementation in clinical practice, proposals for new patients can
 \end_layout
 
 \begin_layout Section
-Simulation & Performance 
+Application 
 \begin_inset CommandInset label
 LatexCommand label
-name "sec:Simulation"
+name "sec:Application"
 
 \end_inset
 
@@ -1466,21 +1505,27 @@ name "sec:Simulation"
 \end_layout
 
 \begin_layout Standard
-We assessed performance of the proposed importance sampling approach in
- a simulated dataset....
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Details about simulation process and motivation for data generating mechanisms?
-\end_layout
+We applied the proposed importance sampling approach to prospective data
+ from the Johns Hopkins Active Surveillance (JHAS) cohort.
+ 1,298 men with very low or low risk prostate cacner diagnoses were enrolled
+ in JHAS from January 1995 to June 2014.
+ Results of all PSA tests and biopsies performed prior to enrollment and
+ during active surveillance were collected.
+ Patients were followed until grade reclassification, elective treatment,
+ or loss to follow-up.
+ Patients still active in the program were administratively censored at
+ the time od data collection for this analysis (October 2014).
+ The Gleason score determination based on pathologic analysis of the entire
+ prostate specimen was also recored for patients who underwent prostatectomy.
+ Details on the dataset are available in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
-
+.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -1683,7 +1728,7 @@ status open
 \end_inset
 
  
-\begin_inset Caption
+\begin_inset Caption Standard
 
 \begin_layout Plain Layout
 Agreement between IS and MCMC estimates for the posterior predictions of
@@ -1723,7 +1768,7 @@ status open
 \end_inset
 
  
-\begin_inset Caption
+\begin_inset Caption Standard
 
 \begin_layout Plain Layout
 \begin_inset Note Note
@@ -1763,7 +1808,7 @@ Discussion
 The joint model of 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
@@ -1782,7 +1827,7 @@ precision medicine
  health state model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
-key "coley2015prostateSurvaillence"
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
