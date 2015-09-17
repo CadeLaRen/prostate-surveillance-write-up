@@ -217,6 +217,9 @@ psa.data$age<-vector(length=n_obs_psa)
 for(j in 1:n_obs_psa){
 	psa.data$age[j] <- psa.data$psa.time[j] + pt.data$age[pt.data$id==psa.data$id[j]]}
 	
+
+mean(psa.data$age) #69.53362
+sd(psa.data$age) #6.624688
 psa.data$age.std<-(psa.data$age-mean(psa.data$age))/sd(psa.data$age)
 
 pt.data$std.vol<-rnorm(n,0,1)

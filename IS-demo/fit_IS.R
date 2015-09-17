@@ -39,7 +39,7 @@ did_have_biopsy_all <- couldve_had_biopsy_all & bx.data.full$bx.here
 #In practice we should separately fit an MCMC leaving each patient out. However, for simplicity of reproducing this computational example, we instead use the posterior after running MCMC on all subjects. 
 # In this example, we only use the population parameter posteriors from `oo`. We assume that the posterior for the population parameters will not be substancially different if one subject is left out.
 oo <- readRDS('posterior_SEED-0_star-0_crop-FALSE.rds')$sims.list
-of <- readRDS('posterior_SEED-0_star-0_crop-FALSE.rds')$sims.list
+of <- readRDS('posterior_SEED-0_star-0_crop-FALSE.rds')$sims.list ##this seems to be a repeat of the above object?
 
 #nreps parameter lets you get more out of a limited posterior draw of the population parameters.
 #For each population parameter draw, we draw several (nreps) draws for the random effect.
@@ -183,6 +183,8 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 	# 3) add a group variable p_ind that groups visits by the particle
 	# 4) get the log-likelihood of each particle group
 
+##this is confusing because you are inconsistent with the _exp 
+
 	if(length(Y_star)==0){
 		LL_Y<-0
 	}else{
@@ -208,14 +210,14 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 	#' It works under the model that for any particle p,
 	#' we have a bernoulli outcome with:
 	#'  logit(mean)= V %*% gamma[p,1:dim(V)] + eta * gamma[p,dim(V)+1]
-	get_joint_LL_measurements<-function(V,outcomes,gamma,eta){
+	get_joint_LL_measurements<-function(V,outcomes,gamma,eta){ 
 		
 		if(length(outcomes)==0) return(0)
 
 		nVisits <- length(outcomes)
 		if(nVisits != dim(V)[1]) error('Outcome length does not match covariate length')
 
-		P <- dim(gamma)[1]
+		P <- dim(gamma)[1] #shouldn't need to be redefined?
 		d_V <- dim(V)[2]
 		p_ind <- rep(1:P,each=nVisits) #particle index to group
 
@@ -224,12 +226,12 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 		V_gamma_exp <-  c(tcrossprod(as.matrix(V), gamma[,1:d_V] ))
 		logit_p_exp <- eta_gamma_exp + V_gamma_exp
 
-		p_exp<-c(t(invLogit(logit_p_exp)))
+		p_exp<-c(t(invLogit(logit_p_exp)))  ##why c(t()) ? its already a vector
 		outcomes_exp<-rep(outcomes,times=P)		
 
 		LL_j <- log(dbinom(x=outcomes_exp,size=1,prob=p_exp))
 		LL <- ( #logLik of all visits
-			data.frame(LL_all=c(t(LL_j)),ind=p_ind) %>%
+			data.frame(LL_all=c(t(LL_j)),ind=p_ind) %>% #confused by c(t()) again
 			group_by(ind) %>%
 			summarize(sum=sum(LL_all))
 			)$sum
@@ -244,10 +246,10 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 		gamma=ps$gamma.RC,
 		eta=ps$eta)
 
-	V <- exp(LL_Y + LL_RC)
+	W <- exp(LL_Y + LL_RC) #I may have messed up on my earlier revisions (changing W cov mats to V) since you named the likelihood for each particle W
 
 
-	return(V)
+	return(W)
 }
 
 
