@@ -183,7 +183,7 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 	# 3) add a group variable p_ind that groups visits by the particle
 	# 4) get the log-likelihood of each particle group
 
-##this is confusing because you are inconsistent with the _exp 
+##this is confusing because you are inconsistent with the _exp !!
 
 	if(length(Y_star)==0){
 		LL_Y<-0
