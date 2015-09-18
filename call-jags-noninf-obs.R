@@ -95,9 +95,9 @@ RC<-as.numeric(rc.data$rc)
 subj_rc<-rc.data$subj
 
 #covariates influencing risk of reclassification
-W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)   
-(d.W.RC<-dim(W.RC.data)[2])
-round(apply(W.RC.data,2,summary),2)
+V.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std)) #this last predictor is a measure of secular time (biopsy grading trends changed over time)   
+(d.V.RC<-dim(V.RC.data)[2])
+round(apply(V.RC.data,2,summary),2)
 
 
 ##get starting values, other functions necessary for call to JAGS
@@ -138,8 +138,8 @@ jags_data<-list(K=K,
 	n_rc=n_rc,
 	RC=RC,
 	subj_rc=subj_rc_consecutive,#!! new
-	W.RC=W.RC.data,
-	d.W.RC=d.W.RC)
+	V.RC=V.RC.data,
+	d.V.RC=d.V.RC)
 
 
 #initialize model
@@ -160,12 +160,12 @@ inits <- function(){
 
 	beta<-rnorm(d.X)
 
-	gamma.BX<-rnorm((d.W.BX+1), mean=0, sd=0.1) #last coefficient is effect of eta=1
-	gamma.RC<-rnorm((d.W.RC+1), mean=0, sd=0.1) #ditto
-	gamma.RRP<-c(rnorm((d.W.RRP+2), mean=0, sd=0.01))  #here, include interaction with last prediction and eta=1
+	nu.BX<-rnorm((d.W.BX+1), mean=0, sd=0.1) #last coefficient is effect of eta=1
+	gamma.RC<-rnorm((d.V.RC+1), mean=0, sd=0.1) #ditto
+	omega.SURG<-c(rnorm((d.W.RRP+2), mean=0, sd=0.01))  #here, include interaction with last prediction and eta=1
 
-	list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, gamma.BX=gamma.BX, gamma.RC=gamma.RC, gamma.RRP=gamma.RRP)
-}
+	list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, nu.BX=nu.BX, gamma.RC=gamma.RC, omega.SURG=omega.SURG)
+} ###*** Why does this initialize parameters for IOP?
 
 
 
@@ -178,7 +178,7 @@ params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope"
 
 do.one<-function(seed){
 	set.seed(seed)	
-	outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="model-for-jags-inf-obs.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni)
+	outj<-jags(jags_data, inits=inits, parameters.to.save=params, model.file="model-for-jags-inf-obs.txt", n.thin=nt, n.chains=nc, n.burnin=nb, n.iter=ni) ###***Why is this not non-inf-obs?
 
 	return(outj$BUGSoutput)
 }
