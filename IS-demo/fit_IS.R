@@ -16,20 +16,19 @@
 library(dplyr)
 library(MASS)
 library(ggplot2)
-library(splines)
 
 invLogit <- function(x)
 	return(exp(x)/(1+exp(x)))
 ########################
 
 
-psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
-pt.data.full<-read.csv("simulation-data/pt-data-sim.csv") #true eta is now contained here, in patient data (pt data)
-bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
+psa_data_full<-read_csv("simulation-data/psa-data-sim.csv")
+pt_data_full<-read_csv("simulation-data/pt-data-sim.csv") #true eta is now contained here, in patient data (pt data)
+bx_data_full <- read_csv("simulation-data/bx-data-sim.csv")
 
-#Splines for rrp and bx
-couldve_had_biopsy_all <- !is.na(bx.data.full$bx.here)
-did_have_biopsy_all <- couldve_had_biopsy_all & bx.data.full$bx.here
+#Splines for surg and bx
+couldve_had_biopsy_all <- !is.na(bx_data_full$bx_here)
+did_have_biopsy_all <- couldve_had_biopsy_all & bx_data_full$bx_here
 
 
 
@@ -53,8 +52,8 @@ n_post<-length(oo$p_eta)
 
 
 
-missing_etas <- which(is.na(pt.data.full$obs.eta))#=1 if obs and aggressive, 0 if obs and not, or NA if not observed
-eta_true_or_jags<-pt.data.full$obs.eta
+missing_etas <- which(is.na(pt_data_full$obs_eta))#=1 if obs and aggressive, 0 if obs and not, or NA if not observed
+eta_true_or_jags<-pt_data_full$obs_eta
 eta_true_or_jags[missing_etas]<-of$eta_hat_means #indexed by subject
 
 ###############
@@ -78,7 +77,7 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 
 	# Rather than looping operations nreps times,
 	# we'll create a new posterior of size nreps * n_post,
-	# to more easily vectorize the operations for increased speed.
+	# to more easily vectorize the operations for increased speed_
 
 	#Assign by cycle over nreps times (two vectors of different lengths)
 	mu<-array(NA,dim=c(P,2,K))
@@ -90,25 +89,25 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	mu[,2,2]<-oo$mu_slope[,2]
 
 	#expand beta
-	beta.exp <- matrix(NA,P,1) #beta is no longer beta_k?? No longer 2 columns, just one??
-	beta.exp[,1]<-oo$beta[,1] #beta is no longer beta_k??
+	beta_exp <- matrix(NA,P,1) #beta is no longer beta_k?? No longer 2 columns, just one??
+	beta_exp[,1]<-oo$beta[,1] #beta is no longer beta_k??
 
 	#expand sigma_res
-	sigma.res.exp<-rep(NA,P)
-	sigma.res.exp[]<-oo$sigma_res
+	sigma_res_exp<-rep(NA,P)
+	sigma_res_exp[]<-oo$sigma_res
 
 	#expand gamma
-	gamma.RC.exp <- matrix(NA,P,dim(oo$gamma.RC)[2])
-	for(d in 1:dim(oo$gamma.RC)[2])
-		gamma.RC.exp[,d]<-oo$gamma.RC[,d]
+	gamma_RC_exp <- matrix(NA,P,dim(oo$gamma_RC)[2])
+	for(d in 1:dim(oo$gamma_RC)[2])
+		gamma_RC_exp[,d]<-oo$gamma_RC[,d]
 	
 	
 
 	#Get random candidate draws for eta (re-used for each new subject)
 	eta<-rbinom(P,1,prob=rep(c(oo$p_eta),times=nreps))
-		# Our eta here is analogous to eta.hat from the main JAGS model.
-	#Get n_post random draws for b.vec
-	b.vec.star <- matrix(NA,P,2)
+		# Our eta here is analogous to eta_hat from the main JAGS model.
+	#Get n_post random draws for b_vec
+	b_vec_star <- matrix(NA,P,2)
 
 	(expand_time<-system.time({
 	if(talk) pb_sim <- txtProgressBar(min = 0, max = P, char = "=", style=3)
@@ -119,20 +118,20 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 		cov_for_bvec_p <- diag(c(oo$sigma_int[oo_ind]^2,oo$sigma_slope[oo_ind]^2))
 		cov_for_bvec_p[1,2]<-
 		cov_for_bvec_p[2,1]<-oo$cov_int_slope[oo_ind]
-		b.vec.star[p,]<-mvrnorm(1,mu=mu[p,,eta[p]+1], Sigma=cov_for_bvec_p)
+		b_vec_star[p,]<-mvrnorm(1,mu=mu[p,,eta[p]+1], Sigma=cov_for_bvec_p)
 			#note, eta[i] is *not* nessecarily the same as eta[i+n_post] due to random draws.
-		# we don't store cov_for_bvec_p because it's not used after b.vec.star is generated.
+		# we don't store cov_for_bvec_p because it's not used after b_vec_star is generated_
 		if(talk) setTxtProgressBar(pb_sim,p)
 	}}})) #~ 2 min for nreps=50, n_post=25000
 
 	return(list( #all items in this list are length nreps * n_post.
 		#You previously had "exp" suffixes, but not you're ommiting those.
 		eta = eta,
-		sigma_res = sigma.res.exp,
-		beta = beta.exp,
+		sigma_res = sigma_res_exp,
+		beta = beta_exp,
 		mu = mu,
-		gamma.RC = gamma.RC.exp,
-		b.vec.star = b.vec.star
+		gamma_RC = gamma_RC_exp,
+		b_vec_star = b_vec_star
 	))
 }
 
@@ -141,40 +140,40 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 #' Get likelihood of each particle,
 #' given subj_star's data (Y, Z, X, and V),
 #' and a proposed set of random effects (b-vec & eta) and
-#' hyper-params (beta, gamma.RC)
+#' hyper-params (beta, gamma_RC)
 #'
 #' @param ps particle set (list). Output from get_particles.
-#' @param psa.data.star psa data for subject of interest
-#' @param bx.data_star biopsy data for subject of interest
-get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('verbose')){
+#' @param psa_data_star psa data for subject of interest
+#' @param bx_data_star biopsy data for subject of interest
+get_likelihood<-function(ps, psa_data_star, bx_data_star, verbose=getOption('verbose')){
 
 	P<-length(ps$sigma_res)
 
 	#Setup subject data
-	Y_star <- psa.data.star$log.psa
-	X_star <- psa.data.star$std.vol #What if this is also a risk factor??
-	Z_star <- cbind(1, psa.data.star$age.std) #right!???
+	Y_star <- psa_data_star$log_psa
+	X_star <- psa_data_star$vol_std #What if this is also a risk factor??
+	Z_star <- cbind(1, psa_data_star$age_std) #right!???
 
-	RC_star <- dplyr::filter(bx.data_star, bx.here==1)$rc
-	prev_pos_biopsy <- dplyr::filter(bx.data_star, !is.na(bx.here))$prev.G7 #do I have this right, or do I need to exclude periods where bx.here = NA?? Does bx.here=NA mean they've exited the study (reclassified)?
+	RC_star <- dplyr::filter(bx_data_star, bx_here==1)$rc
+	prev_pos_biopsy <- dplyr::filter(bx_data_star, !is.na(bx_here))$prev_G7 #do I have this right, or do I need to exclude periods where bx_here = NA?? Does bx_here=NA mean they've exited the study (reclassified)?
 
 
 	#Where should we select covariate variables from:
-	couldve_had_biopsy_star <- !(is.na(bx.data_star$bx.here))
-	did_have_biopsy_star <- couldve_had_biopsy_star & bx.data_star$bx.here
+	couldve_had_biopsy_star <- !(is.na(bx_data_star$bx_here))
+	did_have_biopsy_star <- couldve_had_biopsy_star & bx_data_star$bx_here
 
-	V.RC_star <- dplyr::mutate(bx.data_star, intercept=1) %>%
-		dplyr::select(intercept, age.std, time, time.ns, sec.time.std) %>%
+	V_RC_star <- dplyr::mutate(bx_data_star, intercept=1) %>%
+		dplyr::select(intercept, age_std, time, time_ns, sec_time_std) %>%
 		dplyr::filter(did_have_biopsy_star)
 
-	d.V.RC<-dim(V.RC_star)[2] #Note, these don't include eta yet
-	d.Z<-dim(Z_star)[2]
+	d_V_RC<-dim(V_RC_star)[2] #Note, these don't include eta yet
+	d_Z<-dim(Z_star)[2]
 
 	
 	#########
 	#likelihood of PSA data
 	#To vectorize likelihood fits, we use expanded vectors
-		# Expanded vectors are have suffix `_exp` or `.exp`
+		# Expanded vectors are have suffix `_exp` or `_exp`
 	# 1) expand data and parameters so that they're grouped by particle, and each particle is associated with a full copy of the dataset.
 		# let I = length of data vector, of # of visits
 		# a) repeat I-length data vectors P times
@@ -188,15 +187,15 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 	if(length(Y_star)==0){
 		LL_Y<-0
 	}else{
-		Z_star_X_bvec<-tcrossprod(ps$b.vec.star,Z_star)
+		Z_star_X_bvec<-tcrossprod(ps$b_vec_star,Z_star)
 		beta_X_star<-tcrossprod(ps$beta,X_star)
 		mu_obs_psa_exp <-c(t(Z_star_X_bvec +beta_X_star)) #take matrix of means, and turn it into a vector.
 		Y_star_exp<-rep(Y_star,times=P) #expand Y_star for each particle
 		p_ind <- rep(1:P,each=length(Y_star)) #particle index to group Y_star likelihoods
-		sigma.res.exp<-rep(ps$sigma_res,each=length(Y_star))
-		LL_Y_j <- log(dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma.res.exp)) #the likelihood for each visit, grouped by particle.
+		sigma_res_exp<-rep(ps$sigma_res,each=length(Y_star))
+		LL_Y_j <- log(dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma_res_exp)) #the likelihood for each visit, grouped by particle.
 		LL_Y<-( #logLik of all visits
-			data.frame('LL_Y_all'=LL_Y_j,'p_ind'=as.factor(p_ind))%>%
+			data_frame('LL_Y_all'=LL_Y_j,'p_ind'=as.factor(p_ind))%>%
 			group_by(p_ind) %>%
 			summarize(sum=sum(LL_Y_all))
 			)$sum
@@ -231,7 +230,7 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 
 		LL_j <- log(dbinom(x=outcomes_exp,size=1,prob=p_exp))
 		LL <- ( #logLik of all visits
-			data.frame(LL_all=c(t(LL_j)),ind=p_ind) %>% #confused by c(t()) again
+			data_frame(LL_all=c(t(LL_j)),ind=p_ind) %>% #confused by c(t()) again
 			group_by(ind) %>%
 			summarize(sum=sum(LL_all))
 			)$sum
@@ -241,9 +240,9 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, verbose=getOption('ver
 
 
 	LL_RC <- get_joint_LL_measurements(
-		V=V.RC_star,
+		V=V_RC_star,
 		outcomes=RC_star,
-		gamma=ps$gamma.RC,
+		gamma=ps$gamma_RC,
 		eta=ps$eta)
 
 	W <- exp(LL_Y + LL_RC) #I may have messed up on my earlier revisions (changing W cov mats to V) since you named the likelihood for each particle W
@@ -283,8 +282,8 @@ posterior_star<-function(star,ps,runifs,rej_const=NULL){
 
 	likelihood <- get_likelihood(
 		ps=ps, #!! GLOBAL REFS !!
-		psa.data.star=filter(psa.data.full, subj == star),
-		bx.data_star=filter(bx.data.full, subj==star)
+		psa_data_star=filter(psa_data_full, subj == star),
+		bx_data_star=filter(bx_data_full, subj==star)
 		)
 	
 	## Importance Weighting ##
@@ -351,7 +350,7 @@ runifs <- runif(P) #needed for rejection sampling later
 
 
 ###### Vectors to store results
-N <- max(psa.data.full$subj) #number of subjects
+N <- max(psa_data_full$subj) #number of subjects
 
 # store:
 # * effective sample for importance weighting
@@ -408,7 +407,7 @@ save.image(file='checkpoint_IS_fit.RData')
 
 #Show the distribution (over patients) for effective sample sizes for IS.
 if(interactive()) 
-	ggplot(as.data.frame(effective_ss))+ geom_histogram(aes(x=effective_ss))+scale_x_log10() + labs(title='Effective Sample Size')
+	ggplot(as_data_frame(effective_ss))+ geom_histogram(aes(x=effective_ss))+scale_x_log10() + labs(title='Effective Sample Size')
 
 
 #IS and RS give very similar results
@@ -434,7 +433,7 @@ mean(squared_errors_RS,na.rm=TRUE) #RS mean squared error
 
 ######### Save plots of results
 
-eff_ss_error_data<-data.frame(etas_IS,eta_true_or_jags,squared_errors_IS,squared_errors_RS,effective_ss)
+eff_ss_error_data<-data_frame(etas_IS,eta_true_or_jags,squared_errors_IS,squared_errors_RS,effective_ss)
 tail(eff_ss_error_data)
 
 png('effective_SS_and_error.png',width = 6, height = 6, type='cairo')

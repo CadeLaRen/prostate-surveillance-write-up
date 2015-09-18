@@ -24,7 +24,6 @@
 library(dplyr)
 library(MASS)
 library(ggplot2)
-library(splines)
 
 invLogit <- function(x)
 	return(exp(x)/(1+exp(x)))
@@ -33,7 +32,7 @@ invLogit <- function(x)
 
 #!!IOP (Informative observation process infobs inf-obs)
 IOP_BX <- TRUE #Informative observation process for biopsy
-IOP_RRP <- TRUE #Informative observation process for surgery
+IOP_SURG <- TRUE #Informative observation process for surgery
 
 #TRUE TRUE - screen - 885.pts-3.jhpce01
 #FALSE TRUE - screen - 1010.pts-3.jhpce01
@@ -42,7 +41,7 @@ IOP_RRP <- TRUE #Informative observation process for surgery
 
 IOPs<-paste0(
 	c('N')[!IOP_BX],'IOP_BX-',
-	c('N')[!IOP_RRP],'IOP_RRP')
+	c('N')[!IOP_SURG],'IOP_SURG')
 batch_path<-paste0(
 	'batches/',
 	IOPs,
@@ -57,40 +56,40 @@ posterior_path2<-paste0('batches/',
 # Load Data
 
 
-psa.data.full<-read.csv("simulation-data/psa-data-sim.csv")
-pt.data.full<-read.csv("simulation-data/pt-data-sim.csv") #true eta is now contained here, in patient data (pt data)
-bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
+psa_data_full<-read_csv("simulation-data/psa-data-sim.csv")
+pt_data_full<-read_csv("simulation-data/pt-data-sim.csv") #true eta is now contained here, in patient data (pt data)
+bx_data_full <- read_csv("simulation-data/bx-data-sim.csv")
 
-#Splines for rrp and bx
-couldve_had_biopsy_all <- !is.na(bx.data.full$bx.here)
-did_have_biopsy_all <- couldve_had_biopsy_all & bx.data.full$bx.here
+#Splines for surg and bx
+couldve_had_biopsy_all <- !is.na(bx_data_full$bx_here)
+did_have_biopsy_all <- couldve_had_biopsy_all & bx_data_full$bx_here
 
-if(IOP_RRP|IOP_BX){
+if(IOP_SURG|IOP_BX){
 	sum(couldve_had_biopsy_all)
 	sum(did_have_biopsy_all)
 }
 
-if(IOP_RRP){
-	ns_RRP <- data.frame(
-		subj=bx.data.full$subj,
-		ns4time=ns(bx.data.full$time,4),
-		ns3sec=ns(bx.data.full$sec.time.std,3)
+if(IOP_SURG){
+	ns_SURG <- data_frame(
+		subj=bx_data_full$subj,
+		ns4time=ns(bx_data_full$time,4),
+		ns3sec=ns(bx_data_full$sec_time_std,3)
 		)
 }
 
 if(IOP_BX){
-	ns_BX <- data.frame(
-		subj=bx.data.full$subj[couldve_had_biopsy_all],
-		ns4time=ns(bx.data.full$time[couldve_had_biopsy_all],4),
-		ns4sec=ns(bx.data.full$sec.time.std[couldve_had_biopsy_all],4)
+	ns_BX <- data_frame(
+		subj=bx_data_full$subj[couldve_had_biopsy_all],
+		ns4time=ns(bx_data_full$time[couldve_had_biopsy_all],4),
+		ns4sec=ns(bx_data_full$sec_time_std[couldve_had_biopsy_all],4)
 		)
 }
 
-#!! Seems really weird to use one set of splines for one regression, and another for another??? Also weird that we call it BX data when it's really totally different data? Seems like names are still too tied to old version of write-up
+#Also weird that we call it BX data when it's really totally different data? Seems like names are still too tied to old version of write-up
 
 #Work check (passes).
-#all(W.BX.data[,c(4:7,9:12)]==ns_BX[,-1])
-#all(W.RRP.data[,4:10]==ns_RRP[,-1])
+#all(U_BX_data[,c(4:7,9:12)]==ns_BX[,-1])
+#all(W_SURG_data[,4:10]==ns_SURG[,-1])
 
 
 
@@ -112,12 +111,12 @@ n_post<-length(oo$p_eta)
 
 
 
-missing_etas <- which(is.na(pt.data.full$obs.eta))#=1 if obs and aggressive, 0 if obs and not, or NA if not observed
+missing_etas <- which(is.na(pt_data_full$obs_eta))#=1 if obs and aggressive, 0 if obs and not, or NA if not observed
 eta_true_or_jags2<-
-eta_true_or_jags<-pt.data.full$obs.eta
+eta_true_or_jags<-pt_data_full$obs_eta
 eta_true_or_jags[missing_etas]<-colMeans(of$eta_hat_means) #indexed by subject
 eta_true_or_jags2[missing_etas]<-colMeans(of2$eta_hat_means) #indexed by subject
-#sum(missing_etas)==length(colMeans(of$eta.hat))
+#sum(missing_etas)==length(colMeans(of$eta_hat))
 
 range(abs(eta_true_or_jags2-eta_true_or_jags)) #largest error 
 sqrt(mean((eta_true_or_jags2- eta_true_or_jags)^2, na.rm=TRUE)) #rMSD
@@ -148,7 +147,7 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 
 	# Rather than looping operations nreps times,
 	# we'll create a new posterior of size nreps * n_post,
-	# to more easily vectorize the operations for increased speed.
+	# to more easily vectorize the operations for increased speed_
 
 	#Assign by cycle over nreps times (two vectors of different lengths)
 	mu<-array(NA,dim=c(P,2,K))
@@ -160,31 +159,31 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	mu[,2,2]<-oo$mu_slope[,2]
 
 	#expand beta
-	beta.exp <- matrix(NA,P,1) #beta is no longer beta_k?? No longer 2 columns, just one??
-	beta.exp[,1]<-oo$beta[,1] #beta is no longer beta_k??
+	beta_exp <- matrix(NA,P,1) #beta is no longer beta_k?? No longer 2 columns, just one??
+	beta_exp[,1]<-oo$beta[,1] #beta is no longer beta_k??
 
 	#expand sigma_res
-	sigma.res.exp<-rep(NA,P)
-	sigma.res.exp[]<-oo$sigma_res
+	sigma_res_exp<-rep(NA,P)
+	sigma_res_exp[]<-oo$sigma_res
 
 	#expand gamma
-	gamma.RC.exp <- matrix(NA,P,dim(oo$gamma.RC)[2])
-	for(d in 1:dim(oo$gamma.RC)[2])
-		gamma.RC.exp[,d]<-oo$gamma.RC[,d]
+	gamma_RC_exp <- matrix(NA,P,dim(oo$gamma_RC)[2])
+	for(d in 1:dim(oo$gamma_RC)[2])
+		gamma_RC_exp[,d]<-oo$gamma_RC[,d]
 	
-	gamma.BX.exp <-
-	gamma.RRP.exp <- NULL
+	nu_BX_exp <-
+	omega_SURG_exp <- NULL
 
 	if(IOP_BX){
-		gamma.BX.exp <- matrix(NA,P,dim(oo$gamma.BX)[2])
-		for(d in 1:dim(oo$gamma.BX)[2])
-			gamma.BX.exp[,d]<-oo$gamma.BX[,d]
+		nu_BX_exp <- matrix(NA,P,dim(oo$nu_BX)[2])
+		for(d in 1:dim(oo$nu_BX)[2])
+			nu_BX_exp[,d]<-oo$nu_BX[,d]
 	}
 	
-	if(IOP_RRP){
-		gamma.RRP.exp <- matrix(NA,P,dim(oo$gamma.RRP)[2])
-		for(d in 1:dim(oo$gamma.RRP)[2])
-			gamma.RRP.exp[,d]<-oo$gamma.RRP[,d]
+	if(IOP_SURG){
+		omega_SURG_exp <- matrix(NA,P,dim(oo$omega_SURG)[2])
+		for(d in 1:dim(oo$omega_SURG)[2])
+			omega_SURG_exp[,d]<-oo$omega_SURG[,d]
 	}
 	
 	
@@ -192,20 +191,20 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	# !!WORKCHECK!!
 	# if TRUE then recycling for nreps worked!
 	if(FALSE){
-		all(sigma.res.exp[1:10]==sigma.res.exp[1:10+n_post])
-		all(beta.exp[1:10,]==beta.exp[1:10+n_post,])
+		all(sigma_res_exp[1:10]==sigma_res_exp[1:10+n_post])
+		all(beta_exp[1:10,]==beta_exp[1:10+n_post,])
 		all(mu[1:10,,]==mu[1:10+n_post,,])
-		all(gamma.RC.exp[1:10,]==gamma.RC.exp[1:10+n_post,])
-		all(gamma.BX.exp[1:10,]==gamma.BX.exp[1:10+n_post,])
-		all(gamma.RRP.exp[1:10,]==gamma.RRP.exp[1:10+n_post,])
+		all(gamma_RC_exp[1:10,]==gamma_RC_exp[1:10+n_post,])
+		all(nu_BX_exp[1:10,]==nu_BX_exp[1:10+n_post,])
+		all(omega_SURG_exp[1:10,]==omega_SURG_exp[1:10+n_post,])
 	}
 	##############
 
 	#Get random candidate draws for eta (re-used for each new subject)
 	eta<-rbinom(P,1,prob=rep(c(oo$p_eta),times=nreps))
-		# Our eta here is analogous to eta.hat from the main JAGS model.
-	#Get n_post random draws for b.vec
-	b.vec.star <- matrix(NA,P,2)
+		# Our eta here is analogous to eta_hat from the main JAGS model.
+	#Get n_post random draws for b_vec
+	b_vec_star <- matrix(NA,P,2)
 
 	(expand_time<-system.time({
 	if(talk) pb_sim <- txtProgressBar(min = 0, max = P, char = "=", style=3)
@@ -216,9 +215,9 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 		cov_for_bvec_p <- diag(c(oo$sigma_int[oo_ind]^2,oo$sigma_slope[oo_ind]^2))
 		cov_for_bvec_p[1,2]<-
 		cov_for_bvec_p[2,1]<-oo$cov_int_slope[oo_ind]
-		b.vec.star[p,]<-mvrnorm(1,mu=mu[p,,eta[p]+1], Sigma=cov_for_bvec_p)
+		b_vec_star[p,]<-mvrnorm(1,mu=mu[p,,eta[p]+1], Sigma=cov_for_bvec_p)
 			#note, eta[i] is *not* nessecarily the same as eta[i+n_post] due to random draws.
-		# we don't store cov_for_bvec_p because it's not used after b.vec.star is generated.
+		# we don't store cov_for_bvec_p because it's not used after b_vec_star is generated_
 		if(talk) setTxtProgressBar(pb_sim,p)
 	}}})) #~ 2 min for nreps=50, n_post=25000
 
@@ -226,92 +225,92 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	return(list( #all items in this list are length nreps * n_post.
 		#You previously had "exp" suffixes, but not you're ommiting those.
 		eta = eta,
-		sigma_res = sigma.res.exp,
-		beta = beta.exp,
+		sigma_res = sigma_res_exp,
+		beta = beta_exp,
 		mu = mu,
-		gamma.RC = gamma.RC.exp,
-		gamma.BX = gamma.BX.exp,
-		gamma.RRP = gamma.RRP.exp,
-		b.vec.star = b.vec.star
+		gamma_RC = gamma_RC_exp,
+		nu_BX = nu_BX_exp,
+		omega_SURG = omega_SURG_exp,
+		b_vec_star = b_vec_star
 	))
 }
 
 #!!! Checking priors & likelihood -- priors look OK.
 # Now, how to check likelihood?
 
-#??? for subj 229, bx.here and num.prev.bx doesn't seem to match?
+#??? for subj 229, bx_here and num_prev_bx doesn't seem to match?
 
 #' Get likelihood of each particle,
 #' given subj_star's data (Y, Z, X, and W),
 #' and a proposed set of random effects (b-vec & eta) and
-#' hyper-params (beta, gamma.RC)
+#' hyper-params (beta, gamma_RC)
 #'
 #' @param ps particle set (list). Output from get_particles.
-#' @param psa.data.star psa data for subject of interest
-#' @param bx.data_star biopsy data for subject of interest
+#' @param psa_data_star psa data for subject of interest
+#' @param bx_data_star biopsy data for subject of interest
 #' @param ns_BX_star splines for subject of interest
 #' @param ns_BX_star splines for subject of interest
-get_likelihood<-function(ps, psa.data.star, bx.data_star, ns_BX_star, ns_RRP_star, verbose=getOption('verbose')){
+get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_star, verbose=getOption('verbose')){
 
 	P<-length(ps$sigma_res)
 
 	#Setup subject data
-	Y_star <- psa.data.star$log.psa
-	X_star <- psa.data.star$std.vol #What if this is also a risk factor??
-	Z_star <- cbind(1, psa.data.star$age.std) #right!???
+	Y_star <- psa_data_star$log_psa
+	X_star <- psa_data_star$vol_std #What if this is also a risk factor??
+	Z_star <- cbind(1, psa_data_star$age_std) #right!???
 
-	RC_star <- dplyr::filter(bx.data_star, bx.here==1)$rc
-	BX_star <- dplyr::filter(bx.data_star, !is.na(bx.here))$bx.here
+	RC_star <- dplyr::filter(bx_data_star, bx_here==1)$rc
+	BX_star <- dplyr::filter(bx_data_star, !is.na(bx_here))$bx_here
 	 #for subj 215, why do they reclassify and still get measured?? does this always have to be zero?? It's because the surgery can happen at any time J, which includes times after they reclassify.. and have no more biopsies?? (or do they?)
-	RRP_star <- bx.data_star$rrp
-	prev_pos_biopsy <- dplyr::filter(bx.data_star, !is.na(bx.here))$prev.G7 #do I have this right, or do I need to exclude periods where bx.here = NA?? Does bx.here=NA mean they've exited the study (reclassified)?
+	SURG_star <- bx_data_star$surg
+	prev_pos_biopsy <- dplyr::filter(bx_data_star, !is.na(bx_here))$prev_G7 #do I have this right, or do I need to exclude periods where bx_here = NA?? Does bx_here=NA mean they've exited the study (reclassified)?
 
 
 	#Only take the covariates for which we have actual biopsies, otherwise R will do some bad recycling later on.
-	couldve_had_biopsy_star <- !(is.na(bx.data_star$bx.here))
-	did_have_biopsy_star <- couldve_had_biopsy_star & bx.data_star$bx.here
+	couldve_had_biopsy_star <- !(is.na(bx_data_star$bx_here))
+	did_have_biopsy_star <- couldve_had_biopsy_star & bx_data_star$bx_here
 
-	W.RC_star <- dplyr::mutate(bx.data_star, intercept=1) %>%
-		dplyr::select(intercept, age.std, time, time.ns, sec.time.std) %>%
+	V_RC_star <- dplyr::mutate(bx_data_star, intercept=1) %>%
+		dplyr::select(intercept, age_std, time, time_ns, sec_time_std) %>%
 		dplyr::filter(did_have_biopsy_star)
 
-	d.W.RC<-dim(W.RC_star)[2] #Note, these don't include eta yet
-	d.Z<-dim(Z_star)[2]
+	d_V_RC<-dim(V_RC_star)[2] #Note, these don't include eta yet
+	d_Z<-dim(Z_star)[2]
 
 	if(IOP_BX){
-		data4BX <- dplyr::filter(bx.data_star,couldve_had_biopsy_star) #covariates just for BX
-		W.BX_star <- as.matrix(cbind(
+		data4BX <- dplyr::filter(bx_data_star,couldve_had_biopsy_star) #covariates just for BX
+		U_BX_star <- as.matrix(cbind(
 				1,
-				data4BX$age.std,
-				data4BX$age.ns,
+				data4BX$age_std,
+				data4BX$age_ns,
 				ns_BX_star[grep('ns4time',names(ns_BX_star))],
-				data4BX$num.prev.bx,
+				data4BX$num_prev_bx,
 				ns_BX_star[grep('ns4sec',names(ns_BX_star))] ) %>%
-			data.frame )
+			data_frame )
 
-		d.W.BX<-dim(W.BX_star)[2]
+		d_U_BX<-dim(U_BX_star)[2]
 	}
 
-	if(IOP_RRP){
-		W.RRP_star<- as.matrix(cbind( #It's possible to have RRP at any time, so no filtering
+	if(IOP_SURG){
+		W_SURG_star<- as.matrix(cbind( #It's possible to have SURG at any time, so no filtering
 				1,
-				bx.data_star$age.std,
-				bx.data_star$age.ns,
-				ns_RRP_star[grep('ns4time',names(ns_RRP_star))],
-				ns_RRP_star[grep('ns3sec',names(ns_RRP_star))],
-				bx.data_star$num.prev.bx.rrp,
-				bx.data_star$prev.G7)) #!!!!
+				bx_data_star$age_std,
+				bx_data_star$age_ns,
+				ns_SURG_star[grep('ns4time',names(ns_SURG_star))],
+				ns_SURG_star[grep('ns3sec',names(ns_SURG_star))],
+				bx_data_star$num_prev_bx_surg,
+				bx_data_star$prev_G7)) #!!!!
 
-		d.W.RRP<-dim(W.RRP_star)[2]
+		d_W_SURG<-dim(W_SURG_star)[2]
 	}
 
 	#########
-	#For all of our data, will RRP be zero because we're only fitting on unknown patients!!?? (even though known patients are included in the likelihood?)
+	#For all of our data, will SURG be zero because we're only fitting on unknown patients!!?? (even though known patients are included in the likelihood?)
 
 	#########
 	#likelihood of PSA data
 	#To vectorize likelihood fits, we use expanded vectors
-		# Expanded vectors are have suffix `_exp` or `.exp`
+		# Expanded vectors are have suffix `_exp` or `_exp`
 	# 1) expand data and parameters so that they're grouped by particle, and each particle is associated with a full copy of the dataset.
 		# let I = length of data vector, of # of visits
 		# a) repeat I-length data vectors P times
@@ -323,15 +322,15 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, ns_BX_star, ns_RRP_sta
 	if(length(Y_star)==0){
 		LL_Y<-0
 	}else{
-		Z_star_X_bvec<-tcrossprod(ps$b.vec.star,Z_star)
+		Z_star_X_bvec<-tcrossprod(ps$b_vec_star,Z_star)
 		beta_X_star<-tcrossprod(ps$beta,X_star)
 		mu_obs_psa_exp <-c(t(Z_star_X_bvec +beta_X_star)) #take matrix of means, and turn it into a vector.
 		Y_star_exp<-rep(Y_star,times=P) #expand Y_star for each particle
 		p_ind <- rep(1:P,each=length(Y_star)) #particle index to group Y_star likelihoods
-		sigma.res.exp<-rep(ps$sigma_res,each=length(Y_star))
-		LL_Y_j <- log(dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma.res.exp)) #the likelihood for each visit, grouped by particle.
+		sigma_res_exp<-rep(ps$sigma_res,each=length(Y_star))
+		LL_Y_j <- log(dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma_res_exp)) #the likelihood for each visit, grouped by particle.
 		LL_Y<-( #logLik of all visits
-			data.frame('LL_Y_all'=LL_Y_j,'p_ind'=as.factor(p_ind))%>%
+			data_frame('LL_Y_all'=LL_Y_j,'p_ind'=as.factor(p_ind))%>%
 			group_by(p_ind) %>%
 			summarize(sum=sum(LL_Y_all))
 			)$sum
@@ -344,13 +343,13 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, ns_BX_star, ns_RRP_sta
 	# common function
 
 
-	#' For either RRP, BX, or RC, get the likelihood for all visits from a subject.
+	#' For either SURG, BX, or RC, get the likelihood for all visits from a subject.
 	#' This returns a vector of length P, with the joint log-likelihood of all visits, under each particle
 	#' It works under the assumption that for any particle p,
 	#' we have a bernoulli outcome with:
-	#'  logit(mean)= W %*% gamma[p,1:dim(W)] + eta * gamma[p,dim(W)+1] + interact_RRP * eta * W[dim(W)] * gamma[p,dim(W)+2]
-	#' Where `interact_RRP` is an indicator that adds an interaction term for the RRP regression
-	get_joint_LL_measurements<-function(W, outcomes, gamma, eta, interact_RRP=FALSE){
+	#'  logit(mean)= W %*% gamma[p,1:dim(W)] + eta * gamma[p,dim(W)+1] + interact_SURG * eta * W[dim(W)] * gamma[p,dim(W)+2]
+	#' Where `interact_SURG` is an indicator that adds an interaction term for the SURG regression
+	get_joint_LL_measurements<-function(W, outcomes, gamma, eta, interact_SURG=FALSE){
 
 		if(length(outcomes)==0) return(0)
 
@@ -368,7 +367,7 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, ns_BX_star, ns_RRP_sta
 		eta_gamma_dWp1_exp <- rep(eta_gamma_dWp1, each = nVisits) 
 
 		eta_gamma_dWp2_G7_exp <- rep(0,P*nVisits)
-		if(interact_RRP){
+		if(interact_SURG){
 			eta_gamma_dWp2 <- gamma[,d_W+2] * eta
 			eta_gamma_dWp2_G7_mat <- tcrossprod(W[,d_W],eta_gamma_dWp2) #each column corresponds to 1 particle.
 			eta_gamma_dWp2_G7_exp <- c(eta_gamma_dWp2_G7_mat) #expand by stacking columns together
@@ -381,7 +380,7 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, ns_BX_star, ns_RRP_sta
 
 		LL_j <- log(dbinom(x=outcomes_exp,size=1,prob=p_exp))
 		LL <- ( #logLik of all visits
-			data.frame(LL_all=c(t(LL_j)),ind=p_ind) %>%
+			data_frame(LL_all=c(t(LL_j)),ind=p_ind) %>%
 			group_by(ind) %>%
 			summarize(sum=sum(LL_all))
 			)$sum
@@ -391,33 +390,33 @@ get_likelihood<-function(ps, psa.data.star, bx.data_star, ns_BX_star, ns_RRP_sta
 
 
 	LL_RC <- get_joint_LL_measurements(
-		W=W.RC_star,
+		W=V_RC_star,
 		outcomes=RC_star,
-		gamma=ps$gamma.RC,
+		gamma=ps$gamma_RC,
 		eta=ps$eta,
-		interact_RRP=FALSE)
+		interact_SURG=FALSE)
 
 
-	LL_BX <-LL_RRP <- 0 #zero if not included in model
+	LL_BX <-LL_SURG <- 0 #zero if not included in model
 	if(IOP_BX){
 		LL_BX <- get_joint_LL_measurements(
-		W=W.BX_star,
+		W=U_BX_star,
 		outcomes=BX_star,
-		gamma=ps$gamma.BX,
+		gamma=ps$nu_BX,
 		eta=ps$eta,
-		interact_RRP=FALSE)
+		interact_SURG=FALSE)
 		
 	}
-	if(IOP_RRP){
-		LL_RRP <- get_joint_LL_measurements(
-			W=W.RRP_star,
-			outcomes=RRP_star,
-			gamma=ps$gamma.RRP,
+	if(IOP_SURG){
+		LL_SURG <- get_joint_LL_measurements(
+			W=W_SURG_star,
+			outcomes=SURG_star,
+			gamma=ps$omega_SURG,
 			eta=ps$eta,
-			interact_RRP=TRUE)
+			interact_SURG=TRUE)
 	}
 
-	W <- exp(LL_Y + LL_BX + LL_RC + LL_RRP)
+	W <- exp(LL_Y + LL_BX + LL_RC + LL_SURG)
 
 
 	return(W)
@@ -491,10 +490,10 @@ posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=
 
 		likelihood_i <- get_likelihood(
 			ps=psi, #!! GLOBAL REFS !!
-			psa.data.star=data_star$PSA,
-			bx.data_star=data_star$BX,
+			psa_data_star=data_star$PSA,
+			bx_data_star=data_star$BX,
 			ns_BX_star=data_star$ns_BX,
-			ns_RRP_star=data_star$ns_RRP
+			ns_SURG_star=data_star$ns_SURG
 			) #!! What if it's in a different order ??
 		
 		likelihood <- c(likelihood, likelihood_i)
@@ -573,7 +572,7 @@ runifs <- runif(P) #needed for rejection sampling later
 
 
 ###### Vectors to store results
-N <- max(psa.data.full$subj) #number of subjects
+N <- max(psa_data_full$subj) #number of subjects
 
 # store:
 # * effective sample for importance weighting
@@ -607,10 +606,10 @@ for(star in missing_etas){
 	# rej_const<-0.0007 #!!?? need to get better version for. If ratio is the likelihood, then rej_const is the value at the MLE. We should know this from what we generated from? Equal to the latent value or something?
 	# if(star>1) rej_const <- max(rej_const,likelihood) #this tends to get too small.
 	data_star <- list(
-		PSA=filter(psa.data.full, subj == star),
-		BX=filter(bx.data.full, subj==star),
+		PSA=filter(psa_data_full, subj == star),
+		BX=filter(bx_data_full, subj==star),
 		ns_BX=filter(ns_BX, subj==star),
-		ns_RRP=filter(ns_RRP, subj==star)
+		ns_SURG=filter(ns_SURG, subj==star)
 	)
 
 	rej_const=NULL
@@ -641,26 +640,26 @@ save('seed', 'nreps','posterior_path',
 	'num_accepted',
 	'etas_RS',
 	'etas_IS',
-	file=paste0(batch_path,Sys.Date(),'_seed_',seed,'_IOP_BX-',IOP_BX,'_IOP_RRP-',IOP_RRP,'_P-',P,'_online_fit_results_EffSS_done.RData'))
+	file=paste0(batch_path,Sys.Date(),'_seed_',seed,'_IOP_BX-',IOP_BX,'_IOP_SURG-',IOP_SURG,'_P-',P,'_online_fit_results_EffSS_done.RData'))
 
 # load(...)
 
 ###########
 #INF-OBS
-# load('batches/IOP_BX-IOP_RRP/1/2015-09-14_seed_101_IOP_BX-TRUE_IOP_RRP-TRUE_P-625000_online_fit_results_done.RData')
+# load('batches/IOP_BX-IOP_SURG/1/2015-09-14_seed_101_IOP_BX-TRUE_IOP_SURG-TRUE_P-625000_online_fit_results_done.RData')
 
-# load('batches/IOP_BX-IOP_RRP/1/2015-09-15_seed_102_IOP_BX-TRUE_IOP_RRP-TRUE_P-625000_online_fit_results_done.RData')
+# load('batches/IOP_BX-IOP_SURG/1/2015-09-15_seed_102_IOP_BX-TRUE_IOP_SURG-TRUE_P-625000_online_fit_results_done.RData')
 
-# load('batches/IOP_BX-IOP_RRP/1/2015-09-14_seed_101_IOP_BX-TRUE_IOP_RRP-TRUE_P-62500_online_fit_results_done.RData')
+# load('batches/IOP_BX-IOP_SURG/1/2015-09-14_seed_101_IOP_BX-TRUE_IOP_SURG-TRUE_P-62500_online_fit_results_done.RData')
 ###########
 
 
 ###########
 #NON-INF
 
-# load('batches/NIOP_BX-NIOP_RRP/1/2015-08-23_seed_101_IOP_BX-FALSE_IOP_RRP-FALSE_P-625000_online_fit_results_done.RData') #On AJF's computer, with nreps=10
+# load('batches/NIOP_BX-NIOP_SURG/1/2015-08-23_seed_101_IOP_BX-FALSE_IOP_SURG-FALSE_P-625000_online_fit_results_done.RData') #On AJF's computer, with nreps=10
 
-# load('batches/NIOP_BX-NIOP_RRP/1/2015-08-28_seed_101_IOP_BX-FALSE_IOP_RRP-FALSE_P-62500_online_fit_results_done.RData') #version with nreps =1.
+# load('batches/NIOP_BX-NIOP_SURG/1/2015-08-28_seed_101_IOP_BX-FALSE_IOP_SURG-FALSE_P-62500_online_fit_results_done.RData') #version with nreps =1.
 ###########
 
 
@@ -677,7 +676,7 @@ hist(effective_ss, na.rm=TRUE)
 
 library(ggplot2)
 
-ggplot(as.data.frame(effective_ss))+ geom_histogram(aes(x=effective_ss))+scale_x_log10()
+ggplot(as_data_frame(effective_ss))+ geom_histogram(aes(x=effective_ss))+scale_x_log10()
 mean(effective_ss,na.rm=TRUE)
 # IS appears to do better than RS
 
@@ -709,7 +708,7 @@ quantile(sqrt(squared_errors_IS),probs=seq(.9,1,by=.01),na.rm=TRUE)
 
 
 
-eff_ss_error_data <- data.frame(etas_IS,eta_true_or_jags,squared_errors_IS,squared_errors_RS,effective_ss,nreps=nreps,P=P)
+eff_ss_error_data <- data_frame(etas_IS,eta_true_or_jags,squared_errors_IS,squared_errors_RS,effective_ss,nreps=nreps,P=P)
 tail(eff_ss_error_data)
 
 # saveRDS(eff_ss_error_data,file=paste0(batch_path,Sys.Date(),'_seed_',seed,'_P-',P,'_effective_ss_plotframe.RData'))
@@ -730,8 +729,8 @@ dev.off()
 
 #FACET output from TWO runs with different values of nreps
 
-effSS_error_nreps1<-readRDS('batches/IOP_BX-IOP_RRP/1/2015-09-14_seed_101_P-62500_effective_ss_plotframe.RData')
-effSS_error_nreps10<-readRDS('batches/IOP_BX-IOP_RRP/1/2015-09-14_seed_101_P-625000_effective_ss_plotframe.RData')
+effSS_error_nreps1<-readRDS('batches/IOP_BX-IOP_SURG/1/2015-09-14_seed_101_P-62500_effective_ss_plotframe.RData')
+effSS_error_nreps10<-readRDS('batches/IOP_BX-IOP_SURG/1/2015-09-14_seed_101_P-625000_effective_ss_plotframe.RData')
 effSS_error_compare<-rbind(effSS_error_nreps1,effSS_error_nreps10)
 
 
@@ -747,7 +746,7 @@ lf<-function(value,variable){
 	# overlaid with color
 	# faceted
 # png(paste0('plots/',Sys.Date(),'_effective_ss_facet.png'),pointsize=17,width = 520, height = 720)
-# png(file=paste0('plots/',Sys.Date(),'_',IOPs,'_effective_ss_overlaid.png'),width = 620, height = 520)
+# png(file=paste0('plots/',Sys.Date(),'_',IOPs,'_effective_ss_overlaid_png'),width = 620, height = 520)
 ggplot(effSS_error_compare) + 
 	geom_point(aes(y=sqrt(squared_errors_IS),x=effective_ss,col=as.factor(P))) + 
 	labs(title='Effective Sample Size v. Absolute Error\n(on log scale)',x='Effective Sample Size for IS',y='Absolute Difference', col='# of\nParticles') +
@@ -764,21 +763,21 @@ dev.off()
 
 
 
-countSubj <- group_by(bx.data.full,subj)%>%
+countSubj <- group_by(bx_data_full,subj)%>%
 	summarise(
-		nCouldBX=sum(!is.na(bx.here)),
-		nDidBX=sum(bx.here==1,na.rm=TRUE),
-		nCouldRRP=n(),
+		nCouldBX=sum(!is.na(bx_here)),
+		nDidBX=sum(bx_here==1,na.rm=TRUE),
+		nCouldSURG=n(),
 		everRC=sum(rc)
-		#No point in checking everRRP, because if they did, we would've be fitting them here.
+		#No point in checking everSURG, because if they did, we would've be fitting them here.
 		)
-countSubj$nPSA <- (group_by(psa.data.full,subj) %>%
+countSubj$nPSA <- (group_by(psa_data_full,subj) %>%
 	summarise(nPSA=n()))$nPSA
 countSubj$RCfactor<-factor(countSubj$everRC,labels=c('Never RC','Eventually RC'))
 
 
 
-plotData<-data.frame(etas_IS,eta_true_or_jags,effective_ss,fit_time,countSubj)
+plotData<-data_frame(etas_IS,eta_true_or_jags,effective_ss,fit_time,countSubj)
 tail(plotData)
 
 # png(paste0('plots/',Sys.Date(),'_',IOPs,'_agreement_eff_ss.png'),pointsize=17,width = 530, height = 480,)
@@ -807,7 +806,7 @@ plot(abs(error),log(effective_ss))
 
 plot(plotData$nCouldBX,error)
 plot(plotData$nDidBX,error)
-plot(plotData$nCouldRRP,error)
+plot(plotData$nCouldSURG,error)
 
 boxplot(error~everRC,data=plotData,xlab='Reclassify Ever',ylab='IS - MCMC', main='Error in predictions, by RC')
 
@@ -824,8 +823,8 @@ which(check)
 # 215 229 236 246 281 296 309 366 369 416 429 431
 #  455 507 545 644 646 670 672 689 695 703 709 771
 #  782 833 861 865 890 919 939 950
-filter(bx.data.full,subj%in%head(which(check),3))
-filter(bx.data.full,subj%in%head(which(!check),3))
+filter(bx_data_full,subj%in%head(which(check),3))
+filter(bx_data_full,subj%in%head(which(!check),3))
 
 
 
@@ -844,7 +843,7 @@ quantile(errors_RS[!skip],c(.95,.99,.995,.999,.9999,1))
 
 ####################
 # Why does IS and RS do so badly for some subjects?
-# It appears to be because, for those subjects, few proposals being accepted. (Or small effective sample size for IS)
+# It appears to be because, for those subjects, few proposals being accepted_ (Or small effective sample size for IS)
 
 # Which people do we have bad estimates (for IS or RS)
 bad_IS <- abs(eta_true_or_jags-etas_IS)>.05
@@ -871,7 +870,7 @@ quantile(abs(eta_true_or_jags-etas_RS)[num_accepted>100],
 	c(.90,.95,.99,.999),
 	na.rm=TRUE) #yes! this appears to identify they well!
 
-error_df<-data.frame(error=sqrt(errors_RS),num_accepted=num_accepted)
+error_df<-data_frame(error=sqrt(errors_RS),num_accepted=num_accepted)
 ggplot(error_df,aes(x=error,y=num_accepted)) + geom_point(alpha=.4)+ coord_trans(y = "log10")
 
 
@@ -893,7 +892,7 @@ quantile(sqrt(errors_IS),
 	c(.90,.95,.99,.999),
 	na.rm=TRUE) #yup, makes a huge difference!
 
-error_df<-data.frame(error=sqrt(errors_IS),effective_sample_size=effective_ss)
+error_df<-data_frame(error=sqrt(errors_IS),effective_sample_size=effective_ss)
 ggplot(error_df,aes(x=error,y=effective_sample_size)) + geom_point(alpha=.4)+ coord_trans(y = "log10") + geom_abline(intercept=10000,slope=0)
 deva()
 
@@ -948,7 +947,7 @@ quantile(effective_ss,c(0,.005,.01,.02,.05,.1,.5),na.rm=TRUE)
 quantile(effective_ss_v2,c(0,.005,.01,.02,.05,.1,.5),na.rm=TRUE)
 
 of2<-readRDS('posterior_full_100k.rds')$sims.list
-eta_true_or_jags2<-c(known_etas,colMeans(of2$eta.hat))
+eta_true_or_jags2<-c(known_etas,colMeans(of2$eta_hat))
 
 
 png(file=paste0('plots/',Sys.Date(),'_compare_fits.png'),height=1200,width=500,pointsize=20)
@@ -982,8 +981,8 @@ cor(eta_true_or_jags[!skip],etas_IS_v2[!skip])
 #Choose an arbitrary subject to plot
 star <- round(runif(1,N-n_subj_to_est+1,N))
 
-hist(colMeans(of$eta.hat),breaks=30,main=paste0('Distribution of mean posterior eta_hat,\nacross people (star=',star,')'),xlab='Population Distribution')
-abline(v=mean(of$eta.hat),lwd=3)
+hist(colMeans(of$eta_hat),breaks=30,main=paste0('Distribution of mean posterior eta_hat,\nacross people (star=',star,')'),xlab='Population Distribution')
+abline(v=mean(of$eta_hat),lwd=3)
 abline(v=eta_true_or_jags[star],lwd=2, col='darkgreen')
 abline(v=etas_IS[star],lwd=3,col='blue',lty=2)
 legend('topright',c('overall pop mean','subj* online','subj* full model'),lty=c(1,2,1),lwd=c(3,2,2),col=c('black','blue','darkgreen'))
@@ -1015,16 +1014,16 @@ if(FALSE){
 
  #likelihood of PSA data
 system.time({
-Z_star_X_bvec<-tcrossprod(b.vec.star,Z_star)
-beta_eta<-beta.exp[,1] + beta.exp[,2]*(eta==1)
-beta.exp_eta_Xstar<-tcrossprod(beta_eta,X_star)
-mu_obs_psa_exp <-c(t(Z_star_X_bvec +beta.exp_eta_Xstar))
+Z_star_X_bvec<-tcrossprod(b_vec_star,Z_star)
+beta_eta<-beta_exp[,1] + beta_exp[,2]*(eta==1)
+beta_exp_eta_Xstar<-tcrossprod(beta_eta,X_star)
+mu_obs_psa_exp <-c(t(Z_star_X_bvec +beta_exp_eta_Xstar))
 Y_star_exp<-rep(NA,length(Y_star)*P)
 Y_star_exp[]<-Y_star #cycle Y_star up
 p_ind <- rep(1:(P),each=length(Y_star))
-sigma.res.exp2<-rep(sigma.res.exp,each=length(Y_star))
-L_Y_j <- dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma.res.exp2) #the likelihood for each visit, grouped by particle.
-L_Y_frame<-data.frame('L_Y_all'=L_Y_j,'p_ind'=as.factor(p_ind))%>%
+sigma_res_exp2<-rep(sigma_res_exp,each=length(Y_star))
+L_Y_j <- dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma_res_exp2) #the likelihood for each visit, grouped by particle.
+L_Y_frame<-data_frame('L_Y_all'=L_Y_j,'p_ind'=as.factor(p_ind))%>%
 	group_by(p_ind) %>%
 	summarize(prod=prod(L_Y_all))
 L_Y2<-L_Y_frame$prod
@@ -1033,17 +1032,17 @@ L_Y2<-L_Y_frame$prod
 
 
 system.time({
-gamma.RC.exp <- matrix(NA,n_post*nreps,dim(oo$gamma.RC)[2])
-gamma.RC.exp[,1]<-oo$gamma.RC[,1]
-gamma.RC.exp[,2]<-oo$gamma.RC[,2]
-gamma.RC.exp[,3]<-oo$gamma.RC[,3]
-gamma.RC.exp[,4]<-oo$gamma.RC[,4]
+gamma_RC_exp <- matrix(NA,n_post*nreps,dim(oo$gamma_RC)[2])
+gamma_RC_exp[,1]<-oo$gamma_RC[,1]
+gamma_RC_exp[,2]<-oo$gamma_RC[,2]
+gamma_RC_exp[,3]<-oo$gamma_RC[,3]
+gamma_RC_exp[,4]<-oo$gamma_RC[,4]
 
 
-logit_p_rc<-gamma.RC.exp[,1:3] %*% t(W.RC_star) + gamma.RC.exp[,4]*eta
+logit_p_rc<-gamma_RC_exp[,1:3] %*% t(V_RC_star) + gamma_RC_exp[,4]*eta
 
 L_RC_j <- matrix(dbinom(x=RC_star,size=1,prob=c(invLogit(logit_p_rc))),P,length(RC_star))
-L_RC_frame <- data.frame(L_RC_all=c(t(L_RC_j)),ind=rep(1:(P),each=length(RC_star))) %>%
+L_RC_frame <- data_frame(L_RC_all=c(t(L_RC_j)),ind=rep(1:(P),each=length(RC_star))) %>%
 	group_by(ind) %>%
 	summarize(prod=prod(L_RC_all))
 L_R2<-L_RC_frame$prod
@@ -1062,14 +1061,14 @@ for(oo_ind in 1:n_post){ #index for oo
 	p <- (r-1)*n_post+oo_ind #index for our particle set
 
 	 #likelihood of PSA data
-	mu_obs_psa <- Z_star %*% b.vec.star[p,]  +
+	mu_obs_psa <- Z_star %*% b_vec_star[p,]  +
 		( oo$beta[oo_ind,1] + oo$beta[oo_ind,2]*(eta[p]==1) ) * X_star
 	L_Y <- prod(dnorm(Y_star,mean=mu_obs_psa, sd=oo$sigma_res[oo_ind]))
 	L_Y_save[p]<-L_Y
 
 	#likelihood of reclassifications
 	if(!is.null(RC_star)){
-		logit_p_rc<-cbind(W.RC_star,eta[p]) %*% oo$gamma.RC[oo_ind,1:(d.W.RC+1)]
+		logit_p_rc<-cbind(V_RC_star,eta[p]) %*% oo$gamma_RC[oo_ind,1:(d_V_RC+1)]
 		L_R <- prod(dbinom(x=RC_star,size=1,prob=c(invLogit(logit_p_rc))))
 		L_RC_save[p]<-L_R
 	}else{
