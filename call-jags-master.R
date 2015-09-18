@@ -82,7 +82,7 @@ table(eta.data) #107 in each
 
 
 #########
-# PSA model
+# PSA outcome model
 
 (n_obs_psa<-dim(psa.data)[1])
 Y<-psa.data$log.psa
@@ -102,22 +102,32 @@ summary(X.data)
 
 
 #########
-# Reclassification (RC) logistic regression outcome model
-
-#observation model
-bx.data<-data.use[!is.na(data.use$bx.here),] #remove patients who have already had RC observed but haven't had surgery or been censored
-(n_bx<-dim(bx.data)[1])
-BX<-as.numeric(bx.data$bx.here) #indicator of bx
-subj_bx<-bx.data$subj
+# Reclassification (RC) observation model, logistic regression
 
 
-U.BX.data<-as.matrix(cbind(rep(1,n_bx), bx.data$age.std, bx.data$age.ns, bx.data$time, bx.data$time.ns, bx.data$sec.time.std, bx.data$sec.time.ns, bx.data$num.prev.bx ))
-(d.U.BX<-dim(U.BX.data)[2]) #12
-round(apply(U.BX.data,2,summary),2)
+bx.data<-
+n_bx<-
+BX<-
+subj_bx<-
+U.BX.data<-
+d.U.BX<- NULL
+
+if(IOP_BX){
+	bx.data<-data.use[!is.na(data.use$bx.here),] #remove patients who have already had RC observed but haven't had surgery or been censored
+	(n_bx<-dim(bx.data)[1])
+	BX<-as.numeric(bx.data$bx.here) #indicator of bx
+	subj_bx<-bx.data$subj
 
 
+	U.BX.data<-as.matrix(cbind(rep(1,n_bx), bx.data$age.std, bx.data$age.ns, bx.data$time, bx.data$time.ns, bx.data$sec.time.std, bx.data$sec.time.ns, bx.data$num.prev.bx ))
+	(d.U.BX<-dim(U.BX.data)[2]) #12
+	round(apply(U.BX.data,2,summary),2)
+}
 
-#outcome model (logistic regression for reclassification)
+
+#########
+# Reclassification (RC) outcome model, logistic regression
+
 rc.data<-data.use[data.use$bx.here==1 & !is.na(data.use$bx.here),] #only use records where a biopsy occurred
 (n_rc<-dim(rc.data)[1])
 RC<-as.numeric(rc.data$rc)
@@ -129,16 +139,26 @@ V.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$
 round(apply(V.RC.data,2,summary) ,2)
 
 
+#########
+#Observation model for surgery (SURG), logistic regression
 
-#logistic regression for SURG
 #this uses all records, because patients always at risk of choosing surgery
-SURG<-as.numeric(data.use$rrp)
-(n_surg<-dim(data.use)[1])
-subj_surg<-data.use$subj
 
-W.SURG.data<-as.matrix(cbind(rep(1,n_surg), data.use$age.std, data.use$age.ns, data.use$time, data.use$time.ns, data.use$sec.time.std, data.use$sec.time.ns, data.use$num.prev.bx.rrp, data.use$prev.G7)) 
-round(apply(W.SURG.data,2,summary) ,2)
+SURG<-
+n_surg<-
+subj_surg<-
+W.SURG.data<- NULL
 
+if(IOP_RRP){
+	SURG<-as.numeric(data.use$rrp)
+	(n_surg<-dim(data.use)[1])
+	subj_surg<-data.use$subj
+
+	W.SURG.data<-as.matrix(cbind(rep(1,n_surg), data.use$age.std, data.use$age.ns, data.use$time, data.use$time.ns, data.use$sec.time.std, data.use$sec.time.ns, data.use$num.prev.bx.rrp, data.use$prev.G7)) 
+	round(apply(W.SURG.data,2,summary) ,2)
+}
+
+d.W.SURG surg needs to be defined!!??
 
 ##get starting values, other functions necessary for call to JAGS
 
@@ -159,7 +179,15 @@ mod.lmer<-lmer(log.psa~ std.vol + (1+ age.std |id), data=psa.data)
 #bundle data for call to JAGS
 #this is observed data and constant variables that have already been assigned values (e.g. number of class K=2, number of subjects n, etc.)
 K<-2
-jags_data<-list(K=K, n=n, eta.data=eta.data, n_eta_known=n_eta_known, n_obs_psa=n_obs_psa, Y=Y, subj_psa=subj_psa, Z=Z.data, X=X.data, d.Z=d.Z, d.X=d.X, I_d.Z=diag(d.Z), BX=BX, n_bx=n_bx, subj_bx=subj_bx, U.BX=U.BX.data, d.U.BX=d.U.BX, RC=RC, n_rc=n_rc, subj_rc=subj_rc, V.RC=V.RC.data, d.V.RC=d.V.RC, SURG=SURG, n_surg=n_surg, subj_surg=subj_surg, W.SURG=W.SURG.data, d.W.SURG=d.W.SURG)
+jags_data<-list(
+	K=K, n=n, eta.data=eta.data, n_eta_known=n_eta_known, 
+	Y=Y,n_obs_psa=n_obs_psa, subj_psa=subj_psa, Z=Z.data, X=X.data, d.Z=d.Z, d.X=d.X, I_d.Z=diag(d.Z),
+	RC=RC, n_rc=n_rc, subj_rc=subj_rc, V.RC=V.RC.data, d.V.RC=d.V.RC
+	)
+ 
+if(IOP_BX) jags_data <- c(jags_data, list(BX=BX, n_bx=n_bx, subj_bx=subj_bx, U.BX=U.BX.data, d.U.BX=d.U.BX))
+
+if(IOP_RRP) jags_data <- c(jags_data, list(SURG=SURG, n_surg=n_surg, subj_surg=subj_surg, W.SURG=W.SURG.data, d.W.SURG=d.W.SURG))
 
 
 #initialize model
@@ -180,17 +208,35 @@ inits <- function(){
 
 	beta<-rnorm(d.X)
 
-	nu.BX<-rnorm((d.U.BX+1), mean=0, sd=0.1) #last coefficient is effect of eta=1
 	gamma.RC<-rnorm((d.V.RC+1), mean=0, sd=0.1) #ditto
-	omega.SURG<-c(rnorm((d.W.SURG+2), mean=0, sd=0.01))  #here, include interaction with last prediction and eta=1
 
-	list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, nu.BX=nu.BX, gamma.RC=gamma.RC, omega.SURG=omega.SURG)
+
+	out <- list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, gamma.RC=gamma.RC)
+
+	
+	if(IOP_BX){
+		nu.BX<-rnorm((d.U.BX+1), mean=0, sd=0.1) #last coefficient is effect of eta=1
+		out$nu.BX <- nu.BX
+	}
+	if(IOP_RRP){
+		omega.SURG<-c(rnorm((d.W.SURG+2), mean=0, sd=0.01))  #here, include interaction with last prediction and eta=1
+		out$omega.SURG <- omega.SURG
+	}
+
+	out
 }
 
 
 
 # parameters to track
-params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "nu.BX", "gamma.RC", "omega.SURG", "p_bx", "p_rc", "p_surg")  #you may not need to monitor p_bx, p_rc, and p_surg. taking them out of the list should improve computing time a bit
+params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "p_rc","gamma.RC",)
+
+if(IOP_BX) params <- c(params, "nu.BX", "p_bx",)
+if(IOP_RRP) params <- c(params, "omega.SURG", "p_surg")
+
+#you may not need to monitor p_bx, p_rc, and p_surg. taking them out of the list should improve computing time a bit
+
+
 
 # MCMC settings
 #ni, nb, nt, and nc are now set in separate files.
