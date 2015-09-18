@@ -1,8 +1,11 @@
 # cd /home/bst/student/afisher/inHealth_prostate
-# #qsub -N fullJAGS -t 1-200 -V -l mf=5G,h_vmem=5G -cwd -b y R CMD BATCH --no-save call-jags-inf-obs-cluster-aaron-full-sample.R
-# qsub -N oneVisitOut -t 215-1000 -V -l mf=5G,h_vmem=5G -cwd -b y R CMD BATCH --no-save call-jags-inf-obs-cluster-aaron-leave-1visit-out.R
+# #qsub -N fullJAGS -t 1-200 -V -l mf=7G,h_vmem=7G -cwd -b y R CMD BATCH --no-save call-jags-inf-obs-cluster-aaron-full-sample.R
+# qsub -N oneVisitOut -t 215-1000 -V -l mf=7G,h_vmem=7G -cwd -b y R CMD BATCH --no-save call-jags-inf-obs-cluster-aaron-leave-1visit-out.R
+
 # rm oneVisitOut.o*
 # rm oneVisitOut.e*
+
+# qstat | wc -l
 
 # tail call-jags-inf-obs-cluster-aaron-leave-1visit-out.R -n 30
 # tail call-jags-inf-obs-cluster-aaron-leave-1visit-out.Rout
@@ -19,7 +22,7 @@ star <- SEED
 # MCMC settings
 #ni <- 100; nb <- 20; nt <- 5; nc <- 1
 #ni <- 1000; nb <- 20; nt <- 5; nc <- 1
-ni <- 50000; nb <- 25000; nt <- 20; nc <- 1
+ni <- 50000; nb <- 25000; nt <- 20; nc <- 5
 
 cat('',file=paste0('leaveOneOut/',Sys.Date(),'_started_inf-obs_SEED-',SEED,'_star-',star,'_crop-',crop,'.txt'))
 

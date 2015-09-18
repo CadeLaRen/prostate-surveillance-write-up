@@ -38,18 +38,19 @@ bx.data.full <- read.csv("simulation-data/bx-data-sim.csv")
 
 ### Output from leave-one-Out JAGS model  (output-out -> oo)
 	# For now just use the output from the full model as an approximate replacement
-oo <- readRDS('posterior_full_100k.rds')$sims.list
+oo <- readRDS('/Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo/leaveOneOut/2015-07-22_posterior_noninf-obs_SEED-1_star-0_nsim-1250.rds')$sims.list
 #oo <- readRDS('2015-06-05_posterior_full_100k_seed_5.rds')$sims.list #on cluster
 P<-length(oo$p_eta)
 nreps <- 50
 (P*nreps)
 
 ### Collect posterior estimates from full JAGS model
-of<-readRDS('posterior_full_100k.rds')$sims.list
+of<-readRDS('/Users/aaronfisher/Dropbox/Future Projects/inHealth Prostate Screening/repo/leaveOneOut/2015-07-22_posterior_noninf-obs_SEED-1_star-0_nsim-1250.rds')$sims.list
 #of <- readRDS('2015-06-05_posterior_full_100k_seed_5.rds')$sims.list
-known_etas<-dplyr::filter(pt.ordered.full,obs.eta==1) %>%
-	dplyr::select(eta.true)
-eta_true_or_jags<-c(known_etas$eta.true,colMeans(of$eta.hat))
+
+missing_etas <- which(is.na(pt.ordered.full$obs.eta))#=1 if obs and aggressive, 0 if obs and not, or NA if not observed
+eta_true_or_jags<-pt.ordered.full$obs.eta
+eta_true_or_jags[missing_etas]<-colMeans(of$eta.hat)
 
 ###############
 
@@ -75,19 +76,17 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	# to more easily vectorize the operations for increased speed.
 
 	#Assign by cycle over nreps times (two vectors of different lengths)
-	mu<-array(NA,dim=c(nreps*P,3,K))
-		#indeces: #[particle, int/slope/spline, k in {1,2}=class]
+	mu<-array(NA,dim=c(nreps*P,2,K))
+		#indeces: #[particle, int/slope, k in {1,2}=class]
 	mu[,1,1]<-oo$mu_int[,1]
 	mu[,1,2]<-oo$mu_int[,2]
 	mu[,2,1]<-oo$mu_slope[,1]
 	mu[,2,2]<-oo$mu_slope[,2]
-	mu[,3,1]<-oo$mu_spline[,1]
-	mu[,3,2]<-oo$mu_spline[,2]
+
 
 	#expand beta
-	beta_exp <- matrix(NA,P*nreps,2)
+	beta_exp <- matrix(NA,P*nreps,1)
 	beta_exp[,1]<-oo$beta[,1]
-	beta_exp[,2]<-oo$beta[,2]
 
 	#expand sigma_res
 	sigma_res_exp<-rep(NA,P*nreps)
@@ -99,6 +98,8 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	gamma.RC.exp[,2]<-oo$gamma.RC[,2]
 	gamma.RC.exp[,3]<-oo$gamma.RC[,3]
 	gamma.RC.exp[,4]<-oo$gamma.RC[,4]
+	gamma.RC.exp[,5]<-oo$gamma.RC[,5]
+	gamma.RC.exp[,6]<-oo$gamma.RC[,6]
 
 
 	if(nreps>1){
@@ -112,7 +113,7 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	eta<-rbinom(P*nreps,1,prob=rep(c(oo$p_eta),times=nreps))
 		# Our eta here is analogous to eta.hat from the main JAGS model.
 	#Get P random draws for b.vec
-	b.vec.star <- matrix(NA,P*nreps,3)
+	b.vec.star <- matrix(NA,P*nreps,2)
 	cov_for_bvec <- list() #Also consider *not* storing this, since it's not used after b.vec.star is generated.
 	(expand_time<-system.time({
 	if(talk) pb_sim <- txtProgressBar(min = 0, max = P*nreps, char = "=", style=3)
@@ -189,7 +190,7 @@ get_likelihood<-function(ps,psa.data.star,bx.data_star){
 	# 3) add a group variable p_ind that groups visits by the particle
 
 	Z_star_X_bvec<-tcrossprod(b.vec.star,Z_star)
-	beta_eta<-beta_exp[,1] + beta_exp[,2]*(eta==1)
+	beta_eta<-beta_exp[,1]
 	beta_exp_eta_Xstar<-tcrossprod(beta_eta,X_star)
 	mu_obs_psa_exp <-c(t(Z_star_X_bvec +beta_exp_eta_Xstar))
 	Y_star_exp<-rep(NA,length(Y_star)*PP)
@@ -202,9 +203,8 @@ get_likelihood<-function(ps,psa.data.star,bx.data_star){
 		summarize(prod=prod(L_Y_all)) 
 	L_Y <- L_Y_frame$prod
 
-
 	if(!is.null(R_star)){
-		logit_p_rc_exp<-gamma.RC.exp[,1:3] %*% t(W.RC_star) + gamma.RC.exp[,4]*eta 
+		logit_p_rc_exp<-gamma.RC.exp[,1:5] %*% t(W.RC_star) + gamma.RC.exp[,6]*eta 
 
 		R_star_exp<-rep(NA,length(R_star)*PP)
 		R_star_exp[]<-R_star
@@ -265,6 +265,55 @@ get_likelihood<-function(ps,psa.data.star,bx.data_star){
 
 
 
+
+###### Function to get posterior means for each subject
+
+#' A function with references to data objects in parent environment. 
+#' useful to write it this way so we can re-update subject's estimates.
+#' We have this depend on the particle set (ps) so that we can
+#' easily redo it for specific subjects with a different particle set.
+#' @param star the index of the subject to fit.
+posterior_star<-function(star,ps,rej_const=NULL){
+	
+	#data for subj_star
+
+	likelihood <- get_likelihood(
+		ps=ps,
+		psa.data.star=filter(psa.data.full, subj == star),
+		bx.data_star=filter(bx.data.full, subj==star)
+		)
+	
+	## Importance Weighting ## 
+
+	W <- likelihood/sum(likelihood)
+	etas_IS_star <<- crossprod(W,ps$eta)
+	effective_ss_star <<- 1/crossprod(W)
+	if(FALSE) plot(density(ps$eta))
+	if(FALSE) plot(density(ps$eta,weights=W))
+
+
+	## Rejection Sampling ##
+
+	#we don't know integrating constant. Does that matter if we just set this to max(W)??
+	if(is.null(rej_const)) rej_const <- max(likelihood)
+	accept_ind <- (likelihood/rej_const) >= runifs
+	num_accepted_star <<- sum(accept_ind)
+	etas_RS_star <<- mean(ps$eta[accept_ind])
+
+	return(list(
+		etas_IS_star = etas_IS_star,
+		effective_ss_star = effective_ss_star,
+		num_accepted_star = num_accepted_star,
+		etas_RS_star = etas_RS_star,
+		W=W
+	))
+}
+######
+
+
+
+
+
 ##############################
 # Generate particles:
 
@@ -310,51 +359,6 @@ etas_IS <- rep(NA,N)
 	# subj_star's eta = etas_IS[star]
 ######
 
-
-
-###### Function to get posterior means for each subject
-
-#' A function with references to data objects in parent environment. 
-#' useful to write it this way so we can re-update subject's estimates.
-#' We have this depend on the particle set (ps) so that we can
-#' easily redo it for specific subjects with a different particle set.
-#' @param star the index of the subject to fit.
-posterior_star<-function(star,ps,rej_const=NULL){
-	
-	#data for subj_star
-
-	likelihood <- get_likelihood(
-		ps=ps,
-		psa.data.star=filter(psa.data.full, subj == star),
-		bx.data_star=filter(bx.data.full, subj==star)
-		)
-	
-	## Importance Weighting ## 
-
-	W <- likelihood/sum(likelihood)
-	etas_IS_star <<- crossprod(W,ps$eta)
-	effective_ss_star <<- 1/crossprod(W)
-	if(FALSE) plot(density(ps$eta))
-	if(FALSE) plot(density(ps$eta,weights=W))
-
-
-	## Rejection Sampling ##
-
-	#we don't know integrating constant. Does that matter if we just set this to max(W)??
-	if(is.null(rej_const)) rej_const <- max(likelihood)
-	accept_ind <- (likelihood/rej_const) >= runifs
-	num_accepted_star <<- sum(accept_ind)
-	etas_RS_star <<- mean(ps$eta[accept_ind])
-
-	return(list(
-		etas_IS_star = etas_IS_star,
-		effective_ss_star = effective_ss_star,
-		num_accepted_star = num_accepted_star,
-		etas_RS_star = etas_RS_star,
-		W=W
-	))
-}
-######
 
 
 ###### Run loop over subjects
@@ -575,89 +579,89 @@ nreps*P
 
 
 
-####################################
-####################################
-####################################
-####################################
-#Workspace
+# ####################################
+# ####################################
+# ####################################
+# ####################################
+# #Workspace
 
-if(FALSE){
+# if(FALSE){
 
-#Vectorized version
+# #Vectorized version
 
- #likelihood of PSA data
-system.time({
-Z_star_X_bvec<-tcrossprod(b.vec.star,Z_star)
-beta_eta<-beta_exp[,1] + beta_exp[,2]*(eta==1)
-beta_exp_eta_Xstar<-tcrossprod(beta_eta,X_star)
-mu_obs_psa_exp <-c(t(Z_star_X_bvec +beta_exp_eta_Xstar))
-Y_star_exp<-rep(NA,length(Y_star)*nreps*P)
-Y_star_exp[]<-Y_star #cycle Y_star up
-p_ind <- rep(1:(nreps*P),each=length(Y_star))
-sigma_res_exp2<-rep(sigma_res_exp,each=length(Y_star))
-L_Y_j <- dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma_res_exp2) #the likelihood for each visit, grouped by particle.
-L_Y_frame<-data.frame('L_Y_all'=L_Y_j,'p_ind'=as.factor(p_ind))%>%
-	group_by(p_ind) %>%
-	summarize(prod=prod(L_Y_all)) 
-L_Y2<-L_Y_frame$prod
+#  #likelihood of PSA data
+# system.time({
+# Z_star_X_bvec<-tcrossprod(b.vec.star,Z_star)
+# beta_eta<-beta_exp[,1] + beta_exp[,2]*(eta==1)
+# beta_exp_eta_Xstar<-tcrossprod(beta_eta,X_star)
+# mu_obs_psa_exp <-c(t(Z_star_X_bvec +beta_exp_eta_Xstar))
+# Y_star_exp<-rep(NA,length(Y_star)*nreps*P)
+# Y_star_exp[]<-Y_star #cycle Y_star up
+# p_ind <- rep(1:(nreps*P),each=length(Y_star))
+# sigma_res_exp2<-rep(sigma_res_exp,each=length(Y_star))
+# L_Y_j <- dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma_res_exp2) #the likelihood for each visit, grouped by particle.
+# L_Y_frame<-data.frame('L_Y_all'=L_Y_j,'p_ind'=as.factor(p_ind))%>%
+# 	group_by(p_ind) %>%
+# 	summarize(prod=prod(L_Y_all)) 
+# L_Y2<-L_Y_frame$prod
 
-})
-
-
-system.time({
-gamma.RC.exp <- matrix(NA,P*nreps,dim(oo$gamma.RC)[2])
-gamma.RC.exp[,1]<-oo$gamma.RC[,1]
-gamma.RC.exp[,2]<-oo$gamma.RC[,2]
-gamma.RC.exp[,3]<-oo$gamma.RC[,3]
-gamma.RC.exp[,4]<-oo$gamma.RC[,4]
+# })
 
 
-logit_p_rc<-gamma.RC.exp[,1:3] %*% t(W.RC_star) + gamma.RC.exp[,4]*eta 
-
-L_R_j <- matrix(dbinom(x=R_star,size=1,prob=c(invLogit(logit_p_rc))),nreps*P,length(R_star))
-L_R_frame <- data.frame(L_R_all=c(t(L_R_j)),ind=rep(1:(nreps*P),each=length(R_star))) %>%
-	group_by(ind) %>%
-	summarize(prod=prod(L_R_all))
-L_R2<-L_R_frame$prod
-
-})
+# system.time({
+# gamma.RC.exp <- matrix(NA,P*nreps,dim(oo$gamma.RC)[2])
+# gamma.RC.exp[,1]<-oo$gamma.RC[,1]
+# gamma.RC.exp[,2]<-oo$gamma.RC[,2]
+# gamma.RC.exp[,3]<-oo$gamma.RC[,3]
+# gamma.RC.exp[,4]<-oo$gamma.RC[,4]
 
 
-#LOOP VERSION
+# logit_p_rc<-gamma.RC.exp[,1:3] %*% t(W.RC_star) + gamma.RC.exp[,4]*eta 
 
-L_Y_log<-
-L_R_log<-
-W <- rep(NA,P*nreps)
-fit_time<-system.time({  # ~ 35k / second
-for(r in 1:nreps){ 
-for(oo_ind in 1:P){ #index for oo
-	p <- (r-1)*P+oo_ind #index for our particle set
+# L_R_j <- matrix(dbinom(x=R_star,size=1,prob=c(invLogit(logit_p_rc))),nreps*P,length(R_star))
+# L_R_frame <- data.frame(L_R_all=c(t(L_R_j)),ind=rep(1:(nreps*P),each=length(R_star))) %>%
+# 	group_by(ind) %>%
+# 	summarize(prod=prod(L_R_all))
+# L_R2<-L_R_frame$prod
 
-	 #likelihood of PSA data
-	mu_obs_psa <- Z_star %*% b.vec.star[p,]  + 
-		( oo$beta[oo_ind,1] + oo$beta[oo_ind,2]*(eta[p]==1) ) * X_star
-	L_Y <- prod(dnorm(Y_star,mean=mu_obs_psa, sd=oo$sigma_res[oo_ind]))
-	L_Y_log[p]<-L_Y
-
-	#likelihood of reclassifications
-	if(!is.null(R_star)){
-		logit_p_rc<-cbind(W.RC_star,eta[p]) %*% oo$gamma.RC[oo_ind,1:(d.W.RC+1)] 
-		L_R <- prod(dbinom(x=R_star,size=1,prob=c(invLogit(logit_p_rc))))
-		L_R_log[p]<-L_R
-	}else{ 
-		L_R <- 1
-	}
-
-	W[p] <- L_Y * L_R #weights
-}}})
-#################
-
-W <- W/sum(W)
-etas_IS[star] <- crossprod(eta,W)
+# })
 
 
+# #LOOP VERSION
+
+# L_Y_log<-
+# L_R_log<-
+# W <- rep(NA,P*nreps)
+# fit_time<-system.time({  # ~ 35k / second
+# for(r in 1:nreps){ 
+# for(oo_ind in 1:P){ #index for oo
+# 	p <- (r-1)*P+oo_ind #index for our particle set
+
+# 	 #likelihood of PSA data
+# 	mu_obs_psa <- Z_star %*% b.vec.star[p,]  + 
+# 		( oo$beta[oo_ind,1] + oo$beta[oo_ind,2]*(eta[p]==1) ) * X_star
+# 	L_Y <- prod(dnorm(Y_star,mean=mu_obs_psa, sd=oo$sigma_res[oo_ind]))
+# 	L_Y_log[p]<-L_Y
+
+# 	#likelihood of reclassifications
+# 	if(!is.null(R_star)){
+# 		logit_p_rc<-cbind(W.RC_star,eta[p]) %*% oo$gamma.RC[oo_ind,1:(d.W.RC+1)] 
+# 		L_R <- prod(dbinom(x=R_star,size=1,prob=c(invLogit(logit_p_rc))))
+# 		L_R_log[p]<-L_R
+# 	}else{ 
+# 		L_R <- 1
+# 	}
+
+# 	W[p] <- L_Y * L_R #weights
+# }}})
+# #################
+
+# W <- W/sum(W)
+# etas_IS[star] <- crossprod(eta,W)
 
 
 
 
-}
+
+
+# }
