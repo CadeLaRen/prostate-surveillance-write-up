@@ -335,9 +335,8 @@ key "Canini2009"
 
 \end_inset
 
-, even the best performing online methods generally did not improve in accuracy
- as more data was incorporated.
- These online methods were also less accurate than batch (non-online) MCMC.
+, even the best performing online methods were outperformed by batch (non-online
+) MCMC, and generally did not improve in accuracy as more data was incorporated.
 \end_layout
 
 \begin_layout Standard
@@ -345,7 +344,7 @@ Our specific context within personalized medicine is different that of topic
  modeling in that while the model is complex and contains several layers,
  the data can be fully stored in memory at once.
  Thus, while the approach of combining IS with periodic MCMC is not fully
- online and not feasible for topic modeling, it is still a feasible option
+ online and not feasible for text analysis, it is still a feasible option
  for limited sample sizes in our problem.
  An additional benefit of IS is that, relative to variational Bayes approaches,
  the formulas required to apply IS are simple to derive, and can be easily
@@ -586,7 +585,7 @@ Add footnote briefly listing subj level and pop level parameters, without
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset CommandInset citation
@@ -671,7 +670,7 @@ In this this technical report, we first provide an overview of the latent
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Section
 Bayesian Joint Hierarchical Latent Class Model
@@ -1726,15 +1725,13 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-TO BE FILLED IN!!!!
-\end_layout
-
-\end_inset
-
+Difference between IS and MCMC risk estimates, as a function of effective
+ sample size for IS - The top panel shows results when only 1 draw for the
+ subject-level variables is taken for each draw from the population-level
+ parameter posterior.
+ The bottom panel shows results when 10 draws are taken for each posterior
+ draw.
+ Both axes are shown on the log scale.
  
 \begin_inset CommandInset label
 LatexCommand label
