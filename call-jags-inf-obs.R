@@ -90,9 +90,9 @@ BX<-as.numeric(bx.data$bx.here) #indicator of bx
 subj_bx<-bx.data$subj
 
 
-W.BX.data<-as.matrix(cbind(rep(1,n_bx), bx.data$age.std, bx.data$age.ns, ns(bx.data$time,4), bx.data$num.prev.bx, ns(bx.data$sec.time.std,4)  ))
-(d.W.BX<-dim(W.BX.data)[2]) #12
-round(apply(W.BX.data,2,summary),2)
+U.BX.data<-as.matrix(cbind(rep(1,n_bx), bx.data$age.std, bx.data$age.ns, bx.data$time, bx.data$time.ns, bx.data$sec.time.std, bx.data$sec.time.ns, bx.data$num.prev.bx ))
+(d.U.BX<-dim(U.BX.data)[2]) #12
+round(apply(U.BX.data,2,summary),2)
 
 
 
@@ -103,22 +103,22 @@ RC<-as.numeric(rc.data$rc)
 subj_rc<-rc.data$subj
 
 #covariates influencing risk of reclassification
-W.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std ))
-(d.W.RC<-dim(W.RC.data)[2])
-round(apply(W.RC.data,2,summary) ,2)
+V.RC.data<-as.matrix(cbind(rep(1,n_rc),  rc.data$age.std, rc.data$time, rc.data$time.ns, rc.data$sec.time.std ))
+(d.V.RC<-dim(V.RC.data)[2])
+round(apply(V.RC.data,2,summary) ,2)
 
 
 
-#logistic regression for RRP
+#logistic regression for SURG
 #this uses all records, because patients always at risk of choosing surgery
-RRP<-as.numeric(data.use$rrp)
-(n_rrp<-dim(data.use)[1])
-subj_rrp<-data.use$subj
+SURG<-as.numeric(data.use$rrp)
+(n_surg<-dim(data.use)[1])
+subj_surg<-data.use$subj
 
 
-W.RRP.data<-as.matrix(cbind(rep(1,n_rrp), data.use$age.std, data.use$age.ns, ns(data.use$time,4), ns(data.use$sec.time.std,3) , data.use$num.prev.bx.rrp, data.use$prev.G7)) #
-(d.W.RRP<-dim(W.RRP.data)[2])
-round(apply(W.RRP.data,2,summary) ,2)
+W.SURG.data<-as.matrix(cbind(rep(1,n_surg), data.use$age.std, data.use$age.ns, data.use$time, data.use$time.ns, data.use$sec.time.std, data.use$sec.time.ns, data.use$num.prev.bx.rrp, data.use$prev.G7)) 
+(d.W.SURG<-dim(W.SURG.data)[2])
+round(apply(W.SURG.data,2,summary) ,2)
 
 
 ##get starting values, other functions necessary for call to JAGS
@@ -132,7 +132,7 @@ mod.lmer<-lmer(log.psa~ std.vol + (1+ age.std |id), data=psa.data)
 #bundle data for call to JAGS
 #this is observed data and constant variables that have already been assigned values (e.g. number of class K=2, number of subjects n, etc.)
 K<-2
-jags_data<-list(K=K, n=n, eta.data=eta.data, n_eta_known=n_eta_known, n_obs_psa=n_obs_psa, Y=Y, subj_psa=subj_psa, Z=Z.data, X=X.data, d.Z=d.Z, d.X=d.X, I_d.Z=diag(d.Z), BX=BX, n_bx=n_bx, subj_bx=subj_bx, W.BX=W.BX.data, d.W.BX=d.W.BX, RC=RC, n_rc=n_rc, subj_rc=subj_rc, W.RC=W.RC.data, d.W.RC=d.W.RC, RRP=RRP, n_rrp=n_rrp, subj_rrp=subj_rrp, W.RRP=W.RRP.data, d.W.RRP=d.W.RRP)
+jags_data<-list(K=K, n=n, eta.data=eta.data, n_eta_known=n_eta_known, n_obs_psa=n_obs_psa, Y=Y, subj_psa=subj_psa, Z=Z.data, X=X.data, d.Z=d.Z, d.X=d.X, I_d.Z=diag(d.Z), BX=BX, n_bx=n_bx, subj_bx=subj_bx, U.BX=U.BX.data, d.U.BX=d.U.BX, RC=RC, n_rc=n_rc, subj_rc=subj_rc, V.RC=V.RC.data, d.V.RC=d.V.RC, SURG=SURG, n_surg=n_surg, subj_surg=subj_surg, W.SURG=W.SURG.data, d.W.SURG=d.W.SURG)
 
 
 #initialize model
@@ -153,17 +153,17 @@ inits <- function(){
 
 	beta<-rnorm(d.X)
 
-	gamma.BX<-rnorm((d.W.BX+1), mean=0, sd=0.1) #last coefficient is effect of eta=1
-	gamma.RC<-rnorm((d.W.RC+1), mean=0, sd=0.1) #ditto
-	gamma.RRP<-c(rnorm((d.W.RRP+2), mean=0, sd=0.01))  #here, include interaction with last prediction and eta=1
+	nu.BX<-rnorm((d.U.BX+1), mean=0, sd=0.1) #last coefficient is effect of eta=1
+	gamma.RC<-rnorm((d.V.RC+1), mean=0, sd=0.1) #ditto
+	omega.SURG<-c(rnorm((d.W.SURG+2), mean=0, sd=0.01))  #here, include interaction with last prediction and eta=1
 
-	list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, gamma.BX=gamma.BX, gamma.RC=gamma.RC, gamma.RRP=gamma.RRP)
+	list(p_eta=p_eta, eta.hat=eta.hat, xi=xi, mu_raw=mu_raw, Tau_B_raw=Tau_B_raw, sigma_res=sigma_res, beta=beta, nu.BX=nu.BX, gamma.RC=gamma.RC, omega.SURG=omega.SURG)
 }
 
 
 
 # parameters to track
-params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "gamma.BX", "gamma.RC", "gamma.RRP", "p_bx", "p_rc", "p_rrp")  #you may not need to monitor p_bx, p_rc, and p_rrp. taking them out of the list should improve computing time a bit
+params <- c("p_eta", "eta.hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b.vec", "beta", "nu.BX", "gamma.RC", "omega.SURG", "p_bx", "p_rc", "p_surg")  #you may not need to monitor p_bx, p_rc, and p_surg. taking them out of the list should improve computing time a bit
 
 # MCMC settings
 #ni, nb, nt, and nc are now set in separate files.
