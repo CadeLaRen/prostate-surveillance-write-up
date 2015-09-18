@@ -435,7 +435,7 @@ mean(squared_errors_RS,na.rm=TRUE) #RS mean squared error
 eff_ss_error_data<-data.frame(etas_IS,eta_true_or_jags,squared_errors_IS,squared_errors_RS,effective_ss)
 tail(eff_ss_error_data)
 
-png(paste0('effective_SS_and_error.png'),pointsize=17,width = 530, height = 480,)
+png('effective_SS_and_error.png',width = 6, height = 6, type='cairo')
 ggplot(eff_ss_error_data) + 
 	geom_point(aes(y=sqrt(squared_errors_IS),x=effective_ss),alpha=.5)+ 
 	labs(title='Effective Sample Size v. Absolute Error\n(plotted on log scale)',x='Effective Sample Size for IS',y='Absolute Error')+
@@ -445,7 +445,7 @@ ggplot(eff_ss_error_data) +
 	coord_trans(y = "log10",x= "log10")
 dev.off()
 
-png(paste0('agreement_MCMC_IS.png'),pointsize=17,width = 530, height = 480,)
+png('agreement_MCMC_IS.png',width = 5.5, height = 5.5, type='cairo')
 plot(x=etas_IS,y=eta_true_or_jags,cex=.5,xlim=0:1,ylim=0:1,ylab='Estimates from MCMC',xlab='Estimates from Importance Sampling',main='Agreement between Estimated Probabilities\nof Having Aggressive Cancer')
 abline(0,1)
 dev.off()
