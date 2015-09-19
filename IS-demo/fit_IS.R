@@ -22,9 +22,9 @@ invLogit <- function(x)
 ########################
 
 
-psa_data_full<-read_csv("simulation-data/psa-data-sim.csv")
-pt_data_full<-read_csv("simulation-data/pt-data-sim.csv") #true eta is now contained here, in patient data (pt data)
-bx_data_full <- read_csv("simulation-data/bx-data-sim.csv")
+psa_data_full<-read.csv("simulation-data/psa-data-sim.csv")
+pt_data_full<-read.csv("simulation-data/pt-data-sim.csv") #true eta is now contained here, in patient data (pt data)
+bx_data_full <- read.csv("simulation-data/bx-data-sim.csv")
 
 #Splines for surg and bx
 couldve_had_biopsy_all <- !is.na(bx_data_full$bx_here)
