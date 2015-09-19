@@ -138,7 +138,8 @@ if(IOP_BX){
 SURG<-
 n_surg<-
 subj_surg<-
-W_SURG_data<- NULL
+W_SURG_data<- 
+d_W_SURG<- NULL
 
 if(IOP_SURG){
 	SURG<-as.numeric(data_use$surg)
@@ -150,7 +151,6 @@ if(IOP_SURG){
 	round(apply(W_SURG_data,2,summary) ,2)
 }
 
-d_W_SURG<- surg needs to be defined!!??
 
 ##get starting values, other functions necessary for call to JAGS
 
@@ -221,9 +221,9 @@ inits <- function(){
 
 
 # parameters to track
-params <- c("p_eta", "eta_hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b_vec", "beta", "p_rc","gamma_RC",)
+params <- c("p_eta", "eta_hat", "mu_int", "mu_slope", "sigma_int", "sigma_slope", "sigma_res", "rho_int_slope", "cov_int_slope", "b_vec", "beta", "p_rc","gamma_RC")
 
-if(IOP_BX) params <- c(params, "nu_BX", "p_bx",)
+if(IOP_BX) params <- c(params, "nu_BX", "p_bx")
 if(IOP_SURG) params <- c(params, "omega_SURG", "p_surg")
 
 #you may not need to monitor p_bx, p_rc, and p_surg. taking them out of the list should improve computing time a bit
