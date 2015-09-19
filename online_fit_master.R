@@ -30,14 +30,9 @@ invLogit <- function(x)
 ########################
 
 
-#!!IOP (Informative observation process infobs inf-obs)
+#IOP (Informative observation process)
 IOP_BX <- TRUE #Informative observation process for biopsy
 IOP_SURG <- TRUE #Informative observation process for surgery
-
-#TRUE TRUE - screen - 885.pts-3.jhpce01
-#FALSE TRUE - screen - 1010.pts-3.jhpce01
-#TRUE FALSE - screen - 1111.pts-3.jhpce01
-#FALSE FALSE - screen - 1549.pts-3.jhpce01
 
 IOPs<-paste0(
 	c('N')[!IOP_BX],'IOP_BX-',
@@ -85,8 +80,6 @@ if(IOP_BX){
 		)
 }
 
-#Also weird that we call it BX data when it's really totally different data? Seems like names are still too tied to old version of write-up
-
 #Work check (passes).
 #all(U_BX_data[,c(4:7,9:12)]==ns_BX[,-1])
 #all(W_SURG_data[,4:10]==ns_SURG[,-1])
@@ -111,7 +104,7 @@ n_post<-length(oo$p_eta)
 
 
 
-missing_etas <- which(is.na(pt_data_full$obs_eta))#=1 if obs and aggressive, 0 if obs and not, or NA if not observed
+missing_etas <- which(is.na(pt_data_full$obs_eta)) #=1 if observed and aggressive, 0 if observed and not aggressive, or NA if not observed
 eta_true_or_jags2<-
 eta_true_or_jags<-pt_data_full$obs_eta
 eta_true_or_jags[missing_etas]<-colMeans(of$eta_hat_means) #indexed by subject
@@ -235,10 +228,7 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	))
 }
 
-#!!! Checking priors & likelihood -- priors look OK.
-# Now, how to check likelihood?
 
-#??? for subj 229, bx_here and num_prev_bx doesn't seem to match?
 
 #' Get likelihood of each particle,
 #' given subj_star's data (Y, Z, X, and W),
@@ -257,11 +247,10 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 	#Setup subject data
 	Y_star <- psa_data_star$log_psa
 	X_star <- psa_data_star$vol_std #What if this is also a risk factor??
-	Z_star <- cbind(1, psa_data_star$age_std) #right!???
+	Z_star <- cbind(1, psa_data_star$age_std) #right??
 
 	RC_star <- dplyr::filter(bx_data_star, bx_here==1)$rc
 	BX_star <- dplyr::filter(bx_data_star, !is.na(bx_here))$bx_here
-	 #for subj 215, why do they reclassify and still get measured?? does this always have to be zero?? It's because the surgery can happen at any time J, which includes times after they reclassify.. and have no more biopsies?? (or do they?)
 	SURG_star <- bx_data_star$surg
 	prev_pos_biopsy <- dplyr::filter(bx_data_star, !is.na(bx_here))$prev_G7 #do I have this right, or do I need to exclude periods where bx_here = NA?? Does bx_here=NA mean they've exited the study (reclassified)?
 
@@ -299,13 +288,13 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 				ns_SURG_star[grep('ns4time',names(ns_SURG_star))],
 				ns_SURG_star[grep('ns3sec',names(ns_SURG_star))],
 				bx_data_star$num_prev_bx_surg,
-				bx_data_star$prev_G7)) #!!!!
+				bx_data_star$prev_G7)) 
 
 		d_W_SURG<-dim(W_SURG_star)[2]
 	}
 
-	#########
-	#For all of our data, will SURG be zero because we're only fitting on unknown patients!!?? (even though known patients are included in the likelihood?)
+
+
 
 	#########
 	#likelihood of PSA data
@@ -595,16 +584,14 @@ etas_IS <- rep(NA,N)
 
 
 #To test for star = some random number, use
-	#star <- round(runif(1,N-n_subj_to_est+1,N))
+	#star <- sample(missing_etas)[1]
 
-# eRC<-which(plotData$everRC==1)#DEBUG!!
-# for(star in eRC[eRC>=min(missing_etas)]){
 pb <- txtProgressBar(min = min(missing_etas), max = max(missing_etas), char = "=", style=3)
 for(star in missing_etas){
 
 
 	# rej_const<-0.0007 #!!?? need to get better version for. If ratio is the likelihood, then rej_const is the value at the MLE. We should know this from what we generated from? Equal to the latent value or something?
-	# if(star>1) rej_const <- max(rej_const,likelihood) #this tends to get too small.
+	# if(star>1) rej_const <- max(rej_const,likelihood) #this method of saving values across subjects tends to get too small.
 	data_star <- list(
 		PSA=filter(psa_data_full, subj == star),
 		BX=filter(bx_data_full, subj==star),
