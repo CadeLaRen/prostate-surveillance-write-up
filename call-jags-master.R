@@ -28,9 +28,9 @@ library("dplyr")
 #######################################
 #Load & filter data
 
-pt_data<-read_csv("simulation-data/pt-data-sim.csv")
-psa_data_all<-read_csv("simulation-data/psa-data-sim.csv")
-data_use_all<-read_csv("simulation-data/bx-data-sim.csv")
+pt_data<-read.csv("simulation-data/pt-data-sim.csv")
+psa_data_all<-read.csv("simulation-data/psa-data-sim.csv")
+data_use_all<-read.csv("simulation-data/bx-data-sim.csv")
 #this contains one record per annual interval for each patient until surgery or censoring
 #data frames with '_all' suffix will be cropped in some cases to for "leave one out" JAGS fits.
 
