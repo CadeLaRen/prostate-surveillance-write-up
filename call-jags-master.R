@@ -49,7 +49,8 @@ data_use <- dplyr::filter(data_use_all, !(subj==star & age>=last_age))
 
 
 (n<-dim(pt_data)[1]) #there are 1000 patients
-#This matrix will always be fully intact, but psa and bx data may not be.
+#This matrix will always be fully intact even if a subject is "left out",
+# but psa and bx data may not be.
 
 
 
@@ -89,6 +90,23 @@ summary(X_data)
 
 
 #########
+# Reclassification (RC) outcome model, logistic regression
+
+rc_data<-data_use[data_use$bx_here==1 & !is.na(data_use$bx_here),] #only use records where a biopsy occurred
+(n_rc<-dim(rc_data)[1])
+RC<-as.numeric(rc_data$rc)
+subj_rc<-rc_data$subj
+
+#covariates influencing risk of reclassification
+V_RC_data<-as.matrix(cbind(rep(1,n_rc),  rc_data$age_std, rc_data$time, rc_data$time_ns, rc_data$sec_time_std ))
+(d_V_RC<-dim(V_RC_data)[2])
+round(apply(V_RC_data,2,summary) ,2)
+
+
+
+
+
+#########
 # Reclassification (RC) observation model, logistic regression
 
 
@@ -110,20 +128,6 @@ if(IOP_BX){
 	(d_U_BX<-dim(U_BX_data)[2]) #12
 	round(apply(U_BX_data,2,summary),2)
 }
-
-
-#########
-# Reclassification (RC) outcome model, logistic regression
-
-rc_data<-data_use[data_use$bx_here==1 & !is.na(data_use$bx_here),] #only use records where a biopsy occurred
-(n_rc<-dim(rc_data)[1])
-RC<-as.numeric(rc_data$rc)
-subj_rc<-rc_data$subj
-
-#covariates influencing risk of reclassification
-V_RC_data<-as.matrix(cbind(rep(1,n_rc),  rc_data$age_std, rc_data$time, rc_data$time_ns, rc_data$sec_time_std ))
-(d_V_RC<-dim(V_RC_data)[2])
-round(apply(V_RC_data,2,summary) ,2)
 
 
 #########
