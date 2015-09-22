@@ -24,6 +24,7 @@
 library(dplyr)
 library(MASS)
 library(ggplot2)
+library(splines)
 
 invLogit <- function(x)
 	return(exp(x)/(1+exp(x)))
@@ -33,6 +34,7 @@ invLogit <- function(x)
 #IOP (Informative observation process)
 IOP_BX <- TRUE #Informative observation process for biopsy
 IOP_SURG <- TRUE #Informative observation process for surgery
+leave_one_out <- FALSE
 
 IOPs<-paste0(
 	c('N')[!IOP_BX],'IOP_BX-',
@@ -40,12 +42,13 @@ IOPs<-paste0(
 batch_path<-paste0(
 	'batches/',
 	IOPs,
-	'/1/')
+	'/leave_one_out',leave_one_out,
+	'/batch-1/')
 posterior_path<-paste0(batch_path,
 	'concatenated_posterior.rds')
-posterior_path2<-paste0('batches/',
-	IOPs,
-	'/2/concatenated_posterior.rds')
+# posterior_path2<-paste0('batches/',
+# 	IOPs,
+# 	'/2/concatenated_posterior.rds')
 
 ###############
 # Load Data
