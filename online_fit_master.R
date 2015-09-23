@@ -121,7 +121,7 @@ cor(colMeans(of2$eta_hat_means),
 ###############
 # Generate candidate particles to weight, or accept/reject.
 
-gen_particles<-function(oo,nreps,talk=TRUE){
+gen_particles<-function(oo,nreps,verbose=TRUE){
 #set to getOption('verbose') if packaging
 #oo = Output from leave-one-Out JAGS object
 #nreps = number of times to expand each posterior draw
@@ -200,7 +200,7 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 	b_vec_star <- matrix(NA,P,2)
 
 	(expand_time<-system.time({
-	if(talk) pb_sim <- txtProgressBar(min = 0, max = P, char = "=", style=3)
+	if(verbose) pb_sim <- txtProgressBar(min = 0, max = P, char = "=", style=3)
 	for(r in 1:nreps){ # nreps = number of times we expand the particles from oo.
 	for(oo_ind in 1:n_post){ #index for oo
 		p <- (r-1)*n_post+oo_ind #index along the extended particles we're creating.
@@ -211,7 +211,7 @@ gen_particles<-function(oo,nreps,talk=TRUE){
 		b_vec_star[p,]<-mvrnorm(1,mu=mu[p,,eta[p]+1], Sigma=cov_for_bvec_p)
 			#note, eta[i] is *not* nessecarily the same as eta[i+n_post] due to random draws.
 		# we don't store cov_for_bvec_p because it's not used after b_vec_star is generated_
-		if(talk) setTxtProgressBar(pb_sim,p)
+		if(verbose) setTxtProgressBar(pb_sim,p)
 	}}})) #~ 2 min for nreps=50, n_post=25000
 
 
@@ -550,7 +550,7 @@ seed<-101
 set.seed(seed)
 
 #`ps` = particle set
-ps <- gen_particles(oo,nreps=nreps,talk=TRUE)
+ps <- gen_particles(oo,nreps=nreps,verbose=TRUE)
 runifs <- runif(P) #needed for rejection sampling later
 
 
@@ -902,7 +902,7 @@ nreps_v2 <- 200
 #important! re-gen the particles!
 seed2 <- 99
 set.seed(seed2)
-ps2 <- gen_particles(oo,nreps=nreps_v2,talk=TRUE)
+ps2 <- gen_particles(oo,nreps=nreps_v2,verbose=TRUE)
 runifs2 <- runif(length(oo$p_eta)*nreps_v2)
 
 for(star in which(subj2refit_v2)){
