@@ -15,12 +15,11 @@ taskID <- as.numeric(Sys.getenv("SGE_TASK_ID"))
 if(is.na(taskID)) taskID <- 0
 
 #import environment variable, used for running multiple chains in parallel
-if( leave_one_out) {SEED <- 0		; star <- taskID}
-if(!leave_one_out) {SEED <- taskID 	; star <- 0} #here, parallel is just used to extend the number of MCMC draws.
+if( leave_one_out) {SEED <- 0		; star <- taskID; 	crop <- TRUE}
+if(!leave_one_out) {SEED <- taskID 	; star <- 0; 		crop <- FALSE} #here, parallel is just used to extend the number of MCMC draws.
 
 
-crop <- FALSE
-star <- 0 #!!
+
 
 (save_path <- paste0(
 	'batches/',
@@ -41,7 +40,9 @@ ni <- 50000; nb <- 25000; nt <- 20; nc <- 1
   		# what():  std::bad_alloc
 	
 
-cat('',file=paste0(save_path,Sys.Date(),'_started_SEED-',SEED,'_star-',star,'_crop-',crop,'_ni-',ni,'.txt'))
+(len.sim <- round((ni - nb)/nt))
+
+cat('',file=paste0(save_path,Sys.Date(),'_started_SEED-',SEED,'_star-',star,'_crop-',crop,'_len.sim-',len.sim,'.txt'))
 
 source('call-jags-master.R') #returns function `do_one`
 outJAGS <- do_one(seed=SEED) #final output of this script
@@ -50,12 +51,14 @@ outJAGS <- do_one(seed=SEED) #final output of this script
 #Reduce filesize of results (make new object, outJAGS2)
 #Parameters to ignore
 params2ignore<-c('b_vec','rho_int_slope','eta_hat','p_rc')
-if(IOP_BX) params2ignore <- unique(params2ignore, 'p_bx')
-if(IOP_SURG) params2ignore <- unique(params2ignore, 'p_rrp')
+if(IOP_BX) params2ignore <- unique(c(params2ignore, 'p_bx'))
+if(IOP_SURG) params2ignore <- unique(c(params2ignore, 'p_surg'))
 
 
+outJAGS2 <- outJAGS[!names(outJAGS) %in% c('sims.matrix','sims.list','sims.array')]
+
+#Now define the sims.list for outJAGS2
 outJAGS2_sl <- outJAGS$sims.list[!names(outJAGS$sims.list) %in% params2ignore]
-outJAGS2 <- outJAGS[!names(outJAGS) %in% c('sims.matrix','sims.array')]
 outJAGS2_sl$eta_hat_means <- apply(outJAGS$sims.list$eta_hat,2,mean)
 if(crop){ #if `crop`, save subj-specific posterior for subj star. otherwise don't.
 	outJAGS2_sl$b_vec.star <- outJAGS$sims.list$b_vec[,star,]
@@ -78,12 +81,14 @@ corner <- function(x, n=6 ){
 	text_ind <- paste0('x[', paste(text_n,collapse=','), ']')
 	eval(parse(text=text_ind))
 }
+sizeMb<-function(x) {object.size(x)/1000000}
 
 lapply(outJAGS$sims.list,corner)
+lapply(outJAGS2$sims.list,sizeMb)
+sizeMb(outJAGS2)
 
-len.sim<-length(outJAGS2$sims.list$p_eta)
 saveRDS(outJAGS2,file=paste0(save_path,Sys.Date(),'_posterior_IOP_BX-',IOP_BX,'_IOP_SURG-',IOP_SURG,'_SEED-',SEED,'_star-',star,'_crop-',crop,'_nsim-',len.sim,'.rds'))
-saveRDS(lapply(outJAGS$sims.list,corner),file=paste0(save_path,Sys.Date(),'_full_posterior_corner_IOP_BX-',IOP_BX,'_IOP_SURG-',IOP_SURG,'_SEED-',SEED,'_star-',star,'_crop-',crop,'_nsim-',len.sim,'.rds'))
+saveRDS(lapply(outJAGS$sims.list,corner),file=paste0(save_path,Sys.Date(),'_full_posterior_corner_IOP_BX-',IOP_BX,'_IOP_SURG-',IOP_SURG,'_SEED-',SEED,'_star-',star,'_crop-',crop,'_nsim-',len.sim,'.rds')) #note, this is *not* outJAGS2.
 str(outJAGS2$sims.list)
 summary(outJAGS2$sims.list$mu_slope)
 
