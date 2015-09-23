@@ -68,7 +68,7 @@ if(IOP_SURG|IOP_BX){
 }
 
 if(IOP_SURG){
-	ns_SURG <- data_frame(
+	ns_SURG <- data.frame(
 		subj=bx_data_full$subj,
 		ns4time=ns(bx_data_full$time,4),
 		ns3sec=ns(bx_data_full$sec_time_std,3)
@@ -76,7 +76,7 @@ if(IOP_SURG){
 }
 
 if(IOP_BX){
-	ns_BX <- data_frame(
+	ns_BX <- data.frame(
 		subj=bx_data_full$subj[couldve_had_biopsy_all],
 		ns4time=ns(bx_data_full$time[couldve_had_biopsy_all],4),
 		ns4sec=ns(bx_data_full$sec_time_std[couldve_had_biopsy_all],4)
@@ -275,7 +275,7 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 				ns_BX_star[grep('ns4time',names(ns_BX_star))],
 				data4BX$num_prev_bx,
 				ns_BX_star[grep('ns4sec',names(ns_BX_star))] ) %>%
-			data_frame )
+			data.frame )
 
 		d_U_BX<-dim(U_BX_star)[2]
 	}
@@ -319,7 +319,7 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 		sigma_res_exp<-rep(ps$sigma_res,each=length(Y_star))
 		LL_Y_j <- log(dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma_res_exp)) #the likelihood for each visit, grouped by particle.
 		LL_Y<-( #logLik of all visits
-			data_frame('LL_Y_all'=LL_Y_j,'p_ind'=as.factor(p_ind))%>%
+			data.frame('LL_Y_all'=LL_Y_j,'p_ind'=as.factor(p_ind))%>%
 			group_by(p_ind) %>%
 			summarize(sum=sum(LL_Y_all))
 			)$sum
@@ -369,7 +369,7 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 
 		LL_j <- log(dbinom(x=outcomes_exp,size=1,prob=p_exp))
 		LL <- ( #logLik of all visits
-			data_frame(LL_all=c(t(LL_j)),ind=p_ind) %>%
+			data.frame(LL_all=c(t(LL_j)),ind=p_ind) %>%
 			group_by(ind) %>%
 			summarize(sum=sum(LL_all))
 			)$sum
@@ -663,7 +663,7 @@ hist(effective_ss, na.rm=TRUE)
 
 library(ggplot2)
 
-ggplot(as_data_frame(effective_ss))+ geom_histogram(aes(x=effective_ss))+scale_x_log10()
+ggplot(as.data.frame(effective_ss))+ geom_histogram(aes(x=effective_ss))+scale_x_log10()
 mean(effective_ss,na.rm=TRUE)
 # IS appears to do better than RS
 
@@ -695,7 +695,7 @@ quantile(sqrt(squared_errors_IS),probs=seq(.9,1,by=.01),na.rm=TRUE)
 
 
 
-eff_ss_error_data <- data_frame(etas_IS,eta_true_or_jags,squared_errors_IS,squared_errors_RS,effective_ss,nreps=nreps,P=P)
+eff_ss_error_data <- data.frame(etas_IS,eta_true_or_jags,squared_errors_IS,squared_errors_RS,effective_ss,nreps=nreps,P=P)
 tail(eff_ss_error_data)
 
 # saveRDS(eff_ss_error_data,file=paste0(batch_path,Sys.Date(),'_seed_',seed,'_P-',P,'_effective_ss_plotframe.RData'))
@@ -764,7 +764,7 @@ countSubj$RCfactor<-factor(countSubj$everRC,labels=c('Never RC','Eventually RC')
 
 
 
-plotData<-data_frame(etas_IS,eta_true_or_jags,effective_ss,fit_time,countSubj)
+plotData<-data.frame(etas_IS,eta_true_or_jags,effective_ss,fit_time,countSubj)
 tail(plotData)
 
 # png(paste0('plots/',Sys.Date(),'_',IOPs,'_agreement_eff_ss.png'),pointsize=17,width = 530, height = 480,)
@@ -857,7 +857,7 @@ quantile(abs(eta_true_or_jags-etas_RS)[num_accepted>100],
 	c(.90,.95,.99,.999),
 	na.rm=TRUE) #yes! this appears to identify they well!
 
-error_df<-data_frame(error=sqrt(errors_RS),num_accepted=num_accepted)
+error_df<-data.frame(error=sqrt(errors_RS),num_accepted=num_accepted)
 ggplot(error_df,aes(x=error,y=num_accepted)) + geom_point(alpha=.4)+ coord_trans(y = "log10")
 
 
@@ -879,7 +879,7 @@ quantile(sqrt(errors_IS),
 	c(.90,.95,.99,.999),
 	na.rm=TRUE) #yup, makes a huge difference!
 
-error_df<-data_frame(error=sqrt(errors_IS),effective_sample_size=effective_ss)
+error_df<-data.frame(error=sqrt(errors_IS),effective_sample_size=effective_ss)
 ggplot(error_df,aes(x=error,y=effective_sample_size)) + geom_point(alpha=.4)+ coord_trans(y = "log10") + geom_abline(intercept=10000,slope=0)
 deva()
 
@@ -1010,7 +1010,7 @@ Y_star_exp[]<-Y_star #cycle Y_star up
 p_ind <- rep(1:(P),each=length(Y_star))
 sigma_res_exp2<-rep(sigma_res_exp,each=length(Y_star))
 L_Y_j <- dnorm(Y_star_exp,mean=mu_obs_psa_exp, sd=sigma_res_exp2) #the likelihood for each visit, grouped by particle.
-L_Y_frame<-data_frame('L_Y_all'=L_Y_j,'p_ind'=as.factor(p_ind))%>%
+L_Y_frame<-data.frame('L_Y_all'=L_Y_j,'p_ind'=as.factor(p_ind))%>%
 	group_by(p_ind) %>%
 	summarize(prod=prod(L_Y_all))
 L_Y2<-L_Y_frame$prod
@@ -1029,7 +1029,7 @@ gamma_RC_exp[,4]<-oo$gamma_RC[,4]
 logit_p_rc<-gamma_RC_exp[,1:3] %*% t(V_RC_star) + gamma_RC_exp[,4]*eta
 
 L_RC_j <- matrix(dbinom(x=RC_star,size=1,prob=c(invLogit(logit_p_rc))),P,length(RC_star))
-L_RC_frame <- data_frame(L_RC_all=c(t(L_RC_j)),ind=rep(1:(P),each=length(RC_star))) %>%
+L_RC_frame <- data.frame(L_RC_all=c(t(L_RC_j)),ind=rep(1:(P),each=length(RC_star))) %>%
 	group_by(ind) %>%
 	summarize(prod=prod(L_RC_all))
 L_R2<-L_RC_frame$prod
