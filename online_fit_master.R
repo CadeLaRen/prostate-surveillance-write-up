@@ -336,33 +336,33 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 	#' This returns a vector of length P, with the joint log-likelihood of all visits, under each particle
 	#' It works under the assumption that for any particle p,
 	#' we have a bernoulli outcome with:
-	#'  logit(mean)= W %*% gamma[p,1:dim(W)] + eta * gamma[p,dim(W)+1] + interact_SURG * eta * W[dim(W)] * gamma[p,dim(W)+2]
+	#'  logit(mean)= W %*% coeffs[p,1:dim(W)] + eta * coeffs[p,dim(W)+1] + interact_SURG * eta * W[dim(W)] * coeffs[p,dim(W)+2]
 	#' Where `interact_SURG` is an indicator that adds an interaction term for the SURG regression
-	get_joint_LL_measurements<-function(W, outcomes, gamma, eta, interact_SURG=FALSE){
+	get_joint_LL_measurements<-function(W, outcomes, coeffs, eta, interact_SURG=FALSE){
 
 		if(length(outcomes)==0) return(0)
 
 		nVisits <- length(outcomes)
 		if(nVisits != dim(W)[1]) error('Outcome length does not match covariate length')
 
-		P <- dim(gamma)[1]
+		P <- dim(coeffs)[1]
 		d_W <- dim(W)[2]
 		p_ind <- rep(1:P,each=nVisits) #particle index to us in dplyr grouping
 
 		#below, exp = expanded for using in dplyr
-		W_gamma_exp <-  c(tcrossprod(as.matrix(W), gamma[,1:d_W] ))
+		W_coeffs_exp <-  c(tcrossprod(as.matrix(W), coeffs[,1:d_W] ))
 
-		eta_gamma_dWp1 <- gamma[,d_W+1] * eta #dWp1 indicates d_W+1
-		eta_gamma_dWp1_exp <- rep(eta_gamma_dWp1, each = nVisits) 
+		eta_coeffs_dWp1 <- coeffs[,d_W+1] * eta #dWp1 indicates d_W+1
+		eta_coeffs_dWp1_exp <- rep(eta_coeffs_dWp1, each = nVisits) 
 
-		eta_gamma_dWp2_G7_exp <- rep(0,P*nVisits)
+		eta_coeffs_dWp2_G7_exp <- rep(0,P*nVisits)
 		if(interact_SURG){
-			eta_gamma_dWp2 <- gamma[,d_W+2] * eta
-			eta_gamma_dWp2_G7_mat <- tcrossprod(W[,d_W],eta_gamma_dWp2) #each column corresponds to 1 particle.
-			eta_gamma_dWp2_G7_exp <- c(eta_gamma_dWp2_G7_mat) #expand by stacking columns together
+			eta_coeffs_dWp2 <- coeffs[,d_W+2] * eta
+			eta_coeffs_dWp2_G7_mat <- tcrossprod(W[,d_W],eta_coeffs_dWp2) #each column corresponds to 1 particle.
+			eta_coeffs_dWp2_G7_exp <- c(eta_coeffs_dWp2_G7_mat) #expand by stacking columns together
 		}
 
-		logit_p_exp <-  W_gamma_exp + eta_gamma_dWp1_exp + eta_gamma_dWp2_G7_exp
+		logit_p_exp <-  W_coeffs_exp + eta_coeffs_dWp1_exp + eta_coeffs_dWp2_G7_exp
 
 		p_exp<-c(t(invLogit(logit_p_exp)))
 		outcomes_exp<-rep(outcomes,times=P)		
@@ -381,7 +381,7 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 	LL_RC <- get_joint_LL_measurements(
 		W=V_RC_star,
 		outcomes=RC_star,
-		gamma=ps$gamma_RC,
+		coeffs=ps$gamma_RC,
 		eta=ps$eta,
 		interact_SURG=FALSE)
 
@@ -391,7 +391,7 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 		LL_BX <- get_joint_LL_measurements(
 		W=U_BX_star,
 		outcomes=BX_star,
-		gamma=ps$nu_BX,
+		coeffs=ps$nu_BX,
 		eta=ps$eta,
 		interact_SURG=FALSE)
 		
@@ -400,7 +400,7 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 		LL_SURG <- get_joint_LL_measurements(
 			W=W_SURG_star,
 			outcomes=SURG_star,
-			gamma=ps$omega_SURG,
+			coeffs=ps$omega_SURG,
 			eta=ps$eta,
 			interact_SURG=TRUE)
 	}
