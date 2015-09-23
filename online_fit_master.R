@@ -42,7 +42,7 @@ IOPs<-paste0(
 batch_path<-paste0(
 	'batches/',
 	IOPs,
-	'/leave_one_out',leave_one_out,
+	'/leave_one_out_',leave_one_out,
 	'/batch-1/')
 posterior_path<-paste0(batch_path,
 	'concatenated_posterior.rds')
@@ -83,9 +83,6 @@ if(IOP_BX){
 		)
 }
 
-#Work check (passes).
-#all(U_BX_data[,c(4:7,9:12)]==ns_BX[,-1])
-#all(W_SURG_data[,4:10]==ns_SURG[,-1])
 
 
 
@@ -98,7 +95,7 @@ oo <- readRDS(posterior_path)
 of <- readRDS(posterior_path)
 of2 <- readRDS(posterior_path2)
 
-nreps <- 10
+nreps <- 1
 
 
 
