@@ -4,8 +4,9 @@
 
 
 #Fit on entire sample
-qsub -N IOPleave1out -t 1-200 -V -l mf=4G,h_vmem=4G -cwd -b y 'R CMD BATCH --no-save "--args TRUE TRUE TRUE" call-jags-cluster-master.R IOPleave1out.Rout'
-qsub -N IOPall -t 1-200 -V -l mf=4G,h_vmem=4G -cwd -b y 'R CMD BATCH --no-save "--args TRUE TRUE FALSE" call-jags-cluster-master.R IOPall.Rout'
+qsub -N IOPall -t 1-400 -V -l mf=4G,h_vmem=4G -cwd -b y 'R CMD BATCH --no-save "--args TRUE TRUE FALSE" call-jags-cluster-master.R IOPall.Rout'
+#Leave one out
+# qsub -N IOPleave1out -t 215-1000 -V -l mf=4G,h_vmem=4G -cwd -b y 'R CMD BATCH --no-save "--args TRUE TRUE TRUE" call-jags-cluster-master.R IOPleave1out.Rout'
 
 
 qstat | wc -l
