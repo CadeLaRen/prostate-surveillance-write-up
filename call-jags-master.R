@@ -14,6 +14,9 @@
 # Run on actual data eventually.
 
 
+# {star<-0; crop<-FALSE; leave_one_out<-FALSE} #currently set in parent script
+
+
 #load necessary packages
 library("lme4")
 library("bayesm")
@@ -124,8 +127,17 @@ if(IOP_BX){
 	subj_bx<-bx_data$subj
 
 
-	U_BX_data<-as.matrix(cbind(rep(1,n_bx), bx_data$age_std, bx_data$age_ns, bx_data$time, bx_data$time_ns, bx_data$sec_time_std, bx_data$sec_time_ns, bx_data$num_prev_bx ))
-	(d_U_BX<-dim(U_BX_data)[2]) #12
+	U_BX_data<-as.matrix(cbind(
+		rep(1,n_bx),
+		bx_data$age_std,
+		bx_data$age_ns,
+		bx_data$time,
+		bx_data$time_ns,
+		bx_data$sec_time_std,
+		bx_data$sec_time_ns,
+		bx_data$num_prev_bx )
+	)
+	(d_U_BX<-dim(U_BX_data)[2]) #8
 	round(apply(U_BX_data,2,summary),2)
 }
 
@@ -146,8 +158,18 @@ if(IOP_SURG){
 	(n_surg<-dim(data_use)[1])
 	subj_surg<-data_use$subj
 
-	W_SURG_data<-as.matrix(cbind(rep(1,n_surg), data_use$age_std, data_use$age_ns, data_use$time, data_use$time_ns, data_use$sec_time_std, data_use$sec_time_ns, data_use$num_prev_bx_surg, data_use$prev_G7))
-	(d_W_SURG<-dim(W_SURG_data)[2]) #12	 
+	W_SURG_data<-as.matrix(cbind(
+		rep(1,n_surg),
+		data_use$age_std,
+		data_use$age_ns,
+		data_use$time,
+		data_use$time_ns,
+		data_use$sec_time_std,
+		data_use$sec_time_ns,
+		data_use$num_prev_bx_surg,
+		data_use$prev_G7)
+	)
+	(d_W_SURG<-dim(W_SURG_data)[2]) #9	 
 	round(apply(W_SURG_data,2,summary) ,2)
 }
 
