@@ -127,6 +127,8 @@ gen_particles<-function(oo,nreps,verbose=TRUE){
 	# to more easily vectorize the operations for increased speed_
 
 	#Assign by cycle over nreps times (two vectors of different lengths)
+	p_eta_exp<-rep(c(oo$p_eta),times=nreps)
+
 	mu<-array(NA,dim=c(P,2,K))
 		#indeces: #[particle, int/slope, k in {1,2}=class]
 		#Random effects are intercepts and slopes for age
@@ -178,7 +180,7 @@ gen_particles<-function(oo,nreps,verbose=TRUE){
 	##############
 
 	#Get random candidate draws for eta (re-used for each new subject)
-	eta<-rbinom(P,1,prob=rep(c(oo$p_eta),times=nreps))
+	eta<-rbinom(P,1,prob=p_eta_exp)
 		# Our eta here is analogous to eta_hat from the main JAGS model.
 	#Get n_post random draws for b_vec
 	b_vec_star <- matrix(NA,P,2)
@@ -202,6 +204,7 @@ gen_particles<-function(oo,nreps,verbose=TRUE){
 	return(list( #all items in this list are length nreps * n_post.
 		#You previously had "exp" suffixes, but not you're ommiting those.
 		eta = eta,
+		p_eta = p_eta_exp,
 		sigma_res = sigma_res_exp,
 		beta = beta_exp,
 		mu = mu,
