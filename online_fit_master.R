@@ -67,22 +67,6 @@ if(IOP_SURG|IOP_BX){
 	sum(did_have_biopsy_all)
 }
 
-if(IOP_SURG){
-	ns_SURG <- data.frame(
-		subj=bx_data_full$subj,
-		ns4time=ns(bx_data_full$time,4),
-		ns3sec=ns(bx_data_full$sec_time_std,3)
-		)
-}
-
-if(IOP_BX){
-	ns_BX <- data.frame(
-		subj=bx_data_full$subj[couldve_had_biopsy_all],
-		ns4time=ns(bx_data_full$time[couldve_had_biopsy_all],4),
-		ns4sec=ns(bx_data_full$sec_time_std[couldve_had_biopsy_all],4)
-		)
-}
-
 
 
 
@@ -267,30 +251,31 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 	d_Z<-dim(Z_star)[2]
 
 	if(IOP_BX){
-		data4BX <- dplyr::filter(bx_data_star,couldve_had_biopsy_star) #covariates just for BX
-		U_BX_star <- as.matrix(cbind(
-				1,
-				data4BX$age_std,
-				data4BX$age_ns,
-				ns_BX_star[grep('ns4time',names(ns_BX_star))],
-				data4BX$num_prev_bx,
-				ns_BX_star[grep('ns4sec',names(ns_BX_star))] ) %>%
-			data.frame )
-
-		d_U_BX<-dim(U_BX_star)[2]
+		U_BX_star <- bx_data_star %>% 
+			dplyr::filter(couldve_had_biopsy_star) %>%#covariates just for BX
+			dplyr::mutate(intercept=1) %>%
+			dplyr::select(intercept, 
+					age_std,
+					age_ns,
+					time,
+					time_ns,
+					sec_time_std,
+					sec_time_ns,
+					num_prev_bx )
 	}
 
 	if(IOP_SURG){
-		W_SURG_star<- as.matrix(cbind( #It's possible to have SURG at any time, so no filtering
-				1,
-				bx_data_star$age_std,
-				bx_data_star$age_ns,
-				ns_SURG_star[grep('ns4time',names(ns_SURG_star))],
-				ns_SURG_star[grep('ns3sec',names(ns_SURG_star))],
-				bx_data_star$num_prev_bx_surg,
-				bx_data_star$prev_G7)) 
-
-		d_W_SURG<-dim(W_SURG_star)[2]
+		W_SURG_star<- 	bx_data_star %>%
+		dplyr::mutate(intercept=1) %>%
+		dplyr::select(intercept,
+					age_std,
+					age_ns,
+					time,
+					time_ns,
+					sec_time_std,
+					sec_time_ns,
+					num_prev_bx_surg,
+					prev_G7)
 	}
 
 
