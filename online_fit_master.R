@@ -468,10 +468,8 @@ posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=
 		likelihood_i <- get_likelihood(
 			ps=psi, #!! GLOBAL REFS !!
 			psa_data_star=data_star$PSA,
-			bx_data_star=data_star$BX,
-			ns_BX_star=data_star$ns_BX,
-			ns_SURG_star=data_star$ns_SURG
-			) #!! What if it's in a different order ??
+			bx_data_star=data_star$BX
+			)
 		
 		likelihood <- c(likelihood, likelihood_i)
 
