@@ -14,7 +14,7 @@
 # Run on actual data eventually.
 
 
-# {star<-0; crop<-FALSE; leave_one_out<-FALSE} #currently set in parent script
+# {star<-0; crop<-FALSE; IOP_BX<-TRUE; IOP_SURG<-TRUE; leave_one_out<-FALSE} #currently set in parent script
 
 
 #load necessary packages
@@ -101,7 +101,14 @@ RC<-as.numeric(rc_data$rc)
 subj_rc<-rc_data$subj
 
 #covariates influencing risk of reclassification
-V_RC_data<-as.matrix(cbind(rep(1,n_rc),  rc_data$age_std, rc_data$time, rc_data$time_ns, rc_data$sec_time_std ))
+V_RC_data <- rc_data %>%
+	dplyr::mutate(intercept=1) %>%
+	dplyr::select(intercept,
+		age_std,
+		time,
+		time_ns,
+		sec_time_std)
+
 (d_V_RC<-dim(V_RC_data)[2])
 round(apply(V_RC_data,2,summary) ,2)
 
@@ -122,21 +129,24 @@ d_U_BX<- NULL
 
 if(IOP_BX){
 	bx_data<-data_use[!is.na(data_use$bx_here),] #remove patients who have already had RC observed but haven't had surgery or been censored
+	#(only look at patients where a biopsy could've happened)
 	(n_bx<-dim(bx_data)[1])
 	BX<-as.numeric(bx_data$bx_here) #indicator of bx
 	subj_bx<-bx_data$subj
 
+	#below, we need to use dplyr:: otherwise other functions can get selected
+	U_BX_data<-bx_data %>%
+			dplyr::mutate(intercept=1) %>%
+			dplyr::select(intercept, 
+					age_std,
+					age_ns,
+					time,
+					time_ns,
+					sec_time_std,
+					sec_time_ns,
+					num_prev_bx )%>%
+			as.matrix
 
-	U_BX_data<-as.matrix(cbind(
-		rep(1,n_bx),
-		bx_data$age_std,
-		bx_data$age_ns,
-		bx_data$time,
-		bx_data$time_ns,
-		bx_data$sec_time_std,
-		bx_data$sec_time_ns,
-		bx_data$num_prev_bx )
-	)
 	(d_U_BX<-dim(U_BX_data)[2]) #8
 	round(apply(U_BX_data,2,summary),2)
 }
@@ -158,17 +168,19 @@ if(IOP_SURG){
 	(n_surg<-dim(data_use)[1])
 	subj_surg<-data_use$subj
 
-	W_SURG_data<-as.matrix(cbind(
-		rep(1,n_surg),
-		data_use$age_std,
-		data_use$age_ns,
-		data_use$time,
-		data_use$time_ns,
-		data_use$sec_time_std,
-		data_use$sec_time_ns,
-		data_use$num_prev_bx_surg,
-		data_use$prev_G7)
-	)
+	W_SURG_data <- data_use %>%
+		dplyr::mutate(intercept=1) %>%
+		dplyr::select(intercept,
+					age_std,
+					age_ns,
+					time,
+					time_ns,
+					sec_time_std,
+					sec_time_ns,
+					num_prev_bx_surg,
+					prev_G7) %>%
+		as.matrix
+	
 	(d_W_SURG<-dim(W_SURG_data)[2]) #9	 
 	round(apply(W_SURG_data,2,summary) ,2)
 }
