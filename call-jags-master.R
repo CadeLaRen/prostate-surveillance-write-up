@@ -170,7 +170,7 @@ if(IOP_SURG){
 					contains("surg_time_ns"),
 					contains("surg_date_ns"),
 					contains("surg_age_ns"),
-					surg_num_prev_bx_ns_std,
+					surg_num_prev_bx_std,
 					prev_G7) %>%
 		as.matrix
 	
