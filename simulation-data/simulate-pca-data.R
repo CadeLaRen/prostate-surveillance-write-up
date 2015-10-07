@@ -1,83 +1,55 @@
 ### This code simulates data in order to demonstrate the joint modeling approach outlined in Coley et al (2015) as well as the importance sampling algorithm outlined in Fisher et al (2015).
 ### Data is generated using posterior estimates from fitting the joint model to data from the Johns Hopkins Active Surveillance cohort.
 
+### SIMULATE DATA FOR PROSTATE CANCER PREDICTION MODEL
+### WORKFLOW: 
+# (1) Load necessary libraries, define functions
+# (2) Load characteristcs of data (mean, sd, knots for natural splines) and model parameters
+# (3) Define sample size and unique ids
+# (4) Simulate data for diagnosis (dx) and true state (eta)
+# (5) Simulate data for biopsies (bx) received, biopsy results (reclassification- rc), and surgery (surg)
+# (6) Simulate PSA data
+# (7) Order all datasets based on observed eta
+# (8) Save all datasets
+
+
 rm(list=ls())
 
-### LOAD PACKAGES
+#set prostate surveillance folder as working directory, e.g. setwd("/Users/ryc/GitHub/prostate_surveillance")
+
+### (1) Load libraries, define functions
 library(MASS)
+library(splines)
 
-
-### SET SEED
-set.seed(1)
-
-### DEFINE FUNCTIONS
+#inverse logit function
 expit<-function(x){return(exp(x)/(1+exp(x)))}
 
-#function to get natural spline basis with 3 knots_ (Just an alternate definition. See Ch 11 of Wakefield (2013))
-get_ns_basis<-function(obs_data,knots){
-	od_k1<- obs_data-knots[1]
-	od_k1[od_k1<0]<-0
-	od_k2<- obs_data-knots[2]
-	od_k2[od_k2<0]<-0
-	od_k3<- obs_data-knots[3]
-	od_k3[od_k3<0]<-0
-	return(as.vector((od_k1^3 - od_k3^3)/(knots[3]-knots[1]) - (od_k2^3 - od_k3^3)/(knots[3]-knots[2])))}
 
+### (2) Load data characteristics, parameters
+load("simulation-data/pars-for-data-sim.RData")
 
-### DEFINE PARAMETER VALUES (similar to posterior estimates)
-p_eta <- 0.22
-
-mu_int <- c(1.36, 1.61)
-mu_slope <- c(0.26,0.51)
-mu_mat <- as.matrix(rbind(mu_int, mu_slope))
-
-Sigma <- matrix(c(0.55^2, 0.04, 0.04, 0.4^2), nrow=2, ncol=2)
-sigma_res <- 0.3
-
-beta <- c(0.31)
-
-nu_bx<-c(0, 0.5, -0.15, 1, -0.1, 0.7, -0.2, 0.2 , -0.5)
-#int, age, age_ns, time, time_ns, sec_time, sec_time,ns, # previous biopsies, eta
-
-gam_rc<-c(-2, 0.5, -0.2, -0.1, 0.25, 2)
-#int, age, time, time_ns, sec_time, eta
-
-omega_surg<-c(-4, -0.4, -1, 1, -0.1,  0.8, -0.3, -0.2, 1.5, 0.6, 2.5)
-#int, age, age_ns, time, time_ns, sec_time, sec_time_ns, # previous biopsies, previous reclassification (Gleason >=7), eta, interaction with previous G7 and eta
-
-#from real data, for design matrices for biopsy data
-mean_age_bx<-69.4
-sd_age_bx<-6.5
-knots_age_bx<- c(-0.5, 0.1, 0.7)
-
-knots_time_bx<- c(1.3, 3.2, 5.8)
-
-mean_sec_time_bx<-4.5
-sd_sec_time_bx<-4.1
-knots_sec_time_bx<-c(-0.5,0.3,0.9)
-
-
-
-### SIMULATE DATA
+### (3) Define sample size, unqiue ids
 n <- 1000
-id <- c(1:n)
+id <- c(1:1000)
 
-ages_dx <- rnorm(n, mean=65.5, sd=5.5) #from real data
-sec_time_dx <- rnorm(n, mean=1.6, sd=4.3)  #secular time, in relation to 2005
+### (4) Simulate dx and eta data
+set.seed(1)
 
+age_dx <- rnorm(n, mean=dx_age_mean, sd=dx_age_sd) 
+date_dx <- rnorm(n, mean=dx_dt_mean, sd=dx_dt_sd)  
 
-pt_data<-as.data.frame(cbind(id,ages_dx, sec_time_dx))
-names(pt_data) <- c("id","age_dx","sec_time_dx")
+pt_data<-as.data.frame(cbind(id, age_dx, date_dx))
+names(pt_data) <- c("id","age_dx","date_dx")
 
-#latent class
+#latent class (eta)
 pt_data$eta_true <- eta_true <- rbinom(n,1,p_eta)
 table(pt_data$eta_true)
 
 
 
+### (5) Simulate data for biopsies (bx) received, biopsy results (reclassification- rc), and surgery (surg)
 
-### all biopsy data
-
+#define annual intervals
 times<-seq(1,10,1)
 
 ids<-c(rep(1,10))
@@ -88,37 +60,50 @@ names(bx_sim)<-c("id","time")
 
 (N<-dim(bx_sim)[1])
 
+#bring in true state data
 bx_sim$eta<-rep(0,N)
 for(i in 1:n){
 	bx_sim$eta[bx_sim$id==i]<-pt_data$eta_true[pt_data$id==i]}
 
-bx_sim$age<-bx_sim$sec_time<-rep(0,N)
+#define age and date at each time
+bx_sim$age<-bx_sim$date<-rep(0,N)
 for(i in 1:n){
-	bx_sim$age[bx_sim$id==i]<-pt_data$age_dx[i] + bx_sim$time[bx_sim$id==1] + 0.5
-	bx_sim$sec_time[bx_sim$id==i]<-pt_data$sec_time_dx[i] + bx_sim$time[bx_sim$id==1] + 0.5}
+	bx_sim$date[bx_sim$id==i]<-pt_data$date_dx[i] + 365*(bx_sim$time[bx_sim$id==1] + 0.5)
+	bx_sim$age[bx_sim$id==i]<-pt_data$age_dx[i] + bx_sim$time[bx_sim$id==1] + 0.5}
 
-bx_sim$age_std<-(bx_sim$age-mean_age_bx)/sd_age_bx
-bx_sim$age_ns<-get_ns_basis(bx_sim$age_std, knots_age_bx)
 
-bx_sim$time_ns<-get_ns_basis(bx_sim$time,knots_time_bx)
+#natural spline (ns) representations for time, date, and age for each outcome (bx, rc, surg)
+bx_sim$bx_time_ns <- ns(bx_sim$time, knots=bx_time_knots, Boundary.knots=bx_time_bknots)
+bx_sim$bx_date_ns <- ns(bx_sim$date, knots=bx_date_knots, Boundary.knots=bx_date_bknots)
+bx_sim$bx_age_ns <- ns(bx_sim$age, knots=bx_age_knots, Boundary.knots=bx_age_bknots)
 
-bx_sim$sec_time_std<-(bx_sim$sec_time-mean_sec_time_bx)/sd_sec_time_bx
-bx_sim$sec_time_ns<-get_ns_basis(bx_sim$sec_time, knots_sec_time_bx)
 
+bx_sim$rc_time_ns <- ns(bx_sim$time, knots=rc_time_knots, Boundary.knots=rc_time_bknots)
+bx_sim$rc_date_ns <- ns(bx_sim$date, knots=rc_date_knots, Boundary.knots=rc_date_bknots)
+
+bx_sim$surg_time_ns <- ns(bx_sim$time, knots=surg_time_knots, Boundary.knots=surg_time_bknots)
+bx_sim$surg_date_ns <- ns(bx_sim$date, knots=surg_date_knots, Boundary.knots=surg_date_bknots)
+bx_sim$surg_age_ns <- ns(bx_sim$age, knots=surg_age_knots, Boundary.knots=surg_age_bknots)
+
+#standardize age for RC outcome
+bx_sim$rc_age_std <- scale(bx_sim$age, center=rc_age_mean, scale=rc_age_sd)
+
+#will use this indicator variable to remove records after censoring
 bx_sim$rm<-rep(0,N)
 
 
-##biopsies
+##simulate outcome data for biopsies received (bx)
 bx_sim$bx_here<-rep(0,N)
 bx_sim$num_prev_bx<-rep(1,N)
 
 bx_sub<-bx_sim[bx_sim$time==1,]
 (n_bx<-dim(bx_sub)[1])
-U_BX<-as.matrix(cbind( rep(1,n_bx), bx_sub$age_std, bx_sub$age_ns, bx_sub$time, bx_sim$time_ns,  bx_sub$sec_time_std, bx_sub$sec_time_ns, bx_sub$num_prev_bx, bx_sub$eta  ))
+
+U_BX <- as.matrix(cbind( rep(1,n_bx), bx_sub$bx_time_ns, bx_sub$bx_date_ns, bx_sub$bx_age_ns, ns(bx_sub$num_prev_bx, knots=bx_num_prev_bx_knots, Boundary.knots=bx_num_prev_bx_bknots), bx_sub$eta ))
 summary(as.vector(expit(U_BX%*%nu_bx)))
 
 bx_sim$bx_here[bx_sim$time==1]<-rbinom(n,1,as.vector(expit(U_BX%*%nu_bx)))
-#table(bx_sim$bx_here[bx_sim$time==1])
+table(bx_sim$bx_here[bx_sim$time==1])
 
 for(j in 2:10){
 	for(i in 1:n){
@@ -126,18 +111,22 @@ for(j in 2:10){
 
 	bx_sub<-bx_sim[bx_sim$time==j,]
 	(n_bx<-dim(bx_sub)[1])
-	U_BX<-as.matrix(cbind( rep(1,n_bx), bx_sub$age_std, bx_sub$age_ns, bx_sub$time, bx_sim$time_ns,  bx_sub$sec_time_std, bx_sub$sec_time_ns, bx_sub$num_prev_bx, bx_sub$eta  ))
+	U_BX<-as.matrix(cbind( rep(1,n_bx), bx_sub$bx_time_ns, bx_sub$bx_date_ns, bx_sub$bx_age_ns, ns(bx_sub$num_prev_bx, knots=bx_num_prev_bx_knots, Boundary.knots=bx_num_prev_bx_bknots), bx_sub$eta ))
 	
 	bx_sim$bx_here[bx_sim$time==j]<-rbinom(n,1,as.vector(expit(U_BX%*%nu_bx)))}
 table(bx_sim$bx_here)	
+table(bx_sim$num_prev_bx)
 
-#reclassifications
+bx_sim$bx_num_prev_bx_ns <- ns(bx_sim$num_prev_bx, knots=bx_num_prev_bx_knots, Boundary.knots=bx_num_prev_bx_bknots)
+
+### simulate outcomes for biopsies- reclassification (rc)
 bx_sim$rc<-bx_sim$prev_G7<-rep(0,N)
 rc_sub<-bx_sim[bx_sim$bx_here==1,]
 (n_rc<-dim(rc_sub)[1])
-V_RC<-as.matrix(cbind(rep(1,n_rc), rc_sub$age_std, rc_sub$time, rc_sub$time_ns, rc_sub$sec_time_std, rc_sub$eta))
 
-bx_sim$rc[bx_sim$bx_here==1]<-rbinom(n_rc,1,as.vector(expit(V_RC%*%gam_rc)))
+V_RC<-as.matrix(cbind(rep(1,n_rc), rc_sub$rc_time_ns, rc_sub$rc_date_ns, rc_sub$rc_age_std, rc_sub$eta))
+
+bx_sim$rc[bx_sim$bx_here==1]<-rbinom(n_rc,1,as.vector(expit(V_RC%*%gamma_rc)))
 
 for(i in 1:n){
 	if(sum(bx_sim$rc[bx_sim$id==i]==1)>0){
@@ -148,19 +137,20 @@ for(i in 1:n){
 		bx_sim$prev_G7[bx_sim$id==i & bx_sim$time>=rc_time]<-1
 		bx_sim$rm[bx_sim$id==i & bx_sim$time>(rc_time+2)]<-1}}
 
+table(bx_sim$rc)
 
 # surgery
 bx_sim$surg<-rep(0,N) 
-bx_sim$num_prev_bx_surg <- bx_sim$num_prev_bx + bx_sim$bx_here
+bx_sim$surg_num_prev_bx_std <- scale(x=(bx_sim$num_prev_bx + bx_sim$bx_here), center=surg_num_prev_bx_mean, scale=surg_num_prev_bx_sd)
 
-W_SURG<-as.matrix(cbind(rep(1,N), bx_sim$age_std, bx_sim$age_ns, bx_sim$time, bx_sim$time_ns, bx_sim$sec_time_std, bx_sim$sec_time_ns,bx_sim$num_prev_bx_surg, bx_sim$prev_G7, bx_sim$eta, (bx_sim$prev_G7*bx_sim$eta) ))
+omega_surg[1] <- -5 #adjusting a bit to get higher number of surgeries (closer to true data)
 
+W_SURG<-as.matrix(cbind(rep(1,N), bx_sim$surg_time_ns, bx_sim$surg_date_ns, bx_sim$surg_age_ns, bx_sim$surg_num_prev_bx_std, bx_sim$prev_G7, bx_sim$eta, (bx_sim$prev_G7*bx_sim$eta)))
 bx_sim$surg<-rbinom(N,1,as.vector(expit(W_SURG%*%omega_surg)))
 
 #messes up design matrices to delete columns earlier
 bx_sim<-bx_sim[bx_sim$rm==0,]
 (N<-dim(bx_sim)[1])
-
 
 pt_data$rc<-pt_data$surg<-rep(0,n)
 
@@ -189,16 +179,16 @@ for(i in 1:n){
 		bx_sim$bx_here[bx_sim$id==i & bx_sim$time>rc_time]<-NA	} }
 
 table(bx_sim$bx_here)
-
+summary(bx_sim$bx_here)
 
 
 ##psa data
 
-psa_time<-seq(-1, max(bx_sim$time[bx_sim$id==1]),0.5)
-psa_id<-rep(1, length(psa_time))
 
+psa_time<-seq(-1, max(bx_sim$time[bx_sim$id==1 & !is.na(bx_sim$bx_here) ]),0.5)
+psa_id<-rep(1, length(psa_time))
 for(i in 2:n){
-	psa_add<-seq(-1, max(bx_sim$time[bx_sim$id==i]), 0.5)
+	psa_add<-seq(-1, max(bx_sim$time[bx_sim$id==i & !is.na(bx_sim$bx_here)]), 0.5)
 	psa_time<-c(psa_time,psa_add)
 	psa_id<-c(psa_id, rep(i, length(psa_add)))}	
 	
@@ -212,9 +202,7 @@ for(j in 1:n_obs_psa){
 	psa_data$age[j] <- psa_data$psa_time[j] + pt_data$age[pt_data$id==psa_data$id[j]]}
 	
 
-mean(psa_data$age) #69.53362
-sd(psa_data$age) #6.624688
-psa_data$age_std<-(psa_data$age-mean(psa_data$age))/sd(psa_data$age)
+psa_data$age_std<-(psa_data$age-psa_age_mean)/psa_age_sd
 
 pt_data$vol_std<-rnorm(n,0,1)
 psa_data$vol_std<-vector(length=n_obs_psa)
@@ -226,7 +214,6 @@ for(i in 1:n){
 	b.vec[i,] <- mvrnorm(n=1, mu=mu_mat[,(pt_data$eta_true[pt_data$id==i]+1)], Sigma=Sigma)}
 
 
-
 psa_data$log_psa <- vector(length=n_obs_psa)
 for(j in 1:n_obs_psa){
 	lin_pred <- NULL
@@ -236,9 +223,7 @@ summary(psa_data$log_psa)
 
 
 
-
 #get ordered subject variable
-
 pt_data<-pt_data[order(pt_data$obs_eta),]
 pt_data$subj<-c(1:n)
 psa_data$subj<-rep(0,n_obs_psa)
@@ -247,12 +232,12 @@ bx_sim$subj<-rep(0,N)
 for(i in 1:n){bx_sim$subj[bx_sim$id==pt_data$id[i]]<-pt_data$subj[i]}
 
 
-write.csv(psa_data,"psa-data-sim.csv")
-write.csv(pt_data,"pt-data-sim.csv")
-write.csv(bx_sim,"bx-data-sim.csv")
+write.csv(psa_data,"simulation-data/psa-data-sim.csv")
+write.csv(pt_data,"simulation-data/pt-data-sim.csv")
+write.csv(bx_sim,"simulation-data/bx-data-sim.csv")
 
 
-
+names(bx_sim)
 
 
 
