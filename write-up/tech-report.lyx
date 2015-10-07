@@ -131,7 +131,7 @@
 \begin_body
 
 \begin_layout Title
-Fast Out-of-Sample Predictions from Bayesian Hierarchical Models of Latent
+Fast Out-of-Sample Predictions for Bayesian Hierarchical Models of Latent
  Health States (Technical Report)
 \end_layout
 
@@ -160,10 +160,15 @@ Abstract
 \end_layout
 
 \begin_layout Standard
-This technical report discusses the use of importance sampling in precision
- medicine settings, to obtain fast, in-clinic risk estimates for out-of-sample
- patients with new data.
- We apply importance sampling to the hierarchical model proposed in 
+Heirarchical Bayesian models can be especially useful in precision medicine
+ settings, where clinicians are interested in estimating the patient-level
+ variables associated with a specific person's risk.
+ The slow computon cost of using Markov Chain Monte Carlo (MCMC) to estimate
+ these variables however makes it difficult to implement this in clinical
+ settings, where an immediate risk estimate is desired.
+ This technical report discusses the use of importance sampling (IS) to
+ obtain fast, in-clinic risk estimates for patients with new data.
+ We apply IS to the hierarchical model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Coley2015ProstateSurveillence"
@@ -171,10 +176,11 @@ key "Coley2015ProstateSurveillence"
 \end_inset
 
  for predicting risk of aggressive prostate cancer.
- Estimates can be obtained in 5-13 seconds per person, and have high agreement
- with estimates coming from longer-running Markov Chain Monte Carlo (MCMC)
+ Risk estimates via IS can typically be obtained in 5-15 seconds per person,
+ and have high agreement with estimates coming from longer-running MCMC
  methods.
- Alternative options for online updating of the model are also discussed.
+ Alternative options for online updating and out-of-sample fitting are also
+ discussed.
 \end_layout
 
 \begin_layout Standard
@@ -194,7 +200,7 @@ Hierarchical Bayesian models can be especially useful in the context of
  treatment effects, but also the risk for any individual patient.
  In the context of hierarchical models, treatment effects can be estimated
  from population-level parameters, and the risk for any specific patient
- can be described by a patient-level latent class.
+ can be described by a patient-level variables.
  For example, 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -256,7 +262,7 @@ s in online learning
 status open
 
 \begin_layout Plain Layout
-Needs citation here.
+(YC?) Needs citation here.
  Kantas?
 \end_layout
 
@@ -276,12 +282,12 @@ static
 \begin_inset Quotes erd
 \end_inset
 
- parameters (
+ parameters that do not change as more data is acquired (
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-more citations,
+AF-more citations,
 \end_layout
 
 \end_inset
@@ -294,13 +300,13 @@ key "Andrieu2005"
 \end_inset
 
  for an intuitive explanation).
- This applies in our case, where the population-level parameters are modeled
- as static, and not changing as more data is acquired
+ This applies in our case, as the population-level parameters are assumed
+ to be static
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-This sentence is confusing to me
+YC - [These 2] sentences are confusing to me; AF- Is this better?
 \end_layout
 
 \end_inset
@@ -328,7 +334,7 @@ key "Kantas2014"
 status open
 
 \begin_layout Plain Layout
-re-edit later
+AF - need to polish more
 \end_layout
 
 \end_inset
@@ -386,7 +392,7 @@ Our specific context within personalized medicine is different that of topic
 status open
 
 \begin_layout Plain Layout
-Some proposed alternatives for online updates include fixed lag updating
+AF-Some proposed alternatives for online updates include fixed lag updating
  methods 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -399,7 +405,7 @@ key "Polson2008"
 status open
 
 \begin_layout Plain Layout
-Polish these citations up.
+AF-Polish these citations up.
  Need to read.
 \end_layout
 
@@ -417,7 +423,7 @@ key "Kitagawa1998"
 status open
 
 \begin_layout Plain Layout
-Polish these citations up.
+AF-Polish these citations up.
  Need to read.
 \end_layout
 
@@ -445,7 +451,7 @@ reference "sec:Clinical-Application-&"
  In Section 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:Importance-Sampling-Algorithm"
+reference "sec:methods"
 
 \end_inset
 
@@ -549,29 +555,9 @@ grade reclassification
  Each patient's latent class is assumed constant over the surveillance period.
  As a patient continues in active surveillance, additional PSA and biopsy
  measurements are accrued and the accuracy of latet class predictions improves.
- The final version of the hierarchical model in 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Coley2015ProstateSurveillence"
-
-\end_inset
-
- also includes sub-models for informative observation processes associated
+ Sub-models are also included for informative observation processes associated
  with biopsies and surgeries.
- As a first step though, we look here only at the model version that treats
- the data as missing at random.
  
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-We can change this now that we have the IOP model working, especially since
- we don't give the likelihood explicity.
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -580,7 +566,15 @@ In our context, the subject-level variables
 status open
 
 \begin_layout Plain Layout
-parameters?
+AF to YC - OK to call these variables? Or 
+\begin_inset Quotes eld
+\end_inset
+
+parameters
+\begin_inset Quotes erd
+\end_inset
+
+?
 \end_layout
 
 \end_inset
@@ -602,7 +596,7 @@ key "Coley2015ProstateSurveillence"
 status open
 
 \begin_layout Plain Layout
-Add footnote briefly listing subj level and pop level parameters, without
+AF- Add footnote briefly listing subj level and pop level parameters, without
  further explanation?
 \end_layout
 
@@ -613,8 +607,13 @@ Add footnote briefly listing subj level and pop level parameters, without
 status open
 
 \begin_layout Plain Layout
-This is also confusing because you haven't used this distinction between
+YC - This is also confusing because you haven't used this distinction between
  subject- and population-level parameters yet and the need is unclear.
+ 
+\end_layout
+
+\begin_layout Plain Layout
+AF - Isn't this covered in the first paragraph of the intro?
 \end_layout
 
 \end_inset
@@ -1072,10 +1071,10 @@ where
 \end_layout
 
 \begin_layout Section
-Importance Sampling Algorithm for Fast Prediction Updates
+Methods for Fast Prediction Updates
 \begin_inset CommandInset label
 LatexCommand label
-name "sec:Importance-Sampling-Algorithm"
+name "sec:methods"
 
 \end_inset
 
@@ -1083,8 +1082,8 @@ name "sec:Importance-Sampling-Algorithm"
 \end_layout
 
 \begin_layout Standard
-In this section we detail an importance sampling algorithm that enables
- rapid updates of joint latent class model predictions.
+In this section we detail an IS algorithm that enables rapid updates of
+ joint latent class model predictions.
  This method is meant to be applied to out-of-sample data, after MCMC has
  been applied to get a posterior sample based on all current training data.
  We present the algorithm in a simple, abbreviated notation that is applicable
@@ -1163,6 +1162,29 @@ where
 \end_layout
 
 \begin_layout Standard
+Let 
+\begin_inset Formula $\mathscr{J}_{n}=\{\theta^{(j)},b_{1:n}^{(j)}\}_{j=1}^{J}$
+\end_inset
+
+ be a set of 
+\begin_inset Formula $J$
+\end_inset
+
+ draws from the posterior distribution in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+, obtained via methods such as MCMC.
+\end_layout
+
+\begin_layout Subsection
+IS Algorithm
+\end_layout
+
+\begin_layout Standard
 After posterior samples from the joint model are obtained for current data,
  importance sampling to update these estimates given new data requires three
  steps: first, generating proposal values for the latent variables to be
@@ -1190,7 +1212,7 @@ For a new patient (indexed by
 
 ).
  While we cannot immediately draw from this distribution, we can evaluate
- a function that is proportional to its density (Equation 
+ a function that is proportional to its density (based on Eq 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "eq:posterior_n"
@@ -1198,11 +1220,11 @@ reference "eq:posterior_n"
 \end_inset
 
 ).
- The posterior distribution based on the first 
+ We can also use the the posterior distribution based on the first 
 \begin_inset Formula $n$
 \end_inset
 
- patients provides an appropriate proposal distribution (
+ patients as a proposal distribution (
 \begin_inset Formula $q$
 \end_inset
 
@@ -1210,7 +1232,8 @@ reference "eq:posterior_n"
 \begin_inset Formula $(\theta,b_{1:(n+1)})$
 \end_inset
 
-: 
+.
+ 
 \begin_inset Formula 
 \begin{eqnarray}
 q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})\label{eq:drawing-subj-level-vars}
@@ -1222,50 +1245,30 @@ q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})\label{eq
 \end_layout
 
 \begin_layout Standard
-Practically, this step consists of taking 
-\begin_inset Formula $J$
+Practically, this proposal step is achieved by conditioning on each 
+\begin_inset Formula $\theta^{(j)}$
 \end_inset
 
- draws of 
-\begin_inset Formula $\theta$
+ in 
+\begin_inset Formula $\mathscr{J}_{n}$
 \end_inset
 
- and 
-\begin_inset Formula $b_{1:n}$
-\end_inset
-
- from the previously fitted posterior in Equation 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:posterior_n"
-
-\end_inset
-
-.
- Then, conditional on 
-\begin_inset Formula $\theta$
-\end_inset
-
-, we draw 
-\begin_inset Formula $b_{n+1}$
+, and then of drawing 
+\begin_inset Formula $b_{n+1}^{(j)}$
 \end_inset
 
  from the distribution 
-\begin_inset Formula $g$
+\begin_inset Formula $g(b_{n+1}^{(j)}|\theta^{(j)})$
 \end_inset
 
 .
- We index each of the resulting draws as 
-\begin_inset Formula $(\theta^{(j)},b_{1:(n+1)}^{(j)})$
-\end_inset
-
-, with 
-\begin_inset Formula $j=1,\dots,J$
+ This results in the augmented set 
+\begin_inset Formula $\mathscr{J}_{n+1}=\{\theta^{(j)},b_{1:(n+1)}^{(j)}\}_{j=1}^{J}$
 \end_inset
 
 .
  The importance weights 
-\begin_inset Formula $w_{j}$
+\begin_inset Formula $w^{(j)}$
 \end_inset
 
  are then proportional to 
@@ -1296,7 +1299,7 @@ The final weights
 \end_inset
 
 .
- A posterior mean for 
+ Posterior means for 
 \begin_inset Formula $b_{(n+1)}$
 \end_inset
 
@@ -1306,56 +1309,63 @@ The final weights
 
 .
  
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-The unstandardized weights can also be used in a rejection sampling procedure,
- although we found this approach to be less computationally efficient than
- IS for our scenario (see Section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sub:Results"
-
-\end_inset
-
-).
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
-For a patient 
-\begin_inset Formula $k$
-\end_inset
+The approach is similar when we wish to incorporate new measurement data
+ for a patient who's previous data has already informed the posterior sample
+ in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
 
- with existing data, where we already have a posterior sample for their
- latent variable values, we instead use this posterior as our proposal distribut
-ion 
-\begin_inset Formula $q(\theta^{(j)},b_{1:n}^{(j)})$
-\end_inset
-
-, with 
-\begin_inset Formula $i\leq n$
 \end_inset
 
 .
+ For a patient 
+\begin_inset Formula $k$
+\end_inset
+
+ with existing data (i.e., 
+\begin_inset Formula $k\leq n$
+\end_inset
+
+), our set 
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+ already contains the proposals 
+\begin_inset Formula $\{b_{k}^{(j)}\}_{j=1}^{J}$
+\end_inset
+
+ for the subject 
+\begin_inset Formula $k$
+\end_inset
+
+'s latent variable values.
+ Thus, we can draws from 
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+ as our proposal distribution 
+\begin_inset Formula $q(\theta^{(j)},b_{1:n}^{(j)})$
+\end_inset
+
+.
+ Our goal then is to reweight this set of points based on new data.
  Let 
-\begin_inset Formula $y_{1:n}^{k+}$
+\begin_inset Formula $y_{1:n}^{*}$
 \end_inset
 
  refer to the data set after incorporating new data on patient 
 \begin_inset Formula $k$
 \end_inset
 
-, where 
-\begin_inset Formula $y_{i}^{+}=y_{i}$
+, such that 
+\begin_inset Formula $y_{i}^{*}=y_{i}$
 \end_inset
 
- if 
+ if and only if 
 \begin_inset Formula $k\neq i$
 \end_inset
 
@@ -1369,11 +1379,11 @@ reference "eq:importance-weights"
 
  then simplify to 
 \begin_inset Formula 
-\begin{eqnarray*}
-w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:n}^{(j)}|y_{1:n}^{+})}{q(\theta^{(j)},b_{1:n}^{(j)})}\\
- & \propto & \frac{\prod_{i=1}^{n}[f(\ensuremath{y_{i}^{+}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{\prod_{i=1}^{n}[f(\ensuremath{y_{i}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}\\
- & = & \frac{f(\ensuremath{y_{k}^{+}}|b_{k}^{(j)},\theta^{(j)})}{f(\ensuremath{y_{k}}|b_{k}^{(j)},\theta^{(j)})}
-\end{eqnarray*}
+\begin{eqnarray}
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:n}^{(j)}|y_{1:n}^{*})}{q(\theta^{(j)},b_{1:n}^{(j)})}\nonumber \\
+ & \propto & \frac{\prod_{i=1}^{n}[f(\ensuremath{y_{i}^{*}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{\prod_{i=1}^{n}[f(\ensuremath{y_{i}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
+ & = & \frac{f(\ensuremath{y_{k}^{*}}|b_{k}^{(j)},\theta^{(j)})}{f(\ensuremath{y_{k}}|b_{k}^{(j)},\theta^{(j)})}\label{eq:new-data-patient-ratio}
+\end{eqnarray}
 
 \end_inset
 
@@ -1381,65 +1391,46 @@ w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:n}^{(j)}|y_{1:n}^{+})}{q(\theta^{(
 \end_layout
 
 \begin_layout Standard
-Let 
-\begin_inset Formula $L_{k}$
-\end_inset
-
- denote that number of measurements for which we've previously fit a posterior
- for 
-\begin_inset Formula $b_{k}$
-\end_inset
-
-, and let 
-\begin_inset Formula $N_{k}$
-\end_inset
-
- denote the number of new measurements we wish to incorporate into this
- posterior.
- Then, 
-\begin_inset Formula $y_{k}^{+}$
-\end_inset
-
- can be expressed as the vector 
-\begin_inset Formula $y_{k}^{+}=(y_{k[1]},y_{k[2]},\dots y_{k[L_{k}]},y_{k[L_{k}+1]}^{+},\dots y_{k[L_{k}+N_{k}]}^{+})$
-\end_inset
-
-, where 
-\begin_inset Formula $y_{k[l]}^{+}$
-\end_inset
-
- is the 
-\begin_inset Formula $l^{th}$
-\end_inset
-
- measurement from patient 
-\begin_inset Formula $k$
-\end_inset
-
-.
- If the repeated measures for each patient are independent conditional on
+If the repeated measures for each patient are independent conditional on
  
 \begin_inset Formula $b_{i}$
 \end_inset
 
-, as is the case in the proposed model, then the above ratio reduces to
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{eqnarray*}
-w^{(j)} & \propto & \frac{\prod_{l=1}^{L_{k}+N_{k}}f(\ensuremath{y_{k[l]}^{+}}|b_{k}^{(j)},\theta^{(j)})}{\prod_{l=1}^{L_{i}}f(\ensuremath{y_{k[l]}}|b_{k}^{(j)},\theta^{(j)})}\\
- & = & \prod_{l=L_{k}+1}^{L_{k}+N_{k}}f(\ensuremath{y_{k[l]}^{+}}|b_{k}^{(j)},\theta^{(j)})
-\end{eqnarray*}
+, as is the case in the proposed model from 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
-We then proceed as above to get a re-weighted posterior for the latent variables
- of patient 
-\begin_inset Formula $k$
+, then the ratio in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:new-data-patient-ratio"
+
+\end_inset
+
+ reduces to the likelihood of only the new data, conditional on 
+\begin_inset Formula $b_{k}^{(j)}$
+\end_inset
+
+ and 
+\begin_inset Formula $\theta^{(j)}$
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Subsection
+Efficient Implementation
+\end_layout
+
+\begin_layout Standard
+For implementation in clinical practice, proposals for new patients can
+ be generated prior to actually observing new data, so that only weight
+ calculating and re-weighting of the proposal distribution needs to be done
+ in real-time.
+ Then, predictions for each patient can be obtained in a matter of seconds.
 \end_layout
 
 \begin_layout Standard
@@ -1456,7 +1447,7 @@ By random chance, some patients may have data such that very few of the
  effective size of the posterior sample, also known as the effective number
  of particles.
  When this number drops below a given threshold (e.g.
- 500), we can repeat our procedure with a larger set of pre-generated proposals.
+ 1000), we can repeat our procedure with a larger set of pre-generated proposals.
  If limited computing is available for MCMC, we can also approximate a larger
  sample from Eq 
 \begin_inset CommandInset ref
@@ -1484,12 +1475,81 @@ reference "eq:drawing-subj-level-vars"
  
 \end_layout
 
+\begin_layout Subsection
+Alternative Out-of-Sample Posterior Estimations
+\end_layout
+
 \begin_layout Standard
-For implementation in clinical practice, proposals for new patients can
- be generated prior to actually observing new data, so that only weight
- calculating and re-weighting of the proposal distribution needs to be done
- in real-time.
- Then, predictions for each patient can be obtained in a matter of seconds.
+Our IS approach functions similarly to the out-of-sample estimation approach
+ of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Wu2015"
+
+\end_inset
+
+.
+ Their approach can be generalized to estimate the updated posterior probability
+ that 
+\begin_inset Formula $P(b_{n+1}=x)$
+\end_inset
+
+, using the estimator 
+\begin_inset Formula $\left(\frac{1}{P}\right)\sum_{j=1}^{P}\left\{ \frac{f(y_{n+1}|b_{n+1}=x,\theta^{(j)})g(x|\theta^{(j)})}{\int f(y_{n+1}|b_{n+1}=x',\theta^{(j)})g(x'|\theta^{(j)})dx'}\right\} $
+\end_inset
+
+.
+ This approach is especially practical when the subject-specific variables
+ 
+\begin_inset Formula $b_{n+1}$
+\end_inset
+
+ are discrete, and the integral in the denomiator can be replaced with a
+ summation.
+ For cases with both continuous and discrete subject-specific variables,
+ the approach can be combined with a proposal generation method based on
+ Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:drawing-subj-level-vars"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Rejection sampling can also be applied using the unstandardized weights
+ in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:importance-weights"
+
+\end_inset
+
+, although we found this approach to be less computationally efficient than
+ IS for our scenario (see Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Results"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+write better intro sentence to tie these two things together
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -1525,15 +1585,29 @@ key "Coley2015ProstateSurveillence"
 
 .
  
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF to YC - still need to apply to real data??
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-Using this data as our initial sample 
+Using this data as our initial sample (
 \begin_inset Formula $y_{1:n}$
 \end_inset
 
-, we generate 62,500 draws from the posterior for the populational-level
- and subject-level variables (see Eq 
+), we generate 500,000 draws (
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+) from the posterior for the populational-level and subject-level variables
+ (see Eq 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "eq:posterior_n"
@@ -1541,31 +1615,25 @@ reference "eq:posterior_n"
 \end_inset
 
 ).
- Let 
-\begin_inset Formula $\mathcal{P}$
-\end_inset
-
- denote this specific posterior sample.
  Averaging over 
-\begin_inset Formula $\mathcal{P}$
+\begin_inset Formula $\mathscr{J}_{n}$
 \end_inset
 
 , we estimate the risk of having aggressive cancer for each subject who's
  latent class is unknown.
  The task of generating 
-\begin_inset Formula $\mathcal{P}$
+\begin_inset Formula $\mathscr{J}_{n}$
 \end_inset
 
- was run across 50 parallel jobs on a x86-based linux cluster.
- All jobs were run simultaneously, with a total elapsed computation time
- of 5 hours and 26 minutes
+ was run across 400 parallel jobs on a x86-based linux cluster, with as
+ many as 200 jobs allowed to run simultaneously.
+ The total elapsed computation time was 33 hours
 \begin_inset Note Note
 status collapsed
 
 \begin_layout Plain Layout
-05:26:15; last job to finish was 7141655.29.
- See email Job-array task 7141655.29 (noBX_noRRP) Complete.
- Array job id was 7141655.
+AF - Look in email for task ID 7505235.263.
+ This was the last index to finish.
 \end_layout
 
 \end_inset
@@ -1660,7 +1728,7 @@ reference "eq:importance-weights"
 The bottom panel of Figure 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "fig:effective-ss-v-deviation"
+reference "eq:importance-weights"
 
 \end_inset
 
