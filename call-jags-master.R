@@ -104,10 +104,9 @@ subj_rc<-rc_data$subj
 V_RC_data <- rc_data %>%
 	dplyr::mutate(intercept=1) %>%
 	dplyr::select(intercept,
-		age_std,
-		time,
-		time_ns,
-		sec_time_std)
+		 contains("rc_time_ns"), 
+		 contains("rc_date_ns"), 
+		 rc_age_std )
 
 (d_V_RC<-dim(V_RC_data)[2])
 round(apply(V_RC_data,2,summary) ,2)
@@ -138,13 +137,10 @@ if(IOP_BX){
 	U_BX_data<-bx_data %>%
 			dplyr::mutate(intercept=1) %>%
 			dplyr::select(intercept, 
-					age_std,
-					age_ns,
-					time,
-					time_ns,
-					sec_time_std,
-					sec_time_ns,
-					num_prev_bx )%>%
+					contains("bx_time_ns"),
+					contains("bx_date_ns"),
+					contains("bx_age_ns"),
+					contains("bx_num_prev_bx_ns") ) %>%
 			as.matrix
 
 	(d_U_BX<-dim(U_BX_data)[2]) #8
@@ -171,13 +167,10 @@ if(IOP_SURG){
 	W_SURG_data <- data_use %>%
 		dplyr::mutate(intercept=1) %>%
 		dplyr::select(intercept,
-					age_std,
-					age_ns,
-					time,
-					time_ns,
-					sec_time_std,
-					sec_time_ns,
-					num_prev_bx_surg,
+					contains("surg_time_ns"),
+					contains("surg_date_ns"),
+					contains("surg_age_ns"),
+					surg_num_prev_bx_ns_std,
 					prev_G7) %>%
 		as.matrix
 	

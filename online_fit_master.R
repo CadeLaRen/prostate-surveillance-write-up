@@ -24,7 +24,7 @@
 library(dplyr)
 library(MASS)
 library(ggplot2)
-library(splines)
+#library(splines)
 
 invLogit <- function(x)
 	return(exp(x)/(1+exp(x)))
@@ -138,7 +138,7 @@ gen_particles<-function(oo,nreps,verbose=TRUE){
 	mu[,2,2]<-oo$mu_slope[,2]
 
 	#expand beta
-	beta_exp <- matrix(NA,P,1) #beta is no longer beta_k?? No longer 2 columns, just one??
+	beta_exp <- matrix(NA,P,1) #beta is no longer beta_k?? No longer 2 columns, just one?? ##yes, just one beta, assumed constant over classes. (separate beta was not identifiable)
 	beta_exp[,1]<-oo$beta[,1] #beta is no longer beta_k??
 
 	#expand sigma_res
@@ -233,13 +233,14 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 
 	#Setup subject data
 	Y_star <- psa_data_star$log_psa
-	X_star <- psa_data_star$vol_std #What if this is also a risk factor??
-	Z_star <- cbind(1, psa_data_star$age_std) #right??
+	X_star <- psa_data_star$vol_std #What if this is also a risk factor?? # we do not expect prostate volume to be a risk factor for prostate cancer. even increases in volume due to tumor growth are negligible in comparison to measurement error in prostate colume
+	Z_star <- cbind(1, psa_data_star$age_std) #right?? ##yes, this is correct
 
 	RC_star <- dplyr::filter(bx_data_star, bx_here==1)$rc
 	BX_star <- dplyr::filter(bx_data_star, !is.na(bx_here))$bx_here
 	SURG_star <- bx_data_star$surg
-	prev_pos_biopsy <- dplyr::filter(bx_data_star, !is.na(bx_here))$prev_G7 #do I have this right, or do I need to exclude periods where bx_here = NA?? Does bx_here=NA mean they've exited the study (reclassified)?
+	prev_pos_biopsy <- dplyr::filter(bx_data_star, !is.na(bx_here))$prev_G7 #do I have this right, or do I need to exclude periods where bx_here = NA?? Does bx_here=NA mean they've exited the study (reclassified)? 
+	##bx_here=NA does mean that the pt has reclassified. prev_G7=1 only in intervals with bx_here=1 & rc=1 (that is, the interval where reclassification occurred) or later intervals where bx_here=NA
 
 
 	#Only take the covariates for which we have actual biopsies, otherwise R will do some bad recycling later on.
@@ -247,7 +248,10 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 	did_have_biopsy_star <- couldve_had_biopsy_star & bx_data_star$bx_here
 
 	V_RC_star <- dplyr::mutate(bx_data_star, intercept=1) %>%
-		dplyr::select(intercept, age_std, time, time_ns, sec_time_std) %>%
+		dplyr::select(intercept, 
+			contains("rc_time_ns"), 
+			contains("rc_date_ns"), 
+			rc_age_std ) %>%
 		dplyr::filter(did_have_biopsy_star)
 
 	d_V_RC<-dim(V_RC_star)[2] #Note, these don't include eta yet
@@ -258,26 +262,20 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, ns_BX_star, ns_SURG_st
 			dplyr::filter(couldve_had_biopsy_star) %>%#covariates just for BX
 			dplyr::mutate(intercept=1) %>%
 			dplyr::select(intercept, 
-					age_std,
-					age_ns,
-					time,
-					time_ns,
-					sec_time_std,
-					sec_time_ns,
-					num_prev_bx )
+					contains("bx_time_ns"),
+					contains("bx_date_ns"),
+					contains("bx_age_ns"),
+					contains("bx_num_prev_bx_ns") )
 	}
 
 	if(IOP_SURG){
 		W_SURG_star<- 	bx_data_star %>%
 		dplyr::mutate(intercept=1) %>%
 		dplyr::select(intercept,
-					age_std,
-					age_ns,
-					time,
-					time_ns,
-					sec_time_std,
-					sec_time_ns,
-					num_prev_bx_surg,
+					contains("surg_time_ns"),
+					contains("surg_date_ns"),
+					contains("surg_age_ns"),
+					surg_num_prev_bx_ns_std,
 					prev_G7)
 	}
 
