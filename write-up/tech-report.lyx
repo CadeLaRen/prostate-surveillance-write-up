@@ -160,14 +160,19 @@ Abstract
 \end_layout
 
 \begin_layout Standard
-Heirarchical Bayesian models can be especially useful in precision medicine
+Hierarchical Bayesian models can be especially useful in precision medicine
  settings, where clinicians are interested in estimating the patient-level
  variables associated with a specific person's risk.
- The slow computon cost of using Markov Chain Monte Carlo (MCMC) to estimate
- these variables however makes it difficult to implement this in clinical
- settings, where an immediate risk estimate is desired.
- This technical report discusses the use of importance sampling (IS) to
- obtain fast, in-clinic risk estimates for patients with new data.
+ Such models are often fit using Markov Chain Monte Carlo (MCMC).
+ However, the slow speed of MCMC computation makes it difficult to implement
+ in clinical settings, where immediate risk estimates are often desired
+ in response to new patient data.
+ For models fit on protected clinical data from multiple hospitals, this
+ computation is exacerbated by the need to communicate between firewalled
+ servers.
+ In this technical report, we discuss the use of importance sampling (IS)
+ to obtain fast, in-clinic risk estimates, while naturally avoiding the
+ issue of server communication.
  We apply IS to the hierarchical model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -200,7 +205,7 @@ Hierarchical Bayesian models can be especially useful in the context of
  treatment effects, but also the risk for any individual patient.
  In the context of hierarchical models, treatment effects can be estimated
  from population-level parameters, and the risk for any specific patient
- can be described by a patient-level variables.
+ can be estimated from patient-level variables.
  For example, 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -208,10 +213,10 @@ key "Coley2015ProstateSurveillence"
 
 \end_inset
 
- use a patient-specific latent class to identify patients as having either
+ use a patient-level latent class to categorize patients as having either
  indolent or aggressive cancer.
- In a Bayesian setting, estimation at both levels of the model-- the population
- level and the patient level-- can be done by summarizing the posterior.
+ In a Bayesian setting, estimation of both levels of the model -- the population
+ level and the patient level -- can be attained from the posterior distribution.
  When such models are fit on a training dataset using Markov Chain Monte
  Carlo (MCMC), risk estimates are immediately available for any patient
  in the training dataset.
@@ -224,14 +229,23 @@ A computational challenge arises though when new patients enter the clinic,
  Here, clinicians may wish to give patients a fast, in-visit estimate of
  their risk.
  However, traditional MCMC approaches for new risk estimates require refitting
- the entire model, which can take hours to complete.
+ the entire model, which can take hours [[!!! minutes !!??]] to complete.
+ Additionally, if the model is fit on protected clinical data from multiple
+ sites, then MCMC will require communication between these firewalled servers
+ as the algorithm iterates, which further increases the computation cost.
 \end_layout
 
 \begin_layout Standard
-In this technical report we describe how importance sampling (IS) can instead
- be used in precision medicine settings to get fast risk estimates in response
- to new patient data.
- We apply this to a version of the prostate cancer model proposed by 
+In this technical report we describe how importance sampling (IS) 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Bishop2006"
+
+\end_inset
+
+ can instead be used in precision medicine settings to get fast risk estimates
+ in response to new patient data.
+ We apply this to the prostate cancer model proposed by 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Coley2015ProstateSurveillence"
@@ -239,10 +253,10 @@ key "Coley2015ProstateSurveillence"
 \end_inset
 
  to get fast risk estimates for new, simulated patients.
- In this case, the procedure only takes approximately 5-13 seconds per patient.
+ In this case, the procedure typically takes only 5-15 seconds per patient.
  This approach can be combined with periodic refitting of the entire model
- via MCMC, in order to update estimates of the population-level parameters
- 
+ via MCMC, in order to update the posteriors for the the population-level
+ parameters 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Lee2002"
@@ -283,16 +297,23 @@ static
 \end_inset
 
  parameters that do not change as more data is acquired (
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Kantas2014"
+
+\end_inset
+
+,
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-AF-more citations,
+AF-more citations?
 \end_layout
 
 \end_inset
 
-see section II of 
+ see section II of 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Andrieu2005"
@@ -300,7 +321,7 @@ key "Andrieu2005"
 \end_inset
 
  for an intuitive explanation).
- This applies in our case, as the population-level parameters are assumed
+ This applies in our case, as our population-level parameters are assumed
  to be static
 \begin_inset Note Note
 status open
@@ -320,7 +341,7 @@ key "Lee2002"
 \end_inset
 
  to update the posteriors for all parameters at all levels.
- This is technically not a fully online method as the computational cost
+ Note that this is not a fully online method, as the computational cost
  of each MCMC iteration increases as more data is acquired.
  See 
 \begin_inset CommandInset citation
@@ -334,7 +355,8 @@ key "Kantas2014"
 status open
 
 \begin_layout Plain Layout
-AF - need to polish more
+AF - need to polish more.
+ Not the best summary even of Kantas.
 \end_layout
 
 \end_inset
@@ -381,10 +403,10 @@ Our specific context within personalized medicine is different that of topic
  the data can be fully stored in memory at once.
  Thus, while the approach of combining IS with periodic MCMC is not fully
  online and not feasible for text analysis, it is still a feasible option
- for limited sample sizes in our problem.
- An additional benefit of IS is that, relative to variational Bayes approaches,
- the formulas required to apply IS are simple to derive, and can be easily
- ported to other applications within precision medicine.
+ for the limited sample sizes in our problem.
+ Relative to variational Bayes approaches, the formulas required to apply
+ IS are simple to derive, and can be easily ported to other applications
+ within precision medicine.
 \end_layout
 
 \begin_layout Standard
@@ -446,8 +468,8 @@ reference "sec:Clinical-Application-&"
 
 \end_inset
 
- we give a clinical overview of our motivating data example of prostate
- cancer risk estimation.
+ we give an overview of our motivating data example of prostate cancer risk
+ estimation.
  In Section 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -458,6 +480,15 @@ reference "sec:methods"
  we detail our approach for applying IS in hierarchical models.
  We use an abbreviated notation that can be readily generalized to other
  precision medicine settings.
+ We also compare our approach with the out-of-sample fitting approach of
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Wu2015"
+
+\end_inset
+
+.
  In Section 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -489,10 +520,10 @@ key "Coley2015ProstateSurveillence"
 \end_inset
 
 , who develop a latent class model to predict underlying prostate cancer
- state in men participating in an active sureveillance program for low risk
+ state in men participating in an active surveillance program for low risk
  disease.
- The latent cancer state is defined as being indolent or aggrssive, correspondin
-g to the Gleason score 
+ The latent cancer state is defined as being indolent or aggressive, correspondi
+ng to the Gleason score 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Gleason1977,Gleason1992"
@@ -542,8 +573,10 @@ ts, and for longitudinal biopsy results.
  state.
  The (log-transformed) PSA measurements are modeled as multivariate normal,
  with a mean defined by a linear predictor that includes subject-specific
- random effects whose distribution depends on latent class membership.
- Biopsy results are coded as binary outcomes, denoting 
+ random effects.
+ The distribution of these random effects is modeled to depend on latent
+ class membership.
+ Biopsy results are coded as binary outcomes denoting 
 \shape italic
 grade reclassification
 \shape default
@@ -551,10 +584,20 @@ grade reclassification
  or higher.
  The log-odds of reclassification is also modeled with a linear predictor
  whose value depends on a patient's latent state, reflecting the imperfect
- sensitivity and specificity of the biopsy procedure.
+ sensitivity and specificity of the biopsy procedure
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+AF - love this last note on sense & spec
+\end_layout
+
+\end_inset
+
+.
  Each patient's latent class is assumed constant over the surveillance period.
  As a patient continues in active surveillance, additional PSA and biopsy
- measurements are accrued and the accuracy of latet class predictions improves.
+ measurements are accrued and the accuracy of latent class predictions improves.
  Sub-models are also included for informative observation processes associated
  with biopsies and surgeries.
  
@@ -579,7 +622,7 @@ parameters
 
 \end_inset
 
- refer to the latent classes and the random effects used in the sub-model
+ refer to the latent classes, and the random effects used in the sub-model
  for PSA.
  The population-level parameters refer to the coefficients in each sub-model,
  and the variance parameters for the subject-level variables.
@@ -1082,10 +1125,10 @@ name "sec:methods"
 \end_layout
 
 \begin_layout Standard
-In this section we detail an IS algorithm that enables rapid updates of
- joint latent class model predictions.
+In this section we detail an IS algorithm that enables rapid estimates of
+ subject-level variables, such as latent classes.
  This method is meant to be applied to out-of-sample data, after MCMC has
- been applied to get a posterior sample based on all current training data.
+ been applied to get a posterior sample based on  current training data.
  We present the algorithm in a simple, abbreviated notation that is applicable
  in many clinical settings.
 \end_layout
@@ -1159,6 +1202,11 @@ where
 
  are multivariate distributions, which will depend on the application and
  context.
+ Estimation of 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+ is of primary interest in this report.
 \end_layout
 
 \begin_layout Standard
@@ -1187,9 +1235,9 @@ IS Algorithm
 \begin_layout Standard
 After posterior samples from the joint model are obtained for current data,
  importance sampling to update these estimates given new data requires three
- steps: first, generating proposal values for the latent variables to be
- updated, second, calculating weights for proposed values, and, third, weighting
- proposed values to estimate an updated posterior.
+ steps: (1) generating proposal values for the latent variables to be updated,
+ (2) calculating weights for proposed values, and (3) weighting proposed
+ values to estimate an updated posterior.
  We first illustrate how this process can be used to quickly estimate latent
  variables for a new patient, and then show how similar calculations can
  be done to incorporate newly measured data on existing patients in real-time.
@@ -1220,11 +1268,11 @@ reference "eq:posterior_n"
 \end_inset
 
 ).
- We can also use the the posterior distribution based on the first 
+ We can also use the posterior distribution based on the first 
 \begin_inset Formula $n$
 \end_inset
 
- patients as a proposal distribution (
+ patients as a proposal distribution (denoted by 
 \begin_inset Formula $q$
 \end_inset
 
@@ -1233,7 +1281,7 @@ reference "eq:posterior_n"
 \end_inset
 
 .
- 
+ Let 
 \begin_inset Formula 
 \begin{eqnarray}
 q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})\label{eq:drawing-subj-level-vars}
@@ -1263,7 +1311,7 @@ Practically, this proposal step is achieved by conditioning on each
 
 .
  This results in the augmented set 
-\begin_inset Formula $\mathscr{J}_{n+1}=\{\theta^{(j)},b_{1:(n+1)}^{(j)}\}_{j=1}^{J}$
+\begin_inset Formula $\mathscr{J}_{n+1}:=\{\theta^{(j)},b_{1:(n+1)}^{(j)}\}_{j=1}^{J}$
 \end_inset
 
 .
@@ -1352,7 +1400,7 @@ reference "eq:posterior_n"
 \end_inset
 
 .
- Our goal then is to reweight this set of points based on new data.
+ Our goal then is to re-weight this set of points based on new data.
  Let 
 \begin_inset Formula $y_{1:n}^{*}$
 \end_inset
@@ -1428,14 +1476,13 @@ Efficient Implementation
 \begin_layout Standard
 For implementation in clinical practice, proposals for new patients can
  be generated prior to actually observing new data, so that only weight
- calculating and re-weighting of the proposal distribution needs to be done
- in real-time.
- Then, predictions for each patient can be obtained in a matter of seconds.
+ calculation and  re-weighting of the proposal distribution needs to be
+ done in real-time.
 \end_layout
 
 \begin_layout Standard
-By random chance, some patients may have data such that very few of the
- pre-generated, proposed latent variables values receive high weights.
+By random chance, some new patients may have data such that very few of
+ the pre-generated, proposed latent variables values receive high weights.
  This can cause their posterior mean estimates to be less stable.
  This problem is due to higher Monte Carlo error, and is thus more likely
  when the number of pre-generated latent variables 
@@ -1445,7 +1492,11 @@ By random chance, some patients may have data such that very few of the
  is low.
  However, we can flag patients who might have high error by monitoring the
  effective size of the posterior sample, also known as the effective number
- of particles.
+ of particles (
+\begin_inset Formula $1/\sum_{j=1}^{J}\left[\left(w^{(j)}\right)^{2}\right]$
+\end_inset
+
+).
  When this number drops below a given threshold (e.g.
  1000), we can repeat our procedure with a larger set of pre-generated proposals.
  If limited computing is available for MCMC, we can also approximate a larger
@@ -1491,11 +1542,11 @@ key "Wu2015"
 .
  Their approach can be generalized to estimate the updated posterior probability
  that 
-\begin_inset Formula $P(b_{n+1}=x)$
+\begin_inset Formula $P(b_{n+1}=x|y_{1:(n+1)})$
 \end_inset
 
 , using the estimator 
-\begin_inset Formula $\left(\frac{1}{P}\right)\sum_{j=1}^{P}\left\{ \frac{f(y_{n+1}|b_{n+1}=x,\theta^{(j)})g(x|\theta^{(j)})}{\int f(y_{n+1}|b_{n+1}=x',\theta^{(j)})g(x'|\theta^{(j)})dx'}\right\} $
+\begin_inset Formula $\hat{P}(b_{n+1}=x|y_{1:(n+1)})=\left(\frac{1}{P}\right)\sum_{j=1}^{P}\left\{ \frac{f(y_{n+1}|b_{n+1}=x,\theta^{(j)})g(x|\theta^{(j)})}{\int f(y_{n+1}|b_{n+1}=x',\theta^{(j)})g(x'|\theta^{(j)})dx'}\right\} $
 \end_inset
 
 .
@@ -1504,8 +1555,8 @@ key "Wu2015"
 \begin_inset Formula $b_{n+1}$
 \end_inset
 
- are discrete, and the integral in the denomiator can be replaced with a
- summation.
+ are discrete, and the integral in the denominator can be replaced with
+ a summation.
  For cases with both continuous and discrete subject-specific variables,
  the approach can be combined with a proposal generation method based on
  Eq 
@@ -1539,19 +1590,6 @@ reference "sub:Results"
 ).
 \end_layout
 
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-write better intro sentence to tie these two things together
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Section
 Application 
 \begin_inset CommandInset label
@@ -1566,14 +1604,14 @@ name "sec:Application"
 \begin_layout Standard
 We applied the proposed importance sampling approach to prospective data
  from the Johns Hopkins Active Surveillance (JHAS) cohort.
- 1,298 men with very low or low risk prostate cacner diagnoses were enrolled
+ 1,298 men with very low or low risk prostate cancer diagnoses were enrolled
  in JHAS from January 1995 to June 2014.
  Results of all PSA tests and biopsies performed prior to enrollment and
  during active surveillance were collected.
  Patients were followed until grade reclassification, elective treatment,
  or loss to follow-up.
  Patients still active in the program were administratively censored at
- the time od data collection for this analysis (October 2014).
+ the time of data collection for this analysis (October 2014).
  The Gleason score determination based on pathologic analysis of the entire
  prostate specimen was also recored for patients who underwent prostatectomy.
  Details on the dataset are available in 
@@ -1606,7 +1644,7 @@ Using this data as our initial sample (
 \begin_inset Formula $\mathscr{J}_{n}$
 \end_inset
 
-) from the posterior for the populational-level and subject-level variables
+) from the posterior for the population-level and subject-level variables
  (see Eq 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -1666,11 +1704,50 @@ We then re-estimate each patient's risk using IS, taking as input only the
 \begin_inset Formula $\theta^{(j)}$
 \end_inset
 
+, for a total of 5 million proposals.
+ We experimented with approaches of using only 50,000 proposals, using all
+ 5 million proposals or starting with 50,000 and increasing number of proposals
+ until the effective sample size exceeds 1000.
+ We refer to these approaches respectively as 
+\begin_inset Quotes eld
+\end_inset
+
+small,
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset Quotes eld
+\end_inset
+
+big,
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+dynamic
+\begin_inset Quotes erd
+\end_inset
+
 .
- Proposals are then weighted to obtain IS risk estimates.
- These steps are meant to approximate the procedure of using IS to get risk
- estimates for a new patient, under the assumption that any individual patient
- has only a minor affect on the population-level parameter posteriors.
+ Proposals are then weighted to obtain IS risk estimates
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF- Not exactly then? Need to re-word
+\end_layout
+
+\end_inset
+
+.
+ These simulation steps are meant to approximate the procedure of using
+ IS to get risk estimates for a new patient, under the assumption that any
+ individual patient has only a minor affect on the population-level parameter
+ posteriors.
  In section 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -1693,6 +1770,13 @@ name "sub:Results"
 \end_layout
 
 \begin_layout Standard
+
+\emph on
+(Note to Suchi - These results are a little outdated, but capture the general
+ idea)
+\end_layout
+
+\begin_layout Standard
 We find a high degree of coherence between estimated risk of aggressive
  cancer from IS and from MCMC, as shown if Figure 
 \begin_inset CommandInset ref
@@ -1706,8 +1790,17 @@ reference "fig:jags-vs-pf"
  risk estimates was 0.74% (on the probability scale, from 0% to 100%).
  The maximum absolute difference was 4.8%, with 95% of patients having a
  difference less than 1.6%.
- Estimation time per patient ranged from approximately 5-13 seconds, depending
- on the number of measurements to be incorporated for that patient.
+ Estimation time per patient ranged from approximately 5-15 seconds
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+, depending on the number of measurements to be incorporated for that patient
+\end_layout
+
+\end_inset
+
+.
  We also considered a rejection sampling approach using the unstandardized
  weights in Eq 
 \begin_inset CommandInset ref
@@ -1718,14 +1811,26 @@ reference "eq:importance-weights"
 
 , but found the results to have a greater deviation from the MCMC estimates
  (rMSD = 1.1%).
- A small portion of these differences between these risk estimates is to
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+A small portion of these differences between these risk estimates is to
  be expected simply due to the nature of stochastic posterior sampling --
  for example, the rMSD between two separately run sets of MCMC risk estimates
  has a rMSD of 0.2%.
+ AF- Note sure I want to press this point anymore...
+ since we don't get sqrt n error reductions...
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-The bottom panel of Figure 
+Figure 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "eq:importance-weights"
@@ -1734,44 +1839,6 @@ reference "eq:importance-weights"
 
  illustrates the roughly inverse relationship between the effective sample
  size used for IS, and the difference between IS and MCMC risk estimates.
- Even with a large posterior sample 
-\begin_inset Formula $\mathcal{P}$
-\end_inset
-
-, we still found it advantageous to draw 10 values of 
-\begin_inset Formula $b_{i}$
-\end_inset
-
- for each draw 
-\begin_inset Formula $\theta^{(j)}$
-\end_inset
-
- from 
-\begin_inset Formula $\mathcal{P}$
-\end_inset
-
-.
- The top panel of Figure 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "fig:effective-ss-v-deviation"
-
-\end_inset
-
- shows what happens if we instead draw only one value of 
-\begin_inset Formula $b_{i}$
-\end_inset
-
- for each 
-\begin_inset Formula $\theta^{(j)}$
-\end_inset
-
-.
- Here, effective sample sizes drop, and deviations between MCMC and IS estimates
- increase.
- Large deviations could still be flagged though, by setting a threshold
- for effective sample size anywhere between 50 and 500.
- 
 \end_layout
 
 \begin_layout Standard
@@ -1789,7 +1856,7 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename plots/2015-08-27_agreement_MCMC_IS.png
+	filename /Users/aaronfisher/Documents/JH/inHealth/repo/plots/2015-10-06_agreement_IS_MCMC.png
 	width 50text%
 
 \end_inset
@@ -1799,8 +1866,20 @@ status open
 
 \begin_layout Plain Layout
 Agreement between IS and MCMC estimates for the posterior predictions of
- aggressive prostate cancer state in a new patient.
- (Dashed line indicates the axis of equality, i.e., perfect agreement.)
+ aggressive prostate cancer state in a new patient - Color of the points
+ refers to the number of candidate points used, either 50,000 (small), 5
+ million (big), or dynamic.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+(Dashed line indicates the axis of equality, i.e., perfect agreement.)
+\end_layout
+
+\end_inset
+
+
 \begin_inset CommandInset label
 LatexCommand label
 name "fig:jags-vs-pf"
@@ -1829,7 +1908,7 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename plots/2015-08-28_effective_ss_facet.png
+	filename /Users/aaronfisher/Documents/JH/inHealth/repo/plots/2015-10-06_ESS_error_log.png
 	width 50text%
 
 \end_inset
@@ -1839,12 +1918,11 @@ status open
 
 \begin_layout Plain Layout
 Difference between IS and MCMC risk estimates, as a function of effective
- sample size for IS - The top panel shows results when only 1 draw for the
- subject-level variables is taken for each draw from the population-level
- parameter posterior.
- The bottom panel shows results when 10 draws are taken for each posterior
- draw.
- Both axes are shown on the log scale.
+ sample size for IS - Color of the points refers to the number of candidate
+ points used, either 50,000 (small), 5 million (big), or dynamic.
+ The dotted verticle line shows the threshold used for dynamic proposal
+ generation, at 1000.
+ Both axes are shown with log scale spacing.
  
 \begin_inset CommandInset label
 LatexCommand label
