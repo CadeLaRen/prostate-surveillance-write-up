@@ -37,6 +37,7 @@ invLogit <- function(x)
 IOP_BX <- TRUE #Informative observation process for biopsy
 IOP_SURG <- TRUE #Informative observation process for surgery
 leave_one_out <- FALSE
+crop <- FALSE
 
 IOPs<-paste0(
 	c('N')[!IOP_BX],'IOP_BX-',
@@ -45,6 +46,7 @@ batch_path<-paste0(
 	'batches/',
 	IOPs,
 	'/leave_one_out_',leave_one_out,
+	'/crop_',crop,
 	'/batch-1/')
 posterior_path<-paste0(batch_path,
 	'concatenated_posterior.rds')
@@ -221,7 +223,7 @@ get_likelihood_space_efficient<-function(ps, psa_data_star, bx_data_star, verbos
 					contains("surg_time_ns"),
 					contains("surg_date_ns"),
 					contains("surg_age_ns"),
-					surg_num_prev_bx_ns_std,
+					surg_num_prev_bx_std,
 					prev_G7)
 	}
 
