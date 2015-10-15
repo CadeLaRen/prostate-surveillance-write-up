@@ -132,7 +132,15 @@
 
 \begin_layout Title
 Fast Out-of-Sample Predictions for Bayesian Hierarchical Models of Latent
- Health States (Technical Report)
+ Health States, using Importance Sampling
+\begin_inset Newline newline
+\end_inset
+
+
+\emph on
+(Technical Report)
+\emph default
+ 
 \end_layout
 
 \begin_layout Author
@@ -163,13 +171,23 @@ Abstract
 Hierarchical Bayesian models can be especially useful in precision medicine
  settings, where clinicians are interested in estimating the patient-level
  variables associated with a specific person's risk.
- Such models are often fit using Markov Chain Monte Carlo (MCMC).
- However, the slow speed of MCMC computation makes it difficult to implement
- in clinical settings, where immediate risk estimates are often desired
- in response to new patient data.
+ Such models are often fit using batch
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+vital? Need to discuss!!??
+\end_layout
+
+\end_inset
+
+ Markov Chain Monte Carlo (MCMC).
+ However, the slow speed of batch MCMC computation makes it difficult to
+ implement in clinical settings, where immediate risk estimates are often
+ desired in response to new patient data.
  For models fit on protected clinical data from multiple hospitals, this
- computation is exacerbated by the need to communicate between firewalled
- servers.
+ computation is exacerbated by the algorithm's need to communicate between
+ firewalled servers.
  In this technical report, we discuss the use of importance sampling (IS)
  to obtain fast, in-clinic risk estimates, while naturally avoiding the
  issue of server communication.
@@ -184,7 +202,7 @@ key "Coley2015ProstateSurveillence"
  Risk estimates via IS can typically be obtained in 1-10 seconds per person,
  and have high agreement with estimates coming from longer-running MCMC
  methods.
- Alternative options for online updating and out-of-sample fitting are also
+ Alternative options for out-of-sample fitting and online updating are also
  discussed.
 \end_layout
 
@@ -228,12 +246,32 @@ A computational challenge arises though when new patients enter the clinic,
  or when existing patients accrue new measurements.
  Here, clinicians may wish to give patients a fast, in-visit estimate of
  their risk.
- However, traditional MCMC approaches for new risk estimates require refitting
- the entire model, which can take hours [[!!! minutes !!??]] to complete[[what
- about MCMC just for the new parameters??]].
- Additionally, if the model is fit on protected clinical data from multiple
- sites, then MCMC will require communication between these firewalled servers
- as the algorithm iterates, which further increases the computation cost.
+ However, traditional MCMC approaches for new risk estimates that require
+ refitting the entire model can take hours 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+vital
+\end_layout
+
+\end_inset
+
+[[AF-!!! minutes !!??]] to complete[[AF-what about MCMC/Gibbs just for the
+ new parameters??]]
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+vital?
+\end_layout
+
+\end_inset
+
+.
+ Additionally, if the model is refit on protected clinical data from multiple
+ sites, then MCMC may require communication between firewalled servers as
+ the algorithm iterates, further increasesing the computation cost.
 \end_layout
 
 \begin_layout Standard
@@ -241,6 +279,16 @@ In this technical report we describe how importance sampling (IS)
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Bishop2006"
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF - Vital - get better citation
+\end_layout
 
 \end_inset
 
@@ -254,7 +302,7 @@ key "Coley2015ProstateSurveillence"
 \end_inset
 
  to get fast risk estimates for new, simulated patients.
- In this case, the procedure typically takes only 5-15 seconds per patient.
+ In this case, the procedure typically takes only 1-10 seconds per patient.
  This approach can be combined with periodic refitting of the entire model
  via MCMC, in order to update the posteriors for the the population-level
  parameters 
@@ -272,18 +320,7 @@ This IS approach is related to online (or streaming) learning methods, which
  aim to continuously update population-level parameters with a constant
  computational cost over time.
  We avoid a fully online approach here though, due to additional known challenge
-s in online learning
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-(YC?) Needs citation here.
- Kantas?
-\end_layout
-
-\end_inset
-
-.
+s in online learning.
  Specifically, our use of IS can be viewed as a 1-step version of a sequential
  importance sampler (SIS), also known as particle filter.
  Employing a standard particle filter to update estimates of the population
@@ -325,7 +362,7 @@ key "Andrieu2005"
  This applies in our case, as our population-level parameters are assumed
  to be static
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 YC - [These 2] sentences are confusing to me; AF- Is this better?
@@ -341,23 +378,34 @@ key "Lee2002"
 
 \end_inset
 
- to update the posteriors for all parameters at all levels.
+ to update the posteriors for all parameters and latent variables at all
+ levels.
  Note that this is not a fully online method, as the computational cost
- of each MCMC iteration increases as more data is acquired.
- See 
+ of MCMC increases as more data is acquired
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+Should we talk here about server communication again??
+\end_layout
+
+\end_inset
+
+.
+ 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+See 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Kantas2014"
 
 \end_inset
 
- for a recent literature review of online methods relating to particle filters.
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-AF - need to polish more.
- Not the best summary even of Kantas.
+ for a recent literature review of particle methods in the context of static
+ parameters.
 \end_layout
 
 \end_inset
@@ -399,9 +447,19 @@ key "Canini2009"
 \end_layout
 
 \begin_layout Standard
-Our specific context within personalized medicine is different that of topic
- modeling in that while the model is complex and contains several layers,
- the data can be fully stored in memory at once.
+Our specific context within personalized medicine
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF- Mention this keyword earlier in intro
+\end_layout
+
+\end_inset
+
+ is different that of topic modeling in that while the model is complex
+ and contains several layers, the data can be fully stored in memory at
+ once.
  Thus, while the approach of combining IS with periodic MCMC is not fully
  online and not feasible for text analysis, it is still a feasible option
  for the limited sample sizes in our problem.
@@ -412,7 +470,7 @@ Our specific context within personalized medicine is different that of topic
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 AF-Some proposed alternatives for online updates include fixed lag updating
@@ -498,7 +556,17 @@ reference "sec:Application"
 \end_inset
 
  we apply IS to simulated data, and compare the results to risk estimates
- obtained from MCMC.
+ obtained from batch MCMC
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+vital!
+\end_layout
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Section
@@ -1637,6 +1705,20 @@ AF to YC - still need to apply to real data??
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Vital, there is no description of what we are currently doing with the simulated
+ data, or how the data was simulated
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 Using this data as our initial sample (
 \begin_inset Formula $y_{1:n}$
 \end_inset
@@ -1707,7 +1789,7 @@ We then re-estimate each patient's risk using IS, taking as input only the
 
 , for a total of 5 million proposals.
  We experimented with approaches of using only 50,000 proposals, using all
- 5 million proposals or starting with 50,000 and increasing number of proposals
+ 5 million proposals, or starting with 50,000 and increasing number of proposals
  until the effective sample size exceeds 1000.
  We refer to these approaches respectively as 
 \begin_inset Quotes eld
@@ -1734,17 +1816,8 @@ dynamic
 \end_inset
 
 .
- Proposals are then weighted to obtain IS risk estimates
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-AF- Not exactly then? Need to re-word
-\end_layout
-
-\end_inset
-
-.
+ Within each approach, the final set of proposals are then weighted to obtain
+ IS risk estimates.
  These simulation steps are meant to approximate the procedure of using
  IS to get risk estimates for a new patient, under the assumption that any
  individual patient has only a minor affect on the population-level parameter
@@ -1825,6 +1898,28 @@ A small portion of these differences between these risk estimates is to
  has a rMSD of 0.2%.
  AF- Note sure I want to press this point anymore...
  since we don't get sqrt n error reductions...
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+vital - realized a typo that made 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+ approach not big enough.
+ re-running 'big' approach now.
 \end_layout
 
 \end_inset
@@ -2007,6 +2102,18 @@ key "Coley2015ProstateSurveillence"
 , using importance sampling to generate in-clinic predictions.
  This approach informs decision-making by enabling doctors and patients
  to access updated predictions in real-time in a clinical setting.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF- This conclusion currently focuses a lot on the PSA example.
+ I think it would be better to make it more general.
+ 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section*
