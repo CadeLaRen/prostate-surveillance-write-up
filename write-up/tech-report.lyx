@@ -161,18 +161,137 @@ Abstract
 
 \begin_layout Standard
 Hierarchical Bayesian models can be especially useful in precision medicine
- settings, where clinicians are interested in estimating the patient-level
- variables associated with a specific person's risk.
+ settings, where clinicians are interested in estimating the individual-level
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: You seem to be using 
+\begin_inset Quotes eld
+\end_inset
+
+variables
+\begin_inset Quotes erd
+\end_inset
+
+ to refer to 
+\begin_inset Quotes eld
+\end_inset
+
+latent variables
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+parameters
+\begin_inset Quotes erd
+\end_inset
+
+.
+ I find this unclear 
+\end_layout
+
+\end_inset
+
+variables associated with a specific patient's risk
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: 
+\begin_inset Quotes eld
+\end_inset
+
+Risk
+\begin_inset Quotes erd
+\end_inset
+
+ is vague here and maybe a bit too tied to our application (even though
+ we aren't doing risk estimation, we are predicting a latent state).
+ You could say 
+\begin_inset Quotes eld
+\end_inset
+
+latent class or trajectory
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+likely health state and expected outcomes
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+prognosis
+\begin_inset Quotes erd
+\end_inset
+
+, or something like that to be more specific.
+\end_layout
+
+\end_inset
+
+.
  Such models are often fit using Markov Chain Monte Carlo (MCMC).
  However, the slow speed of MCMC computation makes it difficult to implement
- in clinical settings, where immediate risk estimates are often desired
- in response to new patient data.
+ in clinical settings, where immediate risk estimates
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: Again, I would question the use of 
+\begin_inset Quotes eld
+\end_inset
+
+risk estimates
+\begin_inset Quotes erd
+\end_inset
+
+ throughout the paper.
+ I would recommend something more specific statistical while being more
+ general for the application like 
+\begin_inset Quotes eld
+\end_inset
+
+latent state
+\begin_inset Quotes erd
+\end_inset
+
+.
+ I won't make this comment anymore in the paper.
+ 
+\end_layout
+
+\end_inset
+
+ are often desired in response to new patient data.
  For models fit on protected clinical data from multiple hospitals, this
  computation is exacerbated by the need to communicate between firewalled
  servers.
  In this technical report, we discuss the use of importance sampling (IS)
  to obtain fast, in-clinic risk estimates, while naturally avoiding the
- issue of server communication.
+ issue of server communication
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: I would leave this last part out until you've fully fleshed out the
+ idea in the body of the report
+\end_layout
+
+\end_inset
+
+.
  We apply IS to the hierarchical model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -180,7 +299,7 @@ key "Coley2015ProstateSurveillence"
 
 \end_inset
 
- for predicting risk of aggressive prostate cancer.
+ for predicting the presence of aggressive prostate cancer.
  Risk estimates via IS can typically be obtained in 5-15 seconds per person,
  and have high agreement with estimates coming from longer-running MCMC
  methods.
@@ -201,9 +320,31 @@ Introduction
 
 \begin_layout Standard
 Hierarchical Bayesian models can be especially useful in the context of
- precision medicine, when scientists are interested in estimating not only
- treatment effects, but also the risk for any individual patient.
- In the context of hierarchical models, treatment effects can be estimated
+ precision medicine, when clinicians are interested in understanding not
+ only treatment effects, but also the risk for any individual patient.
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: I find these two introductory sentences to be very confusing.
+ Why mention treatment effects specifically when we aren't dealing with
+ those? Why make this distinction between treatment effects and individualized
+ predictions? Also, I still find 
+\begin_inset Quotes eld
+\end_inset
+
+patient-level variables
+\begin_inset Quotes erd
+\end_inset
+
+ to be unclear.
+ I won't continue to mention it every time it appears.
+\end_layout
+
+\end_inset
+
+In the context of hierarchical models, treatment effects can be estimated
  from population-level parameters, and the risk for any specific patient
  can be estimated from patient-level variables.
  For example, 
@@ -217,14 +358,59 @@ key "Coley2015ProstateSurveillence"
  indolent or aggressive cancer.
  In a Bayesian setting, estimation of both levels of the model -- the population
  level and the patient level -- can be attained from the posterior distribution.
- When such models are fit on a training dataset using Markov Chain Monte
- Carlo (MCMC), risk estimates are immediately available for any patient
- in the training dataset.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC:I don't think 
+\begin_inset Quotes eld
+\end_inset
+
+estimation can be attained from the posterior
+\begin_inset Quotes erd
+\end_inset
+
+ is clear or accurate .
+ You can obtain estimates, but estimation is a process, like Bayesian estimation
+ which requires sampling from the posterior.
+\end_layout
+
+\end_inset
+
+ When
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: Maybe 
+\begin_inset Quotes eld
+\end_inset
+
+after
+\begin_inset Quotes erd
+\end_inset
+
+ instead of 
+\begin_inset Quotes eld
+\end_inset
+
+when
+\begin_inset Quotes erd
+\end_inset
+
+?
+\end_layout
+
+\end_inset
+
+ such models are fit on a training dataset using Markov Chain Monte Carlo
+ (MCMC), risk estimates are immediately available for any patient in the
+ training dataset.
  
 \end_layout
 
 \begin_layout Standard
-A computational challenge arises though when new patients enter the clinic,
+A computational challenge arises though when new patients enter the clinic
  or when existing patients accrue new measurements.
  Here, clinicians may wish to give patients a fast, in-visit estimate of
  their risk.
@@ -273,11 +459,10 @@ This IS approach is related to online (or streaming) learning methods, which
  We avoid a fully online approach here though, due to additional known challenge
 s in online learning
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-(YC?) Needs citation here.
- Kantas?
+YC: you should include a citation here
 \end_layout
 
 \end_inset
@@ -305,7 +490,7 @@ key "Kantas2014"
 
 ,
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 AF-more citations?
@@ -321,18 +506,43 @@ key "Andrieu2005"
 \end_inset
 
  for an intuitive explanation).
- This applies in our case, as our population-level parameters are assumed
- to be static
+ This
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-YC - [These 2] sentences are confusing to me; AF- Is this better?
+YC: 
+\begin_inset Quotes eld
+\end_inset
+
+This problem
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+This concern
+\begin_inset Quotes erd
+\end_inset
+
+.
+ IMO, it is almost always more clear to add a noun after 
+\begin_inset Quotes eld
+\end_inset
+
+this
+\begin_inset Quotes erd
+\end_inset
+
+.
 \end_layout
 
 \end_inset
 
-.
+ applies in our case, as our population-level parameters are assumed to
+ be static.
  Instead, we combine IS with periodic MCMC 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -398,9 +608,9 @@ key "Canini2009"
 \end_layout
 
 \begin_layout Standard
-Our specific context within personalized medicine is different that of topic
- modeling in that while the model is complex and contains several layers,
- the data can be fully stored in memory at once.
+Our specific context within personalized medicine is different than that
+ of topic modeling in that, while the model is complex and contains several
+ layers, the data can be fully stored in memory at once.
  Thus, while the approach of combining IS with periodic MCMC is not fully
  online and not feasible for text analysis, it is still a feasible option
  for the limited sample sizes in our problem.
@@ -488,6 +698,18 @@ key "Wu2015"
 
 \end_inset
 
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: The Methods section is not the right place for this comparison if we
+ haven't actually implemented Zhenke's method.
+ (I don't think it is necessary to do so for the tech report.)
+\end_layout
+
+\end_inset
+
 .
  In Section 
 \begin_inset CommandInset ref
@@ -496,8 +718,19 @@ reference "sec:Application"
 
 \end_inset
 
- we apply IS to simulated data, and compare the results to risk estimates
- obtained from MCMC.
+ we apply IS to simulated data,
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: This comma should be ommitted.
+ I've corrected a couple of errors in comma use.
+ Can you proofread for that before sending me a final draft?
+\end_layout
+
+\end_inset
+
+ and compare the results to risk estimates obtained from MCMC.
 \end_layout
 
 \begin_layout Section
@@ -521,6 +754,42 @@ key "Coley2015ProstateSurveillence"
 
 , who develop a latent class model to predict underlying prostate cancer
  state in men participating in an active surveillance program for low risk
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+TC: Just FYI here, labeling someone's cancer as 
+\begin_inset Quotes eld
+\end_inset
+
+low risk
+\begin_inset Quotes erd
+\end_inset
+
+ has a clinical meaning here.
+ This is literally how the doctor's refer to the diagnosis.
+ 
+\begin_inset Quotes eld
+\end_inset
+
+Low risk
+\begin_inset Quotes erd
+\end_inset
+
+ men are eligible for active surveillance.
+ The model does not classify anyone as 
+\begin_inset Quotes eld
+\end_inset
+
+low risk
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
  disease.
  The latent cancer state is defined as being indolent or aggressive, correspondi
 ng to the Gleason score 
@@ -533,7 +802,7 @@ key "Gleason1977,Gleason1992"
  that would be assigned if a patient's entire prostate were to be removed
  and analyzed.
  Gleason scores 
-\begin_inset Formula $<6$
+\begin_inset Formula $\leq6$
 \end_inset
 
  are classified as indolent, and Gleason scores 
@@ -569,10 +838,21 @@ key "Coley2015ProstateSurveillence"
 
  includes sub-models for longitudinal prostate specific antigen (PSA) measuremen
 ts, and for longitudinal biopsy results.
- Both of these sub-models incorporate information about the patients latent
+ Both of these sub-models incorporate information about the patient's latent
  state.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: I think this previous sentence could be more clear.
+ There is likely a more exact way to say that the likelihood for PSA and
+ biopsy results depend on latent state.
+\end_layout
+
+\end_inset
+
  The (log-transformed) PSA measurements are modeled as multivariate normal,
- with a mean defined by a linear predictor that includes subject-specific
+ with a mean defined by a linear predictor that includes patient-specific
  random effects.
  The distribution of these random effects is modeled to depend on latent
  class membership.
@@ -580,21 +860,11 @@ ts, and for longitudinal biopsy results.
 \shape italic
 grade reclassification
 \shape default
- on a biopsy, that is the biopsied tissue was aside a Gleason score of 7
- or higher.
+ on a biopsy, that is, the biopsied tissue was assigned a Gleason score
+ of 7 or higher.
  The log-odds of reclassification is also modeled with a linear predictor
  whose value depends on a patient's latent state, reflecting the imperfect
- sensitivity and specificity of the biopsy procedure
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-AF - love this last note on sense & spec
-\end_layout
-
-\end_inset
-
-.
+ sensitivity and specificity of the biopsy procedure.
  Each patient's latent class is assumed constant over the surveillance period.
  As a patient continues in active surveillance, additional PSA and biopsy
  measurements are accrued and the accuracy of latent class predictions improves.
@@ -606,7 +876,7 @@ AF - love this last note on sense & spec
 \begin_layout Standard
 In our context, the subject-level variables
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 AF to YC - OK to call these variables? Or 
@@ -617,7 +887,7 @@ parameters
 \begin_inset Quotes erd
 \end_inset
 
-?
+? See comments above.
 \end_layout
 
 \end_inset
@@ -646,22 +916,6 @@ AF- Add footnote briefly listing subj level and pop level parameters, without
 \end_inset
 
  
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-YC - This is also confusing because you haven't used this distinction between
- subject- and population-level parameters yet and the need is unclear.
- 
-\end_layout
-
-\begin_layout Plain Layout
-AF - Isn't this covered in the first paragraph of the intro?
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1481,9 +1735,10 @@ For implementation in clinical practice, proposals for new patients can
 \end_layout
 
 \begin_layout Standard
-By random chance, some new patients may have data such that very few of
- the pre-generated, proposed latent variables values receive high weights.
- This can cause their posterior mean estimates to be less stable.
+Some new patients may have data such that very few of the pre-generated,
+ proposed latent variables values receive high weights.
+ As a result, the posterior mean estimates obtained by IS tend to be less
+ stable.
  This problem is due to higher Monte Carlo error, and is thus more likely
  when the number of pre-generated latent variables 
 \begin_inset Formula $(J)$
@@ -1624,10 +1879,14 @@ key "Coley2015ProstateSurveillence"
 .
  
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-AF to YC - still need to apply to real data??
+YC- I think it is fine to just have it applied to simulated data for the
+ tech report.
+ We need to change the description though.
+ Essentially, data were generated based on posterior estimates from fitting
+ the model with the real data.
 \end_layout
 
 \end_inset
@@ -1695,8 +1954,8 @@ We then re-estimate each patient's risk using IS, taking as input only the
 \begin_inset Formula $b_{i}$
 \end_inset
 
- we further increase the diversity of the proposal set by we drawing 10
- values from 
+ we further increase the diversity of the proposal set by drawing 10 values
+ from 
 \begin_inset Formula $g(b_{i}|\theta^{(j)})$
 \end_inset
 
@@ -1732,10 +1991,22 @@ dynamic
 \begin_inset Quotes erd
 \end_inset
 
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+Yates: See Figure note.
+ I think it is superfulous to relabel methods when you can just label with
+ proposal size
+\end_layout
+
+\end_inset
+
 .
  Proposals are then weighted to obtain IS risk estimates
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 AF- Not exactly then? Need to re-word
@@ -1767,13 +2038,6 @@ name "sub:Results"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-
-\emph on
-(Note to Suchi - These results are a little outdated, but capture the general
- idea)
 \end_layout
 
 \begin_layout Standard
@@ -1866,12 +2130,12 @@ status open
 
 \begin_layout Plain Layout
 Agreement between IS and MCMC estimates for the posterior predictions of
- aggressive prostate cancer state in a new patient - Color of the points
- refers to the number of candidate points used, either 50,000 (small), 5
- million (big), or dynamic.
+ aggressive prostate cancer state in a new patient.
+ Color of the points refers to the number of candidate points used, either
+ 50,000 (small), 5 million (big), or dynamic.
  
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 (Dashed line indicates the axis of equality, i.e., perfect agreement.)
@@ -1927,6 +2191,34 @@ Difference between IS and MCMC risk estimates, as a function of effective
 \begin_inset CommandInset label
 LatexCommand label
 name "fig:effective-ss-v-deviation"
+
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: I would just list the number of candidate- 50,000, 5 million, and dynamic
+ in the legend instead of renaming the approaches 
+\begin_inset Quotes eld
+\end_inset
+
+small
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+.
+ One less step for decoding.
+\end_layout
 
 \end_inset
 
