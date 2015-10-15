@@ -181,7 +181,7 @@ key "Coley2015ProstateSurveillence"
 \end_inset
 
  for predicting risk of aggressive prostate cancer.
- Risk estimates via IS can typically be obtained in 5-15 seconds per person,
+ Risk estimates via IS can typically be obtained in 1-10 seconds per person,
  and have high agreement with estimates coming from longer-running MCMC
  methods.
  Alternative options for online updating and out-of-sample fitting are also
@@ -229,7 +229,8 @@ A computational challenge arises though when new patients enter the clinic,
  Here, clinicians may wish to give patients a fast, in-visit estimate of
  their risk.
  However, traditional MCMC approaches for new risk estimates require refitting
- the entire model, which can take hours [[!!! minutes !!??]] to complete.
+ the entire model, which can take hours [[!!! minutes !!??]] to complete[[what
+ about MCMC just for the new parameters??]].
  Additionally, if the model is fit on protected clinical data from multiple
  sites, then MCMC will require communication between these firewalled servers
  as the algorithm iterates, which further increases the computation cost.
@@ -1770,13 +1771,6 @@ name "sub:Results"
 \end_layout
 
 \begin_layout Standard
-
-\emph on
-(Note to Suchi - These results are a little outdated, but capture the general
- idea)
-\end_layout
-
-\begin_layout Standard
 We find a high degree of coherence between estimated risk of aggressive
  cancer from IS and from MCMC, as shown if Figure 
 \begin_inset CommandInset ref
@@ -1786,11 +1780,20 @@ reference "fig:jags-vs-pf"
 \end_inset
 
 .
- The root mean square of the difference (rMSD) between these two sets of
- risk estimates was 0.74% (on the probability scale, from 0% to 100%).
- The maximum absolute difference was 4.8%, with 95% of patients having a
- difference less than 1.6%.
- Estimation time per patient ranged from approximately 5-15 seconds
+ With the 
+\begin_inset Quotes eld
+\end_inset
+
+dynamic
+\begin_inset Quotes erd
+\end_inset
+
+ proposal approach, the root mean square of the difference (rMSD) between
+ these two sets of risk estimates was 1.05% (on the probability scale, from
+ 0% to 100%).
+ The maximum absolute difference was 5.6%, with 95% of patients having a
+ difference less than 2.4%.
+ Estimation time per patient ranged from approximately 1-24 seconds
 \begin_inset Note Note
 status collapsed
 
@@ -1800,7 +1803,7 @@ status collapsed
 
 \end_inset
 
-.
+, with an interquartile range of 2.1-4.2 seconds.
  We also considered a rejection sampling approach using the unstandardized
  weights in Eq 
 \begin_inset CommandInset ref
@@ -1810,7 +1813,7 @@ reference "eq:importance-weights"
 \end_inset
 
 , but found the results to have a greater deviation from the MCMC estimates
- (rMSD = 1.1%).
+ (rMSD = 1.82%).
  
 \begin_inset Note Note
 status collapsed
@@ -1839,6 +1842,33 @@ reference "eq:importance-weights"
 
  illustrates the roughly inverse relationship between the effective sample
  size used for IS, and the difference between IS and MCMC risk estimates.
+ In general, the 
+\begin_inset Quotes eld
+\end_inset
+
+dynamic
+\begin_inset Quotes erd
+\end_inset
+
+ approach had an accuracy comparable to the 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+ approach, but with a substancially lower computation time.
+ Computation time for the 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+ approach ranged from 9-36 seconds, with an interquartile range of 21-26
+ seconds.
 \end_layout
 
 \begin_layout Standard
@@ -1856,8 +1886,8 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename /Users/aaronfisher/Documents/JH/inHealth/repo/plots/2015-10-06_agreement_IS_MCMC.png
-	width 50text%
+	filename plots/2015-10-15_agreement_IS_MCMC.png
+	width 55text%
 
 \end_inset
 
@@ -1908,8 +1938,8 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename /Users/aaronfisher/Documents/JH/inHealth/repo/plots/2015-10-06_ESS_error_log.png
-	width 50text%
+	filename plots/2015-10-15_ESS_error_log.png
+	width 55text%
 
 \end_inset
 
