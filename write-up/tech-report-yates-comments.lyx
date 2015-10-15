@@ -1,0 +1,2348 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+
+%\setlength{\parindent}{0in}
+\setlength{\textheight}{8.9in}
+\setlength{\textwidth}{6.8in}
+\setlength{\oddsidemargin}{-0.3in}
+\setlength{\evensidemargin}{0.0in}
+\addtolength{\topmargin}{-1in}
+
+
+\usepackage{amsfonts}\usepackage{caption}\usepackage{subcaption}
+
+\usepackage{url}\usepackage{multirow}
+
+\newcommand{\bmeta}{\boldsymbol{\eta}}
+\newcommand{\bmtheta}{\boldsymbol{\theta}}
+\newcommand{\bmbeta}{\boldsymbol{\beta}}
+\newcommand{\bmphi}{\boldsymbol{\phi}}
+\newcommand{\bmpi}{\boldsymbol{\pi}}
+\newcommand{\bmxi}{\boldsymbol{\xi}}
+\newcommand{\bmnu}{\boldsymbol{\nu}}
+\newcommand{\bmmu}{\boldsymbol{\mu}}
+\newcommand{\bmalpha}{\boldsymbol{\alpha}}
+\newcommand{\bmzeta}{\boldsymbol{\zeta}}
+\newcommand{\bmgamma}{\boldsymbol{\gamma}}
+\newcommand{\bmomega}{\boldsymbol{\omega}}
+
+\newcommand{\bmY}{\mathbf{Y}}
+\newcommand{\bmZ}{\mathbf{Z}}
+\newcommand{\bmX}{\mathbf{X}}
+\newcommand{\bmV}{\mathbf{V}}
+\newcommand{\bmW}{\mathbf{W}}
+\newcommand{\bmU}{\mathbf{U}}
+\newcommand{\bmR}{\mathbf{R}}
+\newcommand{\bmS}{\mathbf{S}}
+\newcommand{\bmb}{\mathbf{b}}
+
+\newcommand{\bmM}{\mathbf{M}}
+\newcommand{\bmSigma}{\boldsymbol{\Sigma}}
+\newcommand{\bmI}{\mathbf{I}}
+\newcommand{\bmTheta}{\boldsymbol{\Theta}}
+
+ 
+
+
+\newcommand{\mydots}{...}
+
+\usepackage{color}\usepackage{xcolor}
+
+\definecolor{mygreen}{rgb}{0,0.75,0}
+\definecolor{mypurple}{rgb}{0.7,0,0.8}
+
+\newcommand{\shade}[1]{\colorbox{gray}{#1}}
+%\newcommand{\highlight}[1]{\colorbox{yellow}{#1}}
+\newcommand{\gbox}[1]{\colorbox{green}{#1}}
+\newcommand{\tcr}[1]{\textcolor{red}{#1}}
+\newcommand{\tcg}[1]{\textcolor{mygreen}{#1}}
+\newcommand{\highlight}[1]{\textcolor{blue}{#1}}
+\newcommand{\tcp}[1]{\textcolor{mypurple}{#1}}
+\newcommand{\tcbk}[1]{\textcolor{black}{#1}}
+\end_preamble
+\use_default_options false
+\maintain_unincluded_children false
+\language english
+\language_package none
+\inputencoding auto
+\fontencoding default
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing onehalf
+\use_hyperref false
+\papersize letterpaper
+\use_geometry false
+\use_package amsmath 2
+\use_package amssymb 2
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 0
+\use_package mathtools 1
+\use_package mhchem 0
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine natbib
+\cite_engine_type authoryear
+\biblio_style plainnat
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Fast Out-of-Sample Predictions for Bayesian Hierarchical Models of Latent
+ Health States (Technical Report)
+\end_layout
+
+\begin_layout Author
+Aaron J Fisher, R Yates Coley, Scott L Zeger
+\end_layout
+
+\begin_layout Date
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+today
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Abstract
+\end_layout
+
+\begin_layout Standard
+Hierarchical Bayesian models can be especially useful in precision medicine
+ settings, where clinicians are interested in estimating the individual-level
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: You seem to be using 
+\begin_inset Quotes eld
+\end_inset
+
+variables
+\begin_inset Quotes erd
+\end_inset
+
+ to refer to 
+\begin_inset Quotes eld
+\end_inset
+
+latent variables
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+parameters
+\begin_inset Quotes erd
+\end_inset
+
+.
+ I find this unclear 
+\end_layout
+
+\end_inset
+
+variables associated with a specific patient's risk
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: 
+\begin_inset Quotes eld
+\end_inset
+
+Risk
+\begin_inset Quotes erd
+\end_inset
+
+ is vague here and maybe a bit too tied to our application (even though
+ we aren't doing risk estimation, we are predicting a latent state).
+ You could say 
+\begin_inset Quotes eld
+\end_inset
+
+latent class or trajectory
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+likely health state and expected outcomes
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+prognosis
+\begin_inset Quotes erd
+\end_inset
+
+, or something like that to be more specific.
+\end_layout
+
+\end_inset
+
+.
+ Such models are often fit using Markov Chain Monte Carlo (MCMC).
+ However, the slow speed of MCMC computation makes it difficult to implement
+ in clinical settings, where immediate risk estimates
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: Again, I would question the use of 
+\begin_inset Quotes eld
+\end_inset
+
+risk estimates
+\begin_inset Quotes erd
+\end_inset
+
+ throughout the paper.
+ I would recommend something more specific statistical while being more
+ general for the application like 
+\begin_inset Quotes eld
+\end_inset
+
+latent state
+\begin_inset Quotes erd
+\end_inset
+
+.
+ I won't make this comment anymore in the paper.
+ 
+\end_layout
+
+\end_inset
+
+ are often desired in response to new patient data.
+ For models fit on protected clinical data from multiple hospitals, this
+ computation is exacerbated by the need to communicate between firewalled
+ servers.
+ In this technical report, we discuss the use of importance sampling (IS)
+ to obtain fast, in-clinic risk estimates, while naturally avoiding the
+ issue of server communication
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: I would leave this last part out until you've fully fleshed out the
+ idea in the body of the report
+\end_layout
+
+\end_inset
+
+.
+ We apply IS to the hierarchical model proposed in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+<<<<<<< HEAD
+ for predicting the presence of aggressive prostate cancer.
+ Risk estimates via IS can typically be obtained in 5-15 seconds per person,
+=======
+ for predicting risk of aggressive prostate cancer.
+ Risk estimates via IS can typically be obtained in 1-10 seconds per person,
+>>>>>>> 601d7e5a96914fa61ee223ee882df47a922e863c
+ and have high agreement with estimates coming from longer-running MCMC
+ methods.
+ Alternative options for online updating and out-of-sample fitting are also
+ discussed.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace smallskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Introduction
+\end_layout
+
+\begin_layout Standard
+Hierarchical Bayesian models can be especially useful in the context of
+ precision medicine, when clinicians are interested in understanding not
+ only treatment effects, but also the risk for any individual patient.
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: I find these two introductory sentences to be very confusing.
+ Why mention treatment effects specifically when we aren't dealing with
+ those? Why make this distinction between treatment effects and individualized
+ predictions? Also, I still find 
+\begin_inset Quotes eld
+\end_inset
+
+patient-level variables
+\begin_inset Quotes erd
+\end_inset
+
+ to be unclear.
+ I won't continue to mention it every time it appears.
+\end_layout
+
+\end_inset
+
+In the context of hierarchical models, treatment effects can be estimated
+ from population-level parameters, and the risk for any specific patient
+ can be estimated from patient-level variables.
+ For example, 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+ use a patient-level latent class to categorize patients as having either
+ indolent or aggressive cancer.
+ In a Bayesian setting, estimation of both levels of the model -- the population
+ level and the patient level -- can be attained from the posterior distribution.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC:I don't think 
+\begin_inset Quotes eld
+\end_inset
+
+estimation can be attained from the posterior
+\begin_inset Quotes erd
+\end_inset
+
+ is clear or accurate .
+ You can obtain estimates, but estimation is a process, like Bayesian estimation
+ which requires sampling from the posterior.
+\end_layout
+
+\end_inset
+
+ When
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: Maybe 
+\begin_inset Quotes eld
+\end_inset
+
+after
+\begin_inset Quotes erd
+\end_inset
+
+ instead of 
+\begin_inset Quotes eld
+\end_inset
+
+when
+\begin_inset Quotes erd
+\end_inset
+
+?
+\end_layout
+
+\end_inset
+
+ such models are fit on a training dataset using Markov Chain Monte Carlo
+ (MCMC), risk estimates are immediately available for any patient in the
+ training dataset.
+ 
+\end_layout
+
+\begin_layout Standard
+A computational challenge arises though when new patients enter the clinic
+ or when existing patients accrue new measurements.
+ Here, clinicians may wish to give patients a fast, in-visit estimate of
+ their risk.
+ However, traditional MCMC approaches for new risk estimates require refitting
+ the entire model, which can take hours [[!!! minutes !!??]] to complete[[what
+ about MCMC just for the new parameters??]].
+ Additionally, if the model is fit on protected clinical data from multiple
+ sites, then MCMC will require communication between these firewalled servers
+ as the algorithm iterates, which further increases the computation cost.
+\end_layout
+
+\begin_layout Standard
+In this technical report we describe how importance sampling (IS) 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Bishop2006"
+
+\end_inset
+
+ can instead be used in precision medicine settings to get fast risk estimates
+ in response to new patient data.
+ We apply this to the prostate cancer model proposed by 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+ to get fast risk estimates for new, simulated patients.
+ In this case, the procedure typically takes only 5-15 seconds per patient.
+ This approach can be combined with periodic refitting of the entire model
+ via MCMC, in order to update the posteriors for the the population-level
+ parameters 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Lee2002"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+This IS approach is related to online (or streaming) learning methods, which
+ aim to continuously update population-level parameters with a constant
+ computational cost over time.
+ We avoid a fully online approach here though, due to additional known challenge
+s in online learning
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: you should include a citation here
+\end_layout
+
+\end_inset
+
+.
+ Specifically, our use of IS can be viewed as a 1-step version of a sequential
+ importance sampler (SIS), also known as particle filter.
+ Employing a standard particle filter to update estimates of the population
+ parameters would seem to be a natural extension.
+ However, particle filters are known to suffer from the problem of degeneracy,
+ which makes it difficult to estimate posteriors for 
+\begin_inset Quotes eld
+\end_inset
+
+static
+\begin_inset Quotes erd
+\end_inset
+
+ parameters that do not change as more data is acquired (
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Kantas2014"
+
+\end_inset
+
+,
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+AF-more citations?
+\end_layout
+
+\end_inset
+
+ see section II of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Andrieu2005"
+
+\end_inset
+
+ for an intuitive explanation).
+ This
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: 
+\begin_inset Quotes eld
+\end_inset
+
+This problem
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+This concern
+\begin_inset Quotes erd
+\end_inset
+
+.
+ IMO, it is almost always more clear to add a noun after 
+\begin_inset Quotes eld
+\end_inset
+
+this
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+ applies in our case, as our population-level parameters are assumed to
+ be static.
+ Instead, we combine IS with periodic MCMC 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Lee2002"
+
+\end_inset
+
+ to update the posteriors for all parameters at all levels.
+ Note that this is not a fully online method, as the computational cost
+ of each MCMC iteration increases as more data is acquired.
+ See 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Kantas2014"
+
+\end_inset
+
+ for a recent literature review of online methods relating to particle filters.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF - need to polish more.
+ Not the best summary even of Kantas.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Online model fitting has also been explored in the literature on topic modeling
+ for corpuses of texts.
+ Text corpuses are often too large to fit an entire model on at once, making
+ online fitting a more feasible option.
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Hoffman2010"
+
+\end_inset
+
+ propose a online variational Bayes approach for topic modeling.
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Canini2009"
+
+\end_inset
+
+ propose a particle filter approach, in a context where the static parameters
+ can be integrated out.
+ However, in the setting of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Canini2009"
+
+\end_inset
+
+, even the best performing online methods were outperformed by batch (non-online
+) MCMC, and generally did not improve in accuracy as more data was incorporated.
+\end_layout
+
+\begin_layout Standard
+Our specific context within personalized medicine is different than that
+ of topic modeling in that, while the model is complex and contains several
+ layers, the data can be fully stored in memory at once.
+ Thus, while the approach of combining IS with periodic MCMC is not fully
+ online and not feasible for text analysis, it is still a feasible option
+ for the limited sample sizes in our problem.
+ Relative to variational Bayes approaches, the formulas required to apply
+ IS are simple to derive, and can be easily ported to other applications
+ within precision medicine.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF-Some proposed alternatives for online updates include fixed lag updating
+ methods 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Polson2008"
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF-Polish these citations up.
+ Need to read.
+\end_layout
+
+\end_inset
+
+, and augmentation of the static parameters 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Kitagawa1998"
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF-Polish these citations up.
+ Need to read.
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The remainder of this document is organized as follows.
+ In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Clinical-Application-&"
+
+\end_inset
+
+ we give an overview of our motivating data example of prostate cancer risk
+ estimation.
+ In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:methods"
+
+\end_inset
+
+ we detail our approach for applying IS in hierarchical models.
+ We use an abbreviated notation that can be readily generalized to other
+ precision medicine settings.
+ We also compare our approach with the out-of-sample fitting approach of
+ 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Wu2015"
+
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: The Methods section is not the right place for this comparison if we
+ haven't actually implemented Zhenke's method.
+ (I don't think it is necessary to do so for the tech report.)
+\end_layout
+
+\end_inset
+
+.
+ In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Application"
+
+\end_inset
+
+ we apply IS to simulated data,
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: This comma should be ommitted.
+ I've corrected a couple of errors in comma use.
+ Can you proofread for that before sending me a final draft?
+\end_layout
+
+\end_inset
+
+ and compare the results to risk estimates obtained from MCMC.
+\end_layout
+
+\begin_layout Section
+Clinical Application & Motivation
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Clinical-Application-&"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Our application is based on the clinical framework of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+, who develop a latent class model to predict underlying prostate cancer
+ state in men participating in an active surveillance program for low risk
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+TC: Just FYI here, labeling someone's cancer as 
+\begin_inset Quotes eld
+\end_inset
+
+low risk
+\begin_inset Quotes erd
+\end_inset
+
+ has a clinical meaning here.
+ This is literally how the doctor's refer to the diagnosis.
+ 
+\begin_inset Quotes eld
+\end_inset
+
+Low risk
+\begin_inset Quotes erd
+\end_inset
+
+ men are eligible for active surveillance.
+ The model does not classify anyone as 
+\begin_inset Quotes eld
+\end_inset
+
+low risk
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+ disease.
+ The latent cancer state is defined as being indolent or aggressive, correspondi
+ng to the Gleason score 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Gleason1977,Gleason1992"
+
+\end_inset
+
+ that would be assigned if a patient's entire prostate were to be removed
+ and analyzed.
+ Gleason scores 
+\begin_inset Formula $\leq6$
+\end_inset
+
+ are classified as indolent, and Gleason scores 
+\begin_inset Formula $\geq7$
+\end_inset
+
+ are classified as aggressive.
+ The model is used to estimate probabilities of latent class membership,
+ or, in other words, the risk of having an aggressive cancer with the potential
+ to metastasize.
+ Risk predictions can then be used by clinicians and patients to make decisions
+ about future treatment or biopsies.
+ This prediction tool addresses a pressing need in prostate cancer care
+ as the most common treatments for prostate cancer have a high risk of persisten
+t side effects including erectile dysfunction and urinary incontience, while
+ prostate biopsies are painful and pose a risk of infection 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Chou2011a,Chou2011b"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The hierarchical model of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+ includes sub-models for longitudinal prostate specific antigen (PSA) measuremen
+ts, and for longitudinal biopsy results.
+ Both of these sub-models incorporate information about the patient's latent
+ state.
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: I think this previous sentence could be more clear.
+ There is likely a more exact way to say that the likelihood for PSA and
+ biopsy results depend on latent state.
+\end_layout
+
+\end_inset
+
+ The (log-transformed) PSA measurements are modeled as multivariate normal,
+ with a mean defined by a linear predictor that includes patient-specific
+ random effects.
+ The distribution of these random effects is modeled to depend on latent
+ class membership.
+ Biopsy results are coded as binary outcomes denoting 
+\shape italic
+grade reclassification
+\shape default
+ on a biopsy, that is, the biopsied tissue was assigned a Gleason score
+ of 7 or higher.
+ The log-odds of reclassification is also modeled with a linear predictor
+ whose value depends on a patient's latent state, reflecting the imperfect
+ sensitivity and specificity of the biopsy procedure.
+ Each patient's latent class is assumed constant over the surveillance period.
+ As a patient continues in active surveillance, additional PSA and biopsy
+ measurements are accrued and the accuracy of latent class predictions improves.
+ Sub-models are also included for informative observation processes associated
+ with biopsies and surgeries.
+ 
+\end_layout
+
+\begin_layout Standard
+In our context, the subject-level variables
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+AF to YC - OK to call these variables? Or 
+\begin_inset Quotes eld
+\end_inset
+
+parameters
+\begin_inset Quotes erd
+\end_inset
+
+? See comments above.
+\end_layout
+
+\end_inset
+
+ refer to the latent classes, and the random effects used in the sub-model
+ for PSA.
+ The population-level parameters refer to the coefficients in each sub-model,
+ and the variance parameters for the subject-level variables.
+ See 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+ for a full model description.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+AF- Add footnote briefly listing subj level and pop level parameters, without
+ further explanation?
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+ presents a Bayesian joint hierarchical model for predicting a latent health
+ state from longitudinal clinical measurements.
+ Model development was motivated by an application to active surveillance
+ of low risk prostate cancer.
+ Previous joint latent class modeling approaches (e.g., 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Lin2002"
+
+\end_inset
+
+) are unsuitable for this context as they do not accommodate measurement
+ error-- specifically, cancer state determinations based on biopsied tissue
+ are prone to misclassification-- nor do they allow for observations to
+ be missing not at random 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Little2014"
+
+\end_inset
+
+.
+ The proposed model addresses these limitations, enabling estimation of
+ an individual's underlying prostate cancer state.
+ These individualization predictions can then be communicated to clinicians
+ and patients to inform decision making.
+\end_layout
+
+\begin_layout Plain Layout
+For this prediction model to be most useful in a clinical setting, however,
+ it is necessary to be able to update posterior estimates quickly to incorporate
+ new biopsy or PSA results during a patient's visit.
+ This precludes re-running the full MCMC to obtain updated posteriors of
+ patient-specific variables.
+ Instead, we use importance sampling 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Bishop2006"
+
+\end_inset
+
+ to obtain rapid prediction updates.
+ Using posterior estimates obtained from current data, the proposed importance
+ sampling algorithm updates these estimates for either a new patient or
+ new data on an existing patient in a matter of seconds.
+\end_layout
+
+\begin_layout Plain Layout
+Many options exist for performing online updating of Bayesian models.
+ We chose to use an importance sampling approach because...
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Geweke1989"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Plain Layout
+In this this technical report, we first provide an overview of the latent
+ class prediction model before detailing the importance sampling algorithm
+ we have developed for enabling real-time updates.
+ Next, we will apply the proposed algorithm to simulated data and compare
+ predictions to those obtained by full MCMC runs.
+ Finally, we close with a discussion of future research.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Section
+Bayesian Joint Hierarchical Latent Class Model
+\end_layout
+
+\begin_layout Plain Layout
+In this section, we briefly summarize the joint model proposed in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+ for predicting latent cancer state for men participating in Active Surveillance
+ for low risk prostate disease.
+ Predictions are made by incorporating information from repeated prostate
+ specific antigen (PSA) and biopsy measurements for all individuals, as
+ well as true cancer state information observed in a subset of the cohort.
+ In this technical report, we will focus on the model that assumes biopsy
+ and latent class observation are missing at random, that is, not associated
+ with the latent state after conditioning on observed clinical variables.
+ For more model details and application background, please see 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Plain Layout
+Let 
+\begin_inset Formula $\eta_{i}$
+\end_inset
+
+ indicate the true cancer state for individual 
+\begin_inset Formula $i$
+\end_inset
+
+, 
+\begin_inset Formula $i=1,\dots,n$
+\end_inset
+
+, defined using the Gleason score 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Gleason1977,Gleason1992"
+
+\end_inset
+
+ that would be assigned if his entire prostate were to be removed and pathologic
+ analysis performed: 
+\begin_inset Formula $\eta_{i}=0$
+\end_inset
+
+ if Gleason 
+\begin_inset Formula $\leq$
+\end_inset
+
+ 6 or 
+\shape italic
+indolent
+\shape default
+ and 
+\begin_inset Formula $\eta_{i}=1$
+\end_inset
+
+ if Gleason 
+\begin_inset Formula $\geq$
+\end_inset
+
+ 7 or 
+\shape italic
+aggressive
+\shape default
+.
+ True cancer state then follows a Bernoulli distribution-- 
+\begin_inset Formula $\eta_{i}\sim Bernoulli(\rho)$
+\end_inset
+
+-- where we assume here, for simplicity, a shared underlying probability
+ of aggressive cancer, 
+\begin_inset Formula $\rho$
+\end_inset
+
+.
+ This true cancer state is observed in a subset of patients who choose to
+ have their prostate surgically removed; as such, 
+\begin_inset Formula $\eta_{i}$
+\end_inset
+
+ is a partially latent variable.
+\end_layout
+
+\begin_layout Plain Layout
+Next, define the following mixed effects model 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Laird1982"
+
+\end_inset
+
+ for an individual's PSA over time where mean effects for predictors are
+ allowed to vary across groups defined by the partially latent true cancer
+ state: 
+\begin_inset Formula 
+\begin{eqnarray*}
+\big[\,Y_{im}|\eta_{i}=k,\bmX_{im},\bmZ_{im}\,\big]=\bmX_{im}\bmbeta+\bmZ_{im}\bmb_{i}+\epsilon_{im}
+\end{eqnarray*}
+
+\end_inset
+
+where 
+\begin_inset Formula $Y_{im}$
+\end_inset
+
+ is the observed (log-transformed) PSA, 
+\begin_inset Formula $\bmX_{im}$
+\end_inset
+
+ and 
+\begin_inset Formula $\bmZ_{im}$
+\end_inset
+
+ are vectors of covariates for individual 
+\begin_inset Formula $i$
+\end_inset
+
+'s 
+\begin_inset Formula $m$
+\end_inset
+
+th PSA measurement, 
+\begin_inset Formula $\bmbeta$
+\end_inset
+
+ is a parameter vector for fixed effects, and 
+\begin_inset Formula $\bmb_{i}$
+\end_inset
+
+ is the patient-specific vector of random effects.
+ Following the specification of a Bayesian mixed effects model presented
+ by Gelman and Hill (2006)
+\begin_inset CommandInset citation
+LatexCommand nocite
+key "Gelman2006"
+
+\end_inset
+
+, unscaled random effects are centered at the mean effects for each latent
+ class 
+\begin_inset Formula $k$
+\end_inset
+
+, 
+\begin_inset Formula $\bmmu_{k}$
+\end_inset
+
+: 
+\begin_inset Formula 
+\begin{eqnarray*}
+\big[\check{\bmb_{i}}|\eta_{i}=k\big]\sim MVN(\bmmu_{k},\Sigma_{k}),\quad k=0,1
+\end{eqnarray*}
+
+\end_inset
+
+where 
+\begin_inset Formula $\Sigma_{k}$
+\end_inset
+
+ is a covariance matrix that allows for correlation between random effects.
+ Random effects are then scaled with parameter vector 
+\begin_inset Formula $\bmxi$
+\end_inset
+
+: 
+\begin_inset Formula $\bmb_{i}=diag(\check{\bmb_{i}}\bmxi^{T})$
+\end_inset
+
+.
+ Lastly, residuals 
+\begin_inset Formula $\epsilon_{im}$
+\end_inset
+
+ are assumed to follow a normal distribution with mean 0 and variance 
+\begin_inset Formula $\sigma^{2}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Plain Layout
+Finally, let 
+\begin_inset Formula $(B_{ij},R_{ij})$
+\end_inset
+
+ denote binary variables for individual 
+\begin_inset Formula $i$
+\end_inset
+
+ in annual interval 
+\begin_inset Formula $j$
+\end_inset
+
+ indicating, respectively, whether a biopsy was performed and, when it was,
+ if 
+\shape italic
+reclassification
+\shape default
+ was observed, i.e.
+ a determination of Gleason 
+\begin_inset Formula $\geq$
+\end_inset
+
+ 7 made.
+ 
+\begin_inset Formula $(B_{ij},R_{ij})$
+\end_inset
+
+ is defined for 
+\begin_inset Formula $j=1,\dots,J_{i}$
+\end_inset
+
+ where 
+\begin_inset Formula $J_{i}$
+\end_inset
+
+ is the time of reclassification or censoring for patient 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ For each time interval with a biopsy, 
+\begin_inset Formula $B_{ij}=1$
+\end_inset
+
+, we use logistic regression to model its result conditional on true cancer
+ state: 
+\begin_inset Formula 
+\begin{eqnarray}
+P(R_{ij}=1|B_{ij}=1,\eta_{i}=k,\bmV_{ij},\bmgamma)=\text{logit}^{-1}\big(\bmV_{ij}(k)\bmgamma\big)\label{eq:p_rc}
+\end{eqnarray}
+
+\end_inset
+
+where 
+\begin_inset Formula $\bmV_{ij}(k)$
+\end_inset
+
+ is a matrix of time-varying predictors including 
+\begin_inset Formula $\eta_{i}$
+\end_inset
+
+ and 
+\begin_inset Formula $\bmgamma$
+\end_inset
+
+ is a parameter vector.
+\end_layout
+
+\begin_layout Plain Layout
+We then define the joint probability of the parameters given data and unobserved
+ latent variables: 
+\begin_inset Formula 
+\begin{eqnarray}
+ &  & L\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma\,|\,\big(\eta_{i},(\bmY_{i},\bmb_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}}),(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big),i=1,\mydots,n\Big)\nonumber \\
+ &  & \quad=\prod_{i=1}^{n}\,\rho^{\eta_{i}}\,(1-\rho)^{1-\eta_{i}}\,f(\bmY_{i}|\eta_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}},\bmb_{i},\bmbeta,\sigma^{2})\,g(\bmb_{i}|\bmmu_{\eta_{i}},\Sigma_{\eta_{i}})\nonumber \\
+ &  & \qquad\qquad\prod_{j=1}^{J_{i}}\big(P(R_{ij}=1|\eta_{i},\bmV_{ij},\bmgamma)^{R_{ij}}P(R_{ij}=0|\eta_{i},\bmV_{ij},\bmgamma)^{1-R_{ij}}\big)^{B_{ij}}\label{eq:lik-inf}
+\end{eqnarray}
+
+\end_inset
+
+where 
+\begin_inset Formula $f$
+\end_inset
+
+ and 
+\begin_inset Formula $g$
+\end_inset
+
+ are multivariate normal densities for the vector of log-transformed PSAs
+ 
+\begin_inset Formula $\bmY_{i}$
+\end_inset
+
+, and random effects 
+\begin_inset Formula $\bmb_{i}$
+\end_inset
+
+, respectively, each with mean and covariance as defined above, given covariance
+ matrices 
+\begin_inset Formula $\underline{\bmX_{i}}=[X_{i1},\dots,X_{iM_{i}}]$
+\end_inset
+
+ and 
+\begin_inset Formula $\underline{\bmZ_{i}}=[Z_{i1},\dots,Z_{iM_{i}}]$
+\end_inset
+
+.
+ 
+\begin_inset Formula $\mathbf{B}_{i},\mathbf{R}_{i}$
+\end_inset
+
+ represent vectors for biopsy and reclassification for individual 
+\begin_inset Formula $i$
+\end_inset
+
+ with associated covariance matrix 
+\begin_inset Formula $\underline{\bmV_{i}}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Plain Layout
+Bayesian methods are used to identify posteriors for model parameters and
+ latent variables.
+ Discussion of prior specification can be found in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+.
+ After specifying priors for all model parameters, the join posterior distributi
+on of the parameter and latent variables is: 
+\begin_inset Formula 
+\begin{eqnarray}
+ &  & p\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma,(\eta_{i},\bmb_{i})\,|\,\big((\bmY_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}}),(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big);\bmTheta\Big)\nonumber \\
+ &  & \qquad\propto L\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma\,|\,\big(\eta_{i},(\bmY_{i},\bmb_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}},(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big)\Big)\times\bmpi\big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma|\bmTheta\big)\label{eq:post-inf}
+\end{eqnarray}
+
+\end_inset
+
+where 
+\begin_inset Formula $\bmpi(\cdot|\bmTheta)$
+\end_inset
+
+ denotes the joint prior density for model parameters with hyperparameters
+ 
+\begin_inset Formula $\bmTheta$
+\end_inset
+
+ with indexing on 
+\begin_inset Formula $i,\,j,$
+\end_inset
+
+ and 
+\begin_inset Formula $k$
+\end_inset
+
+ suppressed for clarity in presentation.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Methods for Fast Prediction Updates
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:methods"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this section we detail an IS algorithm that enables rapid estimates of
+ subject-level variables, such as latent classes.
+ This method is meant to be applied to out-of-sample data, after MCMC has
+ been applied to get a posterior sample based on  current training data.
+ We present the algorithm in a simple, abbreviated notation that is applicable
+ in many clinical settings.
+\end_layout
+
+\begin_layout Standard
+Let the joint posterior based on training data from 
+\begin_inset Formula $n$
+\end_inset
+
+ subjects be denoted as 
+\begin_inset Formula 
+\begin{equation}
+p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\theta)]\pi(\theta)\label{eq:posterior_n}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $y_{i}$
+\end_inset
+
+ is the vector of clinical measurements (here, PSA and biopsy measurements)
+ for patient 
+\begin_inset Formula $i$
+\end_inset
+
+, 
+\begin_inset Formula $y_{1:n}$
+\end_inset
+
+ is the list of measurements for the first 
+\begin_inset Formula $n$
+\end_inset
+
+ patients, 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+ is a vector of latent variables (here, latent class and random effects)
+ for patient 
+\begin_inset Formula $i$
+\end_inset
+
+, 
+\begin_inset Formula $b_{1:n}$
+\end_inset
+
+ is a list of latent variables for the first 
+\begin_inset Formula $n$
+\end_inset
+
+ patients, 
+\begin_inset Formula $\theta$
+\end_inset
+
+ contains the population-level parameters, 
+\begin_inset Formula $\pi$
+\end_inset
+
+ is the prior for 
+\begin_inset Formula $\theta$
+\end_inset
+
+, and 
+\begin_inset Formula $f$
+\end_inset
+
+ and 
+\begin_inset Formula $g$
+\end_inset
+
+ are multivariate distributions, which will depend on the application and
+ context.
+ Estimation of 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+ is of primary interest in this report.
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $\mathscr{J}_{n}=\{\theta^{(j)},b_{1:n}^{(j)}\}_{j=1}^{J}$
+\end_inset
+
+ be a set of 
+\begin_inset Formula $J$
+\end_inset
+
+ draws from the posterior distribution in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+, obtained via methods such as MCMC.
+\end_layout
+
+\begin_layout Subsection
+IS Algorithm
+\end_layout
+
+\begin_layout Standard
+After posterior samples from the joint model are obtained for current data,
+ importance sampling to update these estimates given new data requires three
+ steps: (1) generating proposal values for the latent variables to be updated,
+ (2) calculating weights for proposed values, and (3) weighting proposed
+ values to estimate an updated posterior.
+ We first illustrate how this process can be used to quickly estimate latent
+ variables for a new patient, and then show how similar calculations can
+ be done to incorporate newly measured data on existing patients in real-time.
+\end_layout
+
+\begin_layout Standard
+For a new patient (indexed by 
+\begin_inset Formula $i=n+1$
+\end_inset
+
+), obtaining posterior predictions of latent variables requires calculating
+ expectations with respect to the posterior distribution based on all 
+\begin_inset Formula $n+1$
+\end_inset
+
+ patients (i.e.
+ 
+\begin_inset Formula $p(\theta,b_{1:(n+1)}|y_{1:(n+1)})$
+\end_inset
+
+).
+ While we cannot immediately draw from this distribution, we can evaluate
+ a function that is proportional to its density (based on Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+).
+ We can also use the posterior distribution based on the first 
+\begin_inset Formula $n$
+\end_inset
+
+ patients as a proposal distribution (denoted by 
+\begin_inset Formula $q$
+\end_inset
+
+) from which to generate candidate values of 
+\begin_inset Formula $(\theta,b_{1:(n+1)})$
+\end_inset
+
+.
+ Let 
+\begin_inset Formula 
+\begin{eqnarray}
+q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})\label{eq:drawing-subj-level-vars}
+\end{eqnarray}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Practically, this proposal step is achieved by conditioning on each 
+\begin_inset Formula $\theta^{(j)}$
+\end_inset
+
+ in 
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+, and then of drawing 
+\begin_inset Formula $b_{n+1}^{(j)}$
+\end_inset
+
+ from the distribution 
+\begin_inset Formula $g(b_{n+1}^{(j)}|\theta^{(j)})$
+\end_inset
+
+.
+ This results in the augmented set 
+\begin_inset Formula $\mathscr{J}_{n+1}:=\{\theta^{(j)},b_{1:(n+1)}^{(j)}\}_{j=1}^{J}$
+\end_inset
+
+.
+ The importance weights 
+\begin_inset Formula $w^{(j)}$
+\end_inset
+
+ are then proportional to 
+\begin_inset Formula 
+\begin{eqnarray}
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\nonumber \\
+ & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
+ & = & f(y_{n+1}|b_{n+1}^{(j)},\theta^{(j)})\label{eq:importance-weights}
+\end{eqnarray}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The final weights 
+\begin_inset Formula $w^{(j)}$
+\end_inset
+
+ are standardized to sum to 1.
+ The new posterior for 
+\begin_inset Formula $(\theta,b_{1:(n+1)})$
+\end_inset
+
+ can then be represented as the mixture distribution satisfying 
+\begin_inset Formula $P(\theta=\theta^{(j)},b_{1:(n+1)}=b_{1:(n+1)}^{(j)})=w^{(j)}$
+\end_inset
+
+.
+ Posterior means for 
+\begin_inset Formula $b_{(n+1)}$
+\end_inset
+
+ can be calculated as 
+\begin_inset Formula $\sum_{j=1}^{J}w^{(j)}b_{(n+1)}^{(j)}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+The approach is similar when we wish to incorporate new measurement data
+ for a patient who's previous data has already informed the posterior sample
+ in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+.
+ For a patient 
+\begin_inset Formula $k$
+\end_inset
+
+ with existing data (i.e., 
+\begin_inset Formula $k\leq n$
+\end_inset
+
+), our set 
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+ already contains the proposals 
+\begin_inset Formula $\{b_{k}^{(j)}\}_{j=1}^{J}$
+\end_inset
+
+ for the subject 
+\begin_inset Formula $k$
+\end_inset
+
+'s latent variable values.
+ Thus, we can draws from 
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+ as our proposal distribution 
+\begin_inset Formula $q(\theta^{(j)},b_{1:n}^{(j)})$
+\end_inset
+
+.
+ Our goal then is to re-weight this set of points based on new data.
+ Let 
+\begin_inset Formula $y_{1:n}^{*}$
+\end_inset
+
+ refer to the data set after incorporating new data on patient 
+\begin_inset Formula $k$
+\end_inset
+
+, such that 
+\begin_inset Formula $y_{i}^{*}=y_{i}$
+\end_inset
+
+ if and only if 
+\begin_inset Formula $k\neq i$
+\end_inset
+
+.
+ The importance weights in Equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:importance-weights"
+
+\end_inset
+
+ then simplify to 
+\begin_inset Formula 
+\begin{eqnarray}
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:n}^{(j)}|y_{1:n}^{*})}{q(\theta^{(j)},b_{1:n}^{(j)})}\nonumber \\
+ & \propto & \frac{\prod_{i=1}^{n}[f(\ensuremath{y_{i}^{*}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{\prod_{i=1}^{n}[f(\ensuremath{y_{i}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
+ & = & \frac{f(\ensuremath{y_{k}^{*}}|b_{k}^{(j)},\theta^{(j)})}{f(\ensuremath{y_{k}}|b_{k}^{(j)},\theta^{(j)})}\label{eq:new-data-patient-ratio}
+\end{eqnarray}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If the repeated measures for each patient are independent conditional on
+ 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+, as is the case in the proposed model from 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+, then the ratio in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:new-data-patient-ratio"
+
+\end_inset
+
+ reduces to the likelihood of only the new data, conditional on 
+\begin_inset Formula $b_{k}^{(j)}$
+\end_inset
+
+ and 
+\begin_inset Formula $\theta^{(j)}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Efficient Implementation
+\end_layout
+
+\begin_layout Standard
+For implementation in clinical practice, proposals for new patients can
+ be generated prior to actually observing new data, so that only weight
+ calculation and  re-weighting of the proposal distribution needs to be
+ done in real-time.
+\end_layout
+
+\begin_layout Standard
+Some new patients may have data such that very few of the pre-generated,
+ proposed latent variables values receive high weights.
+ As a result, the posterior mean estimates obtained by IS tend to be less
+ stable.
+ This problem is due to higher Monte Carlo error, and is thus more likely
+ when the number of pre-generated latent variables 
+\begin_inset Formula $(J)$
+\end_inset
+
+ is low.
+ However, we can flag patients who might have high error by monitoring the
+ effective size of the posterior sample, also known as the effective number
+ of particles (
+\begin_inset Formula $1/\sum_{j=1}^{J}\left[\left(w^{(j)}\right)^{2}\right]$
+\end_inset
+
+).
+ When this number drops below a given threshold (e.g.
+ 1000), we can repeat our procedure with a larger set of pre-generated proposals.
+ If limited computing is available for MCMC, we can also approximate a larger
+ sample from Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+ by drawing multiple 
+\begin_inset Formula $b_{n+1}$
+\end_inset
+
+ values for each 
+\begin_inset Formula $\theta^{(j)}$
+\end_inset
+
+, rather than drawing just one (see Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:drawing-subj-level-vars"
+
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Subsection
+Alternative Out-of-Sample Posterior Estimations
+\end_layout
+
+\begin_layout Standard
+Our IS approach functions similarly to the out-of-sample estimation approach
+ of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Wu2015"
+
+\end_inset
+
+.
+ Their approach can be generalized to estimate the updated posterior probability
+ that 
+\begin_inset Formula $P(b_{n+1}=x|y_{1:(n+1)})$
+\end_inset
+
+, using the estimator 
+\begin_inset Formula $\hat{P}(b_{n+1}=x|y_{1:(n+1)})=\left(\frac{1}{P}\right)\sum_{j=1}^{P}\left\{ \frac{f(y_{n+1}|b_{n+1}=x,\theta^{(j)})g(x|\theta^{(j)})}{\int f(y_{n+1}|b_{n+1}=x',\theta^{(j)})g(x'|\theta^{(j)})dx'}\right\} $
+\end_inset
+
+.
+ This approach is especially practical when the subject-specific variables
+ 
+\begin_inset Formula $b_{n+1}$
+\end_inset
+
+ are discrete, and the integral in the denominator can be replaced with
+ a summation.
+ For cases with both continuous and discrete subject-specific variables,
+ the approach can be combined with a proposal generation method based on
+ Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:drawing-subj-level-vars"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Rejection sampling can also be applied using the unstandardized weights
+ in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:importance-weights"
+
+\end_inset
+
+, although we found this approach to be less computationally efficient than
+ IS for our scenario (see Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Results"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Section
+Application 
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Application"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We applied the proposed importance sampling approach to prospective data
+ from the Johns Hopkins Active Surveillance (JHAS) cohort.
+ 1,298 men with very low or low risk prostate cancer diagnoses were enrolled
+ in JHAS from January 1995 to June 2014.
+ Results of all PSA tests and biopsies performed prior to enrollment and
+ during active surveillance were collected.
+ Patients were followed until grade reclassification, elective treatment,
+ or loss to follow-up.
+ Patients still active in the program were administratively censored at
+ the time of data collection for this analysis (October 2014).
+ The Gleason score determination based on pathologic analysis of the entire
+ prostate specimen was also recored for patients who underwent prostatectomy.
+ Details on the dataset are available in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+.
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC- I think it is fine to just have it applied to simulated data for the
+ tech report.
+ We need to change the description though.
+ Essentially, data were generated based on posterior estimates from fitting
+ the model with the real data.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using this data as our initial sample (
+\begin_inset Formula $y_{1:n}$
+\end_inset
+
+), we generate 500,000 draws (
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+) from the posterior for the population-level and subject-level variables
+ (see Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:posterior_n"
+
+\end_inset
+
+).
+ Averaging over 
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+, we estimate the risk of having aggressive cancer for each subject who's
+ latent class is unknown.
+ The task of generating 
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+ was run across 400 parallel jobs on a x86-based linux cluster, with as
+ many as 200 jobs allowed to run simultaneously.
+ The total elapsed computation time was 33 hours
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+AF - Look in email for task ID 7505235.263.
+ This was the last index to finish.
+\end_layout
+
+\end_inset
+
+.
+ Within each job, MCMC was implemented using the R2jags software package
+ 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "R2jags2015"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We then re-estimate each patient's risk using IS, taking as input only the
+ population-level parameter posteriors from the MCMC step.
+ When generating values for the subject-level variables 
+\begin_inset Formula $b_{i}$
+\end_inset
+
+ we further increase the diversity of the proposal set by drawing 10 values
+ from 
+\begin_inset Formula $g(b_{i}|\theta^{(j)})$
+\end_inset
+
+ for each posterior draw 
+\begin_inset Formula $\theta^{(j)}$
+\end_inset
+
+, for a total of 5 million proposals.
+ We experimented with approaches of using only 50,000 proposals, using all
+ 5 million proposals or starting with 50,000 and increasing number of proposals
+ until the effective sample size exceeds 1000.
+ We refer to these approaches respectively as 
+\begin_inset Quotes eld
+\end_inset
+
+small,
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset Quotes eld
+\end_inset
+
+big,
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+dynamic
+\begin_inset Quotes erd
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+Yates: See Figure note.
+ I think it is superfulous to relabel methods when you can just label with
+ proposal size
+\end_layout
+
+\end_inset
+
+.
+ Proposals are then weighted to obtain IS risk estimates
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+AF- Not exactly then? Need to re-word
+\end_layout
+
+\end_inset
+
+.
+ These simulation steps are meant to approximate the procedure of using
+ IS to get risk estimates for a new patient, under the assumption that any
+ individual patient has only a minor affect on the population-level parameter
+ posteriors.
+ In section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Results"
+
+\end_inset
+
+, we assess coherence between IS risk estimates and MCMC risk estimates.
+\end_layout
+
+\begin_layout Subsection
+Results
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Results"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We find a high degree of coherence between estimated risk of aggressive
+ cancer from IS and from MCMC, as shown if Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:jags-vs-pf"
+
+\end_inset
+
+.
+ With the 
+\begin_inset Quotes eld
+\end_inset
+
+dynamic
+\begin_inset Quotes erd
+\end_inset
+
+ proposal approach, the root mean square of the difference (rMSD) between
+ these two sets of risk estimates was 1.05% (on the probability scale, from
+ 0% to 100%).
+ The maximum absolute difference was 5.6%, with 95% of patients having a
+ difference less than 2.4%.
+ Estimation time per patient ranged from approximately 1-24 seconds
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+, depending on the number of measurements to be incorporated for that patient
+\end_layout
+
+\end_inset
+
+, with an interquartile range of 2.1-4.2 seconds.
+ We also considered a rejection sampling approach using the unstandardized
+ weights in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:importance-weights"
+
+\end_inset
+
+, but found the results to have a greater deviation from the MCMC estimates
+ (rMSD = 1.82%).
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+A small portion of these differences between these risk estimates is to
+ be expected simply due to the nature of stochastic posterior sampling --
+ for example, the rMSD between two separately run sets of MCMC risk estimates
+ has a rMSD of 0.2%.
+ AF- Note sure I want to press this point anymore...
+ since we don't get sqrt n error reductions...
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:importance-weights"
+
+\end_inset
+
+ illustrates the roughly inverse relationship between the effective sample
+ size used for IS, and the difference between IS and MCMC risk estimates.
+ In general, the 
+\begin_inset Quotes eld
+\end_inset
+
+dynamic
+\begin_inset Quotes erd
+\end_inset
+
+ approach had an accuracy comparable to the 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+ approach, but with a substancially lower computation time.
+ Computation time for the 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+ approach ranged from 9-36 seconds, with an interquartile range of 21-26
+ seconds.
+\end_layout
+
+\begin_layout Standard
+These findings suggest that the proposed IS algorithm can be an appropriate
+ substitute for full MCMC runs in order to provide real-time updates in
+ a clinical setting.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename plots/2015-10-15_agreement_IS_MCMC.png
+	width 55text%
+
+\end_inset
+
+ 
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Agreement between IS and MCMC estimates for the posterior predictions of
+ aggressive prostate cancer state in a new patient.
+ Color of the points refers to the number of candidate points used, either
+ 50,000 (small), 5 million (big), or dynamic.
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+(Dashed line indicates the axis of equality, i.e., perfect agreement.)
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:jags-vs-pf"
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename plots/2015-10-15_ESS_error_log.png
+	width 55text%
+
+\end_inset
+
+ 
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Difference between IS and MCMC risk estimates, as a function of effective
+ sample size for IS - Color of the points refers to the number of candidate
+ points used, either 50,000 (small), 5 million (big), or dynamic.
+ The dotted verticle line shows the threshold used for dynamic proposal
+ generation, at 1000.
+ Both axes are shown with log scale spacing.
+ 
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:effective-ss-v-deviation"
+
+\end_inset
+
+
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+YC: I would just list the number of candidate- 50,000, 5 million, and dynamic
+ in the legend instead of renaming the approaches 
+\begin_inset Quotes eld
+\end_inset
+
+small
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+.
+ One less step for decoding.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Discussion
+\end_layout
+
+\begin_layout Standard
+The joint model of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+ is among a growing number of statistical models for making individualized
+ health predictions and recommendations.
+ Development of such 
+\shape italic
+\emph on
+precision medicine
+\shape default
+\emph default
+ methods must occur within a framework for clinical implementation.
+ Specifically, concerns about convenience, security, and effective communication
+ must be addressed alongside statistical considerations.
+ In this technical report, we present a fast implementation of the of latent
+ health state model proposed in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
+
+\end_inset
+
+, using importance sampling to generate in-clinic predictions.
+ This approach informs decision-making by enabling doctors and patients
+ to access updated predictions in real-time in a clinical setting.
+\end_layout
+
+\begin_layout Section*
+Supplemental Code
+\end_layout
+
+\begin_layout Standard
+Code for simulating data, obtaining IS estimates, and comparing the results
+ against MCMC estimates, is available at: 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+https://github.com/aaronjfisher/prostate_surveillance/tree/master/IS-demo
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "inhealth-bib"
+options "apalike"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
