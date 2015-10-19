@@ -133,14 +133,6 @@
 \begin_layout Title
 Fast Out-of-Sample Predictions for Bayesian Hierarchical Models of Latent
  Health States, using Importance Sampling
-\begin_inset Newline newline
-\end_inset
-
-
-\emph on
-(Technical Report)
-\emph default
- 
 \end_layout
 
 \begin_layout Author
@@ -176,7 +168,7 @@ Hierarchical Bayesian models can be especially useful in precision medicine
 status open
 
 \begin_layout Plain Layout
-vital? Need to discuss!!??
+!!
 \end_layout
 
 \end_inset
@@ -188,9 +180,9 @@ vital? Need to discuss!!??
  For models fit on protected clinical data from multiple hospitals, this
  computation is exacerbated by the algorithm's need to communicate between
  firewalled servers.
- In this technical report, we discuss the use of importance sampling (IS)
- to obtain fast, in-clinic risk estimates, while naturally avoiding the
- issue of server communication.
+ In this report, we discuss how importance sampling (IS) can be used to
+ obtain fast, in-clinic risk estimates, while naturally avoiding the issue
+ of server communication.
  We apply IS to the hierarchical model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -200,8 +192,8 @@ key "Coley2015ProstateSurveillence"
 
  for predicting risk of aggressive prostate cancer.
  Risk estimates via IS can typically be obtained in 1-10 seconds per person,
- and have high agreement with estimates coming from longer-running MCMC
- methods.
+ and have high agreement with estimates coming from longer-running batch
+ MCMC methods.
  Alternative options for out-of-sample fitting and online updating are also
  discussed.
 \end_layout
@@ -246,36 +238,65 @@ A computational challenge arises though when new patients enter the clinic,
  or when existing patients accrue new measurements.
  Here, clinicians may wish to give patients a fast, in-visit estimate of
  their risk.
- However, traditional MCMC approaches for new risk estimates that require
- refitting the entire model can take hours 
+ However, batch MCMC approaches for new risk estimates that require refitting
+ the entire model can take hours
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-vital
+!!vital minutes??
 \end_layout
 
 \end_inset
 
-[[AF-!!! minutes !!??]] to complete[[AF-what about MCMC/Gibbs just for the
- new parameters??]]
+ to complete.
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-vital?
-\end_layout
-
-\end_inset
-
-.
  Additionally, if the model is refit on protected clinical data from multiple
  sites, then MCMC may require communication between firewalled servers as
  the algorithm iterates, further increasesing the computation cost.
 \end_layout
 
+\end_inset
+
+ Instead, sampling algorithms
+ 
+\lang english
+
+\begin_inset Preview
+
 \begin_layout Standard
-In this technical report we describe how importance sampling (IS) 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+colorbox{yellow}{tailored}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ for out-of-sample fitting
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+!!
+\end_layout
+
+\end_inset
+
+ can be used to get fast risk estimates in response to new patient data.
+ In this report, we specifically describe how Importance Sampling (IS) 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Bishop2006"
@@ -284,17 +305,33 @@ key "Bishop2006"
 
 
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-AF - Vital - get better citation
+http://stats.stackexchange.com/questions/116601/when-was-importance-sampling-first
+-stated
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+One earlier reference is the Hammersley & Handscomb (1964) monograph on
+ Monte Carlo methods (http://www.worldcat.org/title/monte-carlo-methods/oclc/31207
+7), which details the technique on page 57 and following, naming it "importance
+ sampling".
+ This reference was used in a 1976 article by Siegmund (http://www.jstor.org/stabl
+e/2958179).
+\begin_inset Quotes erd
+\end_inset
+
+
 \end_layout
 
 \end_inset
 
- can instead be used in precision medicine settings to get fast risk estimates
- in response to new patient data.
- We apply this to the prostate cancer model proposed by 
+ can be used to such an end.
+ We apply IS to the prostate cancer model proposed by 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Coley2015ProstateSurveillence"
@@ -447,19 +484,9 @@ key "Canini2009"
 \end_layout
 
 \begin_layout Standard
-Our specific context within personalized medicine
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-AF- Mention this keyword earlier in intro
-\end_layout
-
-\end_inset
-
- is different that of topic modeling in that while the model is complex
- and contains several layers, the data can be fully stored in memory at
- once.
+Our specific context within precision medicine is different that of topic
+ modeling in that while the model is complex and contains several layers,
+ the data can be fully stored in memory at once.
  Thus, while the approach of combining IS with periodic MCMC is not fully
  online and not feasible for text analysis, it is still a feasible option
  for the limited sample sizes in our problem.
@@ -539,11 +566,24 @@ reference "sec:methods"
  we detail our approach for applying IS in hierarchical models.
  We use an abbreviated notation that can be readily generalized to other
  precision medicine settings.
- We also compare our approach with the out-of-sample fitting approach of
- 
+ In this section we also conceptually compare our approach with Rejection
+ Sampling (RS), Gibbs Sampling approaches, and with the out-of-sample fitting
+ approach of 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Wu2015"
+
+\end_inset
+
+.
+ However, with the exception of RS, do not explore the performance of these
+ alternate methods here
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+!!
+\end_layout
 
 \end_inset
 
@@ -1659,6 +1699,140 @@ reference "sub:Results"
 ).
 \end_layout
 
+\begin_layout Standard
+\begin_inset Preview
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+colorbox{yellow}{Another approach out-of-sample estimation approach}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ is the use of Gibbs Sampling to update only parameters associated with
+ new patient data.
+ One simple implementation is to run separate MCMC chains, each initialized
+ on a different element of 
+\begin_inset Formula $\mathscr{J}_{n}$
+\end_inset
+
+.
+ An alternate approximate implementation that combines these chains is to
+ treat the set 
+\begin_inset Formula $\{\theta_{n}^{(j)}\}_{j=1}^{J}$
+\end_inset
+
+ as fixed, and to create a proxy categorical parameter 
+\begin_inset Formula $z$
+\end_inset
+
+ according to the following heirarchical distribution
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\mbox{\textbf{p}} & \sim\text{Dirichlet}(\alpha=\mathbf{1}_{J})\\
+z & \sim\text{Categorical}(\mathbf{p})\\
+b_{n+1} & \sim g(\theta^{(z)})\\
+y_{n+1} & \sim f(b_{n+1},\theta^{(z)})
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\mathbf{p}$
+\end_inset
+
+ is a 
+\begin_inset Formula $J$
+\end_inset
+
+-length vector of probabilities, 
+\begin_inset Formula $\mathbf{1}{}_{J}$
+\end_inset
+
+ is a 
+\begin_inset Formula $J$
+\end_inset
+
+-length vector of ones, and 
+\begin_inset Formula $z$
+\end_inset
+
+ is a scalar such that 
+\begin_inset Formula $P(z=j)=\mbox{\textbf{p}}_{j}$
+\end_inset
+
+ for 
+\begin_inset Formula $j=1,2,...J$
+\end_inset
+
+.
+ The above model can then be fit with traditional Gibbs Sampling, and the
+ resulting posterior estimates for 
+\begin_inset Formula $\mathbf{p}$
+\end_inset
+
+ are analogous to the weights in Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:importance-weights"
+
+\end_inset
+
+.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+This model is reminicent of the Bayesian Bootstrap 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "rubin1981bayesianBootstrap"
+
+\end_inset
+
+ in that points outside of the set 
+\begin_inset Formula $\{\theta_{n}^{(j)}\}_{j=1}^{J}$
+\end_inset
+
+ have zero support.
+ 
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+For it to be Bayesian Bootstrap exactly, it would have to be an improper
+ prior with alpha = 0 (for in infinite number of categories)?
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ We do not explore the performance of these alternate approaches in this
+ report.
+\end_layout
+
 \begin_layout Section
 Application 
 \begin_inset CommandInset label
@@ -1671,8 +1845,8 @@ name "sec:Application"
 \end_layout
 
 \begin_layout Standard
-We applied the proposed importance sampling approach to prospective data
- from the Johns Hopkins Active Surveillance (JHAS) cohort.
+We applied the proposed IS approach to simulated data based on the Johns
+ Hopkins Active Surveillance (JHAS) cohort.
  1,298 men with very low or low risk prostate cancer diagnoses were enrolled
  in JHAS from January 1995 to June 2014.
  Results of all PSA tests and biopsies performed prior to enrollment and
@@ -1691,31 +1865,31 @@ key "Coley2015ProstateSurveillence"
 \end_inset
 
 .
- 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-AF to YC - still need to apply to real data??
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Vital, there is no description of what we are currently doing with the simulated
- data, or how the data was simulated
-\end_layout
+We applied IS to a simulated dataset of 1,000 patients.
+ The model proposed in 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
 
 \end_inset
 
+ was used as the data generating model, with parameter values set equal
+ to their corresponding posterior mean estimates from fitting the model
+ to the JHAS data.
+ Covariates to the model (age and date of diagnosis) were each generated
+ from a normal distribution with mean and variance equal to that observed
+ in JHAS patients.
+ See 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Coley2015ProstateSurveillence"
 
+\end_inset
+
+ for more details on model specification and covariates.
 \end_layout
 
 \begin_layout Standard
@@ -1876,7 +2050,17 @@ status collapsed
 
 \end_inset
 
-, with an interquartile range of 2.1-4.2 seconds.
+, with an interquartile range of 2.1-4.2 seconds
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+vital change!!!
+\end_layout
+
+\end_inset
+
+.
  We also considered a rejection sampling approach using the unstandardized
  weights in Eq 
 \begin_inset CommandInset ref
@@ -1981,7 +2165,7 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename plots/2015-10-15_agreement_IS_MCMC.png
+	filename plots/2015-10-16_agreement_IS_MCMC.png
 	width 55text%
 
 \end_inset
@@ -1994,17 +2178,7 @@ Agreement between IS and MCMC estimates for the posterior predictions of
  aggressive prostate cancer state in a new patient - Color of the points
  refers to the number of candidate points used, either 50,000 (small), 5
  million (big), or dynamic.
- 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-(Dashed line indicates the axis of equality, i.e., perfect agreement.)
-\end_layout
-
-\end_inset
-
-
+ The dashed line indicates the axis of equality (i.e., perfect agreement).
 \begin_inset CommandInset label
 LatexCommand label
 name "fig:jags-vs-pf"
@@ -2033,7 +2207,7 @@ status open
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename plots/2015-10-15_ESS_error_log.png
+	filename plots/2015-10-16_ESS_error_log.png
 	width 55text%
 
 \end_inset
