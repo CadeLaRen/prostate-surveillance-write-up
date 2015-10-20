@@ -4,7 +4,6 @@
 ######################### 
 ##     Workflow:
 
-# Load data - get the posterior from leaving one subject out. Also get the posterior from fitting on the entire dataset, as something to compare against.
 # Generate particles or candidate draws for the posterior for each subject. (`gen_particles`)
 # These particles are weighted or accepted/rejected to get an estimated posterior for each subject. 
 # All new subjects share the same candidate draws, but have different weights (for importance sampling (IS)) or have different values accepted (for acceptance/rejection sampling (RS)).
@@ -16,7 +15,7 @@
 ###############
 # Generate candidate particles to weight, or accept/reject.
 
-gen_particles_space_efficient<-function(oo,nreps,verbose=TRUE){
+gen_particles<-function(oo,nreps,verbose=TRUE){
 #oo = Output from leave-one-Out JAGS object
 #nreps = number of times to expand each posterior draw
 
@@ -83,7 +82,7 @@ gen_particles_space_efficient<-function(oo,nreps,verbose=TRUE){
 #' @param ps particle set (list). Output from get_particles.
 #' @param psa_data_star psa data for subject of interest
 #' @param bx_data_star biopsy data for subject of interest
-get_likelihood_space_efficient<-function(ps, psa_data_star, bx_data_star, verbose=getOption('verbose')){
+get_likelihood<-function(ps, psa_data_star, bx_data_star, verbose=getOption('verbose')){
 
 	n_post<-dim(ps$eta)[1]
 	nreps<-dim(ps$eta)[2]
@@ -426,7 +425,7 @@ posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=
 		}
 
 		system.time({
-		likelihood_i <- get_likelihood_space_efficient(
+		likelihood_i <- get_likelihood(
 			ps=psi, #!! NEED TO UPDATE
 			psa_data_star=data_star$PSA,
 			bx_data_star=data_star$BX
@@ -481,12 +480,12 @@ posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=
 		psi_eta_1$eta[] <- 1
 		psi_eta_0$eta[] <- 0
 
-		likelihood_eta_1 <- get_likelihood_space_efficient( #denote as l1
+		likelihood_eta_1 <- get_likelihood( #denote as l1
 				ps=psi_eta_1,
 				psa_data_star=data_star$PSA,
 				bx_data_star=data_star$BX
 				) 
-		likelihood_eta_0 <- get_likelihood_space_efficient( #denote as l0
+		likelihood_eta_0 <- get_likelihood( #denote as l0
 				ps=psi_eta_0,
 				psa_data_star=data_star$PSA,
 				bx_data_star=data_star$BX
