@@ -118,7 +118,7 @@ if(taskID==1){
 		runifs=runifs, 
 		e_ss_threshold=e_ss_threshold,
 		n_draws_init=n_draws_init,
-		get_zhenkes_approach=TRUE,
+		get_ZW_approach=TRUE,
 		psa_data_full=psa_data_full,
 		bx_data_full=bx_data_full,
 		verbose=TRUE
@@ -130,7 +130,7 @@ if(taskID==1){
 		runifs=runifs,
 		e_ss_threshold=0,
 		n_draws_init=50000,
-		get_zhenkes_approach=TRUE,
+		get_ZW_approach=TRUE,
 		psa_data_full=psa_data_full,
 		bx_data_full=bx_data_full,
 		verbose=TRUE
@@ -155,7 +155,7 @@ if(taskID>1){
 		runifs=runifs, 
 		e_ss_threshold=0,
 		n_draws_init=P,
-		get_zhenkes_approach=FALSE,
+		get_ZW_approach=FALSE,
 		psa_data_full=psa_data_full,
 		bx_data_full=bx_data_full,
 		verbose=TRUE

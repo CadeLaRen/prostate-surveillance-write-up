@@ -320,7 +320,7 @@ get_likelihood<-function(ps, psa_data_star, bx_data_star, verbose=getOption('ver
 #' We have this depend on the particle set (ps) so that we can
 #' easily redo it for specific subjects with a different particle set.
 #' @param data_star a list of dataframes for subject star
-posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=800,	n_draws_init = min(length(ps$eta), e_ss_threshold*2),get_zhenkes_approach=TRUE){
+posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=800,	n_draws_init = min(length(ps$eta), e_ss_threshold*2),get_ZW_approach=TRUE){
 
 	P <- length(ps$eta)
 	n_post <- dim(ps$eta)[1]
@@ -471,10 +471,10 @@ posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=
 	num_accepted_star <<- length(accept_ind)
 	etas_RS_star <<- mean(ps_cumulative_eta[accept_ind])
 
-	## Zhenke's Approach ##
-	n_missing_zhenke <- 
-	etas_zhenke_star <- NA
-	if(get_zhenkes_approach){
+	## Zhenke Wu's 2015 Approach ##
+	n_missing_ZW <- 
+	etas_ZW_star <- NA
+	if(get_ZW_approach){
 		psi_eta_1 <-
 		psi_eta_0 <- psi
 		psi_eta_1$eta[] <- 1
@@ -497,11 +497,11 @@ posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=
 		# and then take the mean
 		# Can also work with logs, but the calculations work out to be the same
 		# at least with the examples you tried in R.
-		W_zhenke <- likelihood_eta_1 * psi$p_eta / 
+		W_ZW <- likelihood_eta_1 * psi$p_eta / 
 			(likelihood_eta_1 * psi$p_eta + likelihood_eta_0 * (1-psi$p_eta))
 
-		n_missing_zhenke <- sum(is.na(W_zhenke)) #for some particles, we end up with 0 / 0, because likelihood_eta_1 & likelihood_eta_2 both end up
-		etas_zhenke_star <- mean(W_zhenke,na.rm=TRUE)
+		n_missing_ZW <- sum(is.na(W_ZW)) #for some particles, we end up with 0 / 0, because likelihood_eta_1 & likelihood_eta_2 both end up
+		etas_ZW_star <- mean(W_ZW,na.rm=TRUE)
 	}
 
 	return(list(
@@ -514,9 +514,9 @@ posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=
 		#Rejection Sampling:
 		etas_RS_star = etas_RS_star,
 		num_accepted_star = num_accepted_star,
-		#Zhenke Sampling
-		etas_zhenke_star= etas_zhenke_star,
-		ns_missing_zhenke = n_missing_zhenke
+		#ZW Sampling
+		etas_ZW_star= etas_ZW_star,
+		ns_missing_ZW = n_missing_ZW
 	))
 }
 
@@ -529,7 +529,7 @@ posterior_star<-function( data_star, ps, runifs, rej_const=NULL,	e_ss_threshold=
 
 ###### Run loop over subjects
 posteriors_all_subjects <- function(missing_etas,
-	ps, runifs, e_ss_threshold, n_draws_init, get_zhenkes_approach=FALSE,
+	ps, runifs, e_ss_threshold, n_draws_init, get_ZW_approach=FALSE,
 	psa_data_full=psa_data_full,
 	bx_data_full=bx_data_full,
 	verbose=TRUE
@@ -547,8 +547,8 @@ namesOut <-c(
 	'num_accepted', #number of proposals accepted by rejection sampling
 	'etas_RS', #mean among proposals accepted by RS
 	'etas_IS', #posterior mean estimates for IS
-	'etas_zhenke',
-	'ns_missing_zhenke')#how many times does this method get wonky
+	'etas_ZW',
+	'ns_missing_ZW')#how many times does this method get wonky
 out<-data.frame(matrix(NA,N,length(namesOut)))
 names(out)<-namesOut
 
@@ -582,7 +582,7 @@ for(i in 1:length(missing_etas)){
 			rej_const=rej_const,
 			e_ss_threshold = e_ss_threshold,
 			n_draws_init = n_draws_init,
-			get_zhenkes_approach=get_zhenkes_approach)
+			get_ZW_approach=get_ZW_approach)
 	})['elapsed']
 	#eta_true_or_jags[missing_etas[i]]
 
