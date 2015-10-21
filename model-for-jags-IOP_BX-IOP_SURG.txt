@@ -3,7 +3,6 @@ model {
 
 # Note - to get model without informative observation of biopsies or surgery,
 # remove sections of this code tagged with IOP_BX and IOP_SURG
-	# (If so, also remove this note)
 
 
 
@@ -76,7 +75,7 @@ for (i in 1:n) {
 
 #fit LME
 for(j in 1:n_obs_psa){ 
-	mu_obs_psa[j] <- inprod(b_vec[subj_psa[j],1:d_Z], Z[j,1:d_Z])  + (beta[1]*X[j,1:d_X]) 
+	mu_obs_psa[j] <- inprod(b_vec[subj_psa[j],1:d_Z], Z[j,1:d_Z])  + (beta[1]*X[j,1:d_X]) #!!?? where does the true eta come into play here?
 	Y[j] ~ dnorm(mu_obs_psa[j], tau_res) }
 
 

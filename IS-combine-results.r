@@ -137,7 +137,7 @@ range(filter(ofits, draw_type=='dynamic')$particle_draws)
 
 
 
-# png(paste0('plots/',Sys.Date(),'_ESS_error_log.png'),height=450,width=510,pointsize=19,type='cairo')
+png(paste0('plots/',Sys.Date(),'_ESS_error_log.png'),height=450,width=510,pointsize=19,type='cairo')
 ggplot(ofits) + geom_point(aes(x=effective_ss, y=errors_IS_abs,color=draw_type),cex=1.1) +
 	scale_y_log10(breaks=c(.1,.05,.01,.005,.001)) +
 	scale_x_log10(breaks=c(10^c(1:7)))+
@@ -147,7 +147,7 @@ ggplot(ofits) + geom_point(aes(x=effective_ss, y=errors_IS_abs,color=draw_type),
 	theme(axis.text.x=element_text(angle=35, hjust = 1))
 dev.off()
 
-# png(paste0('plots/',Sys.Date(),'_agreement_IS_MCMC.png'),height=450,width=505,pointsize=19,type='cairo')
+png(paste0('plots/',Sys.Date(),'_agreement_IS_MCMC.png'),height=450,width=505,pointsize=19,type='cairo')
 ggplot(ofits)+geom_point(aes(x=etas_IS,y=etas_jags,color=draw_type),cex=1.2) +
 	theme(text=element_text(size=18)) +
 	labs(title='Agreement of risk estimates from\nIS and MCMC',x='Risk estimates from IS',y='Risk estimates from MCMC', color='Candidate\ngenerating\nscheme')

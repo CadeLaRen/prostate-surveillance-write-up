@@ -4,8 +4,11 @@
 ######################### 
 ##     Workflow:
 
+# Define Scenario
+# Load data
+# Load functions from `IS-functions-setup.R`
 # Generate particles or candidate draws for the posterior for each subject. (`gen_particles`)
-# These particles are weighted or accepted/rejected to get an estimated posterior for each subject. 
+# These particles are weighted or accepted/rejected to get an estimated posterior for each subject (`posteriors_all_subjects`).  
 # All new subjects share the same candidate draws, but have different weights (for importance sampling (IS)) or have different values accepted (for acceptance/rejection sampling (RS)).
 # Compare results to assess performance.
 #########################
@@ -73,10 +76,10 @@ oo <- readRDS(posterior_path)
 of <- readRDS(posterior_path)
 	# output from full model
 
-nreps <- 10 # How many draws of subj sepecific variables to get for each proposal of population variables.
+n_reps <- 10 # How many draws of subj sepecific variables to get for each proposal of population variables.
 
 n_post<-length(oo$p_eta) #posterior size for population variables.
-(P<-n_post*nreps) #Number of particles in our set.
+(P<-n_post*n_reps) #Number of particles in our set.
 
 
 
@@ -94,7 +97,7 @@ eta_true_or_jags[missing_etas]<-colMeans(of$eta_hat_means)
 ####### Run Functions
 ##############################
 
-source('IS-functions-setup.R')
+source('IS-functions-setup.R') # contains `posteriors_all_subjects` function
 
 ##### Generate particles:
 
@@ -102,7 +105,7 @@ seed<-101
 set.seed(seed)
 
 
-ps1 <- gen_particles(oo,nreps=nreps,verbose=TRUE) #particle set 1
+ps1 <- gen_particles(oo,n_reps=n_reps,verbose=TRUE) #particle set 1
 runifs <- runif(P) #used for rejection sampling
 
 N <- max(psa_data_full$subj) #number of subjects
@@ -118,7 +121,7 @@ if(taskID==1){
 		runifs=runifs, 
 		e_ss_threshold=e_ss_threshold,
 		n_draws_init=n_draws_init,
-		get_ZW_approach=TRUE,
+		get_ZW_approach=FALSE,
 		psa_data_full=psa_data_full,
 		bx_data_full=bx_data_full,
 		verbose=TRUE
@@ -130,14 +133,14 @@ if(taskID==1){
 		runifs=runifs,
 		e_ss_threshold=0,
 		n_draws_init=50000,
-		get_ZW_approach=TRUE,
+		get_ZW_approach=FALSE,
 		psa_data_full=psa_data_full,
 		bx_data_full=bx_data_full,
 		verbose=TRUE
 		)
 
 
-	save('seed', 'nreps','posterior_path',
+	save('seed', 'n_reps','posterior_path',
 		'small',
 		'dynamic',
 		file=paste0(batch_path,Sys.Date(),'_seed_',seed,'_IOP_BX-',IOP_BX,'_IOP_SURG-',IOP_SURG,'_P-',P,'_online_fit_results.RData'))
