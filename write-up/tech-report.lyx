@@ -132,7 +132,7 @@
 
 \begin_layout Title
 Fast Out-of-Sample Predictions for Bayesian Hierarchical Models of Latent
- Health States, using Importance Sampling
+ Health States
 \end_layout
 
 \begin_layout Author
@@ -162,13 +162,170 @@ Abstract
 \begin_layout Standard
 Hierarchical Bayesian models can be especially useful in precision medicine
  settings, where clinicians are interested in estimating the patient-level
- variables associated with a specific person's risk.
- Such models are often fit using batch
+ variables associated with a specific person's risk for negative outcomes
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-!!
+YC: You seem to be using 
+\begin_inset Quotes eld
+\end_inset
+
+variables
+\begin_inset Quotes erd
+\end_inset
+
+ to refer to 
+\begin_inset Quotes eld
+\end_inset
+
+latent variables
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+parameters
+\begin_inset Quotes erd
+\end_inset
+
+.
+ I find this unclear.
+ 
+\end_layout
+
+\begin_layout Plain Layout
+AF- Yea! I actually I posed this as a note/question of my own in earlier
+ drafts (see note below that starts with 
+\begin_inset Quotes eld
+\end_inset
+
+AF to YC
+\begin_inset Quotes erd
+\end_inset
+
+).
+ I'm not sure what the lingo is here.
+ What do you think we should call these things? I totally defer to you here!
+\end_layout
+
+\begin_layout Plain Layout
+YC: 
+\begin_inset Quotes eld
+\end_inset
+
+Risk
+\begin_inset Quotes erd
+\end_inset
+
+ is vague here and maybe a bit too tied to our application (even though
+ we aren't doing risk estimation, we are predicting a latent state).
+ You could say 
+\begin_inset Quotes eld
+\end_inset
+
+latent class or trajectory
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+likely health state and expected outcomes
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+prognosis
+\begin_inset Quotes erd
+\end_inset
+
+, or something like that to be more specific.
+\end_layout
+
+\begin_layout Plain Layout
+AF: The method generalizes also to continuous risk scores, which is why
+ I've avoided the discrete 
+\begin_inset Quotes eld
+\end_inset
+
+latent class
+\begin_inset Quotes erd
+\end_inset
+
+ terminology.
+ I agree that 
+\begin_inset Quotes eld
+\end_inset
+
+risk
+\begin_inset Quotes erd
+\end_inset
+
+ has other meanings in statistics (like 
+\begin_inset Quotes eld
+\end_inset
+
+loss
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+objective
+\begin_inset Quotes erd
+\end_inset
+
+.
+ I think 
+\begin_inset Quotes eld
+\end_inset
+
+risk of negative outcomes
+\begin_inset Quotes erd
+\end_inset
+
+ clarifies that we're talking about things like 
+\begin_inset Quotes eld
+\end_inset
+
+risk of aggressive cancer
+\begin_inset Quotes erd
+\end_inset
+
+.
+ As you mentioned, risk is a term used by doctors, so it seems appropriate
+ here? Does this address your concern? 
+\end_layout
+
+\end_inset
+
+.
+ Such models are often fit using 
+\begin_inset Preview
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+colorbox{yellow}{batch}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -182,7 +339,25 @@ status open
  firewalled servers.
  In this report, we discuss how importance sampling (IS) can be used to
  obtain fast, in-clinic risk estimates, while naturally avoiding the issue
- of server communication.
+ of server communication
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+YC: I would leave this last part out until you've fully fleshed out the
+ idea in the body of the report.
+\end_layout
+
+\begin_layout Plain Layout
+AF: OK, either way works for me.
+ Just to be clear though, are you suggesting that we remove both methods
+ of firewalls from the abstract? (regarding MCMC and regarding IS?).
+ Removing just one seems less natural to me.
+\end_layout
+
+\end_inset
+
+.
  We apply IS to the hierarchical model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -212,7 +387,30 @@ Introduction
 \begin_layout Standard
 Hierarchical Bayesian models can be especially useful in the context of
  precision medicine, when scientists are interested in estimating not only
- treatment effects, but also the risk for any individual patient.
+ treatment effects, but also the risk for any individual patient
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+YC: I find these two introductory sentences to be very confusing.
+ Why mention treatment effects specifically when we aren't dealing with
+ those? Why make this distinction between treatment effects and individualized
+ predictions? 
+\end_layout
+
+\begin_layout Plain Layout
+AF: As I understand it, this is the definition of precision medicine.
+ I really like this sentence actually, since it highlights what makes pecision
+ medicine a distinct subcategory of stats.
+ Not the data (e.g.
+ n=1), but the goal.
+ How would you define precision medicine? One definition is that it's big-data
+ intensive, but that wouldn't fit with what we do here.
+\end_layout
+
+\end_inset
+
+.
  In the context of hierarchical models, treatment effects can be estimated
  from population-level parameters, and the risk for any specific patient
  can be estimated from patient-level variables.
@@ -226,10 +424,112 @@ key "Coley2015ProstateSurveillence"
  use a patient-level latent class to categorize patients as having either
  indolent or aggressive cancer.
  In a Bayesian setting, estimation of both levels of the model -- the population
- level and the patient level -- can be attained from the posterior distribution.
- When such models are fit on a training dataset using Markov Chain Monte
- Carlo (MCMC), risk estimates are immediately available for any patient
- in the training dataset.
+ level and the patient level -- can be attained from the posterior distribution
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+YC: I don't think 
+\begin_inset Quotes eld
+\end_inset
+
+estimation can be attained from the posterior
+\begin_inset Quotes erd
+\end_inset
+
+ is clear or accurate .
+ You can obtain estimates, but estimation is a process, like Bayesian estimation
+ which requires sampling from the posterior.
+\end_layout
+
+\begin_layout Plain Layout
+AF: I don't understand the criticism here.
+ Maybe there is a subtlety I'm missing.
+ To me, the only way to interpret this sentence is to say that when you
+ do bayes stats, you obtain a posterior (or some approximation of it, via
+ sampling or other methods) and then summarize that posterior in some way
+ to make inferences or predictions.
+ There is some vagueness in how you would 
+\begin_inset Quotes eld
+\end_inset
+
+get
+\begin_inset Quotes erd
+\end_inset
+
+ the posterior, but if you *have* the posterior (exactly and analytically
+ for isntance), why is it wrong to say 
+\begin_inset Quotes eld
+\end_inset
+
+estimates [of parameters] can be obtained from the posterior
+\begin_inset Quotes erd
+\end_inset
+
+?
+\end_layout
+
+\end_inset
+
+.
+ When
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+YC: Maybe 
+\begin_inset Quotes eld
+\end_inset
+
+after
+\begin_inset Quotes erd
+\end_inset
+
+ instead of 
+\begin_inset Quotes eld
+\end_inset
+
+when
+\begin_inset Quotes erd
+\end_inset
+
+?
+\end_layout
+
+\begin_layout Plain Layout
+AF: I mean 
+\begin_inset Quotes eld
+\end_inset
+
+when
+\begin_inset Quotes erd
+\end_inset
+
+ as in 
+\begin_inset Quotes eld
+\end_inset
+
+in the case when,
+\begin_inset Quotes erd
+\end_inset
+
+ (e.g.
+ 
+\begin_inset Quotes eld
+\end_inset
+
+when we have big data, we often have sparisity
+\begin_inset Quotes erd
+\end_inset
+
+) without any specific temporal connotations.
+\end_layout
+
+\end_inset
+
+ such models are fit on a training dataset using Markov Chain Monte Carlo
+ (MCMC), risk estimates are immediately available for any patient in the
+ training dataset.
  
 \end_layout
 
@@ -239,32 +539,14 @@ A computational challenge arises though when new patients enter the clinic,
  Here, clinicians may wish to give patients a fast, in-visit estimate of
  their risk.
  However, batch MCMC approaches for new risk estimates that require refitting
- the entire model can take hours
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-!!vital minutes??
-\end_layout
-
-\end_inset
-
- to complete.
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
+ the entire model can take hours to complete.
  Additionally, if the model is refit on protected clinical data from multiple
  sites, then MCMC may require communication between firewalled servers as
  the algorithm iterates, further increasesing the computation cost.
 \end_layout
 
-\end_inset
-
- Instead, sampling algorithms
- 
-\lang english
-
+\begin_layout Standard
+Instead, 
 \begin_inset Preview
 
 \begin_layout Standard
@@ -275,28 +557,47 @@ status open
 
 
 \backslash
-colorbox{yellow}{tailored}
+colorbox{yellow}{sampling algorithms tailored for out-of-sample fitting}
 \end_layout
 
 \end_inset
 
 
-\end_layout
-
-\end_inset
-
- for out-of-sample fitting
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-!!
 \end_layout
 
 \end_inset
 
  can be used to get fast risk estimates in response to new patient data.
- In this report, we specifically describe how Importance Sampling (IS) 
+ 
+\begin_inset Preview
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+colorbox{yellow}{Such algorithms}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ can be based on conditional posteriors 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Wu2015"
+
+\end_inset
+
+, Gibbs Sampling (GS), Importance Sampling (IS), or Rejection Sampling (RS)
+ 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Bishop2006"
@@ -330,8 +631,11 @@ e/2958179).
 
 \end_inset
 
- can be used to such an end.
- We apply IS to the prostate cancer model proposed by 
+.
+ In this report, we specifically describe how IS can be used for out-of-sample
+ estimates.
+ We also discuss conceptual parallels between these four types of approaches.
+ We then apply IS to the prostate cancer model proposed by 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Coley2015ProstateSurveillence"
@@ -339,7 +643,8 @@ key "Coley2015ProstateSurveillence"
 \end_inset
 
  to get fast risk estimates for new, simulated patients.
- In this case, the procedure typically takes only 1-10 seconds per patient.
+ In this case, the IS procedure typically takes approximately 1-10 seconds
+ per patient.
  This approach can be combined with periodic refitting of the entire model
  via MCMC, in order to update the posteriors for the the population-level
  parameters 
@@ -357,7 +662,36 @@ This IS approach is related to online (or streaming) learning methods, which
  aim to continuously update population-level parameters with a constant
  computational cost over time.
  We avoid a fully online approach here though, due to additional known challenge
-s in online learning.
+s in online learning
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+YC: you should include a citation here
+\end_layout
+
+\begin_layout Plain Layout
+AF: I think it's minor, but I don't think it's needed.
+ The statement isn't yet specific enough to cite anything, and since this
+ is immediately followed by a specific explanation of what I'm referring
+ to, with citations, I think doubling those citations would be redundant.
+ I think the citaitons make the most sense at the end of the explanation,
+ but I guess we could move them to the beginning? I think this would be
+ similar to including a citation for the first sentence of your paper on
+ medicine being 
+\begin_inset Quotes eld
+\end_inset
+
+in transition
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+.
  Specifically, our use of IS can be viewed as a 1-step version of a sequential
  importance sampler (SIS), also known as particle filter.
  Employing a standard particle filter to update estimates of the population
@@ -378,36 +712,27 @@ key "Kantas2014"
 
 \end_inset
 
-,
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-AF-more citations?
-\end_layout
-
-\end_inset
-
- see section II of 
+, see section II of 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Andrieu2005"
 
 \end_inset
 
- for an intuitive explanation).
- This applies in our case, as our population-level parameters are assumed
- to be static
+ for an intuitive explanation
 \begin_inset Note Note
 status collapsed
 
 \begin_layout Plain Layout
-YC - [These 2] sentences are confusing to me; AF- Is this better?
+AF-more citations from Andieu? Most of the ones from Kantas weren't as convincin
+g??
 \end_layout
 
 \end_inset
 
-.
+).
+ This concern applies in our case, as our population-level parameters are
+ assumed to be static.
  Instead, we combine IS with periodic MCMC 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -566,23 +891,90 @@ reference "sec:methods"
  we detail our approach for applying IS in hierarchical models.
  We use an abbreviated notation that can be readily generalized to other
  precision medicine settings.
- In this section we also conceptually compare our approach with Rejection
- Sampling (RS), Gibbs Sampling approaches, and with the out-of-sample fitting
- approach of 
+ In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Alternative-Out-of-Sample-Poster"
+
+\end_inset
+
+ we 
+\begin_inset Preview
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+colorbox{yellow}{conceptually compare}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ our IS approach with RS, GS, and with conditional posteriors 
 \begin_inset CommandInset citation
-LatexCommand citet
+LatexCommand citep
 key "Wu2015"
 
 \end_inset
 
 .
- However, with the exception of RS, do not explore the performance of these
- alternate methods here
+ However, with the exception of RS, 
+\begin_inset Preview
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+colorbox{yellow}{do not explore}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ the performance of these alternate methods here
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-!!
+YC: The Methods section is not the right place for this comparison if we
+ haven't actually implemented Zhenke's method.
+ (I don't think it is necessary to do so for the tech report.)
+\end_layout
+
+\begin_layout Plain Layout
+AF: Fair enough.
+ I like including it here because of the common notation, and have done
+ similar things in another paper I finished up recently (although in that
+ case we didn't call it a 
+\begin_inset Quotes eld
+\end_inset
+
+methods
+\begin_inset Quotes erd
+\end_inset
+
+ section).
+ Now I've added it as a separate section rather than a subsection.
+ I like it here for continuity's sake, but we could also move it to after
+ the application.
+ What do you think of this?
 \end_layout
 
 \end_inset
@@ -596,17 +988,7 @@ reference "sec:Application"
 \end_inset
 
  we apply IS to simulated data, and compare the results to risk estimates
- obtained from batch MCMC
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-vital!
-\end_layout
-
-\end_inset
-
-.
+ obtained from batch MCMC.
 \end_layout
 
 \begin_layout Section
@@ -630,6 +1012,42 @@ key "Coley2015ProstateSurveillence"
 
 , who develop a latent class model to predict underlying prostate cancer
  state in men participating in an active surveillance program for low risk
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+TC: Just FYI here, labeling someone's cancer as 
+\begin_inset Quotes eld
+\end_inset
+
+low risk
+\begin_inset Quotes erd
+\end_inset
+
+ has a clinical meaning here.
+ This is literally how the doctor's refer to the diagnosis.
+ 
+\begin_inset Quotes eld
+\end_inset
+
+Low risk
+\begin_inset Quotes erd
+\end_inset
+
+ men are eligible for active surveillance.
+ The model does not classify anyone as 
+\begin_inset Quotes eld
+\end_inset
+
+low risk
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
  disease.
  The latent cancer state is defined as being indolent or aggressive, correspondi
 ng to the Gleason score 
@@ -680,9 +1098,37 @@ key "Coley2015ProstateSurveillence"
 ts, and for longitudinal biopsy results.
  Both of these sub-models incorporate information about the patients latent
  state.
- The (log-transformed) PSA measurements are modeled as multivariate normal,
- with a mean defined by a linear predictor that includes subject-specific
- random effects.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+YC: I think this previous sentence could be more clear.
+ There is likely a more exact way to say that the likelihood for PSA and
+ biopsy results depend on latent state.
+\end_layout
+
+\begin_layout Plain Layout
+AF: Yea.
+ This was meant to be a general introduction to the model, with the more
+ specific model descriptions immediately following.
+ I spent a while trying to think about how to balance dept with brevity
+ here, adn this is the best I came up with.
+ How would you write this? I've just added 
+\begin_inset Quotes eld
+\end_inset
+
+More specifically
+\begin_inset Quotes erd
+\end_inset
+
+ in the following sentence.
+\end_layout
+
+\end_inset
+
+ More specifically, the (log-transformed) PSA measurements are modeled as
+ multivariate normal, with a mean defined by a linear predictor that includes
+ subject-specific random effects.
  The distribution of these random effects is modeled to depend on latent
  class membership.
  Biopsy results are coded as binary outcomes denoting 
@@ -745,7 +1191,7 @@ key "Coley2015ProstateSurveillence"
  for a full model description.
  
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 AF- Add footnote briefly listing subj level and pop level parameters, without
@@ -858,372 +1304,8 @@ In this this technical report, we first provide an overview of the latent
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset Note Note
-status collapsed
-
 \begin_layout Section
-Bayesian Joint Hierarchical Latent Class Model
-\end_layout
-
-\begin_layout Plain Layout
-In this section, we briefly summarize the joint model proposed in 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "Coley2015ProstateSurveillence"
-
-\end_inset
-
- for predicting latent cancer state for men participating in Active Surveillance
- for low risk prostate disease.
- Predictions are made by incorporating information from repeated prostate
- specific antigen (PSA) and biopsy measurements for all individuals, as
- well as true cancer state information observed in a subset of the cohort.
- In this technical report, we will focus on the model that assumes biopsy
- and latent class observation are missing at random, that is, not associated
- with the latent state after conditioning on observed clinical variables.
- For more model details and application background, please see 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "Coley2015ProstateSurveillence"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Plain Layout
-Let 
-\begin_inset Formula $\eta_{i}$
-\end_inset
-
- indicate the true cancer state for individual 
-\begin_inset Formula $i$
-\end_inset
-
-, 
-\begin_inset Formula $i=1,\dots,n$
-\end_inset
-
-, defined using the Gleason score 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Gleason1977,Gleason1992"
-
-\end_inset
-
- that would be assigned if his entire prostate were to be removed and pathologic
- analysis performed: 
-\begin_inset Formula $\eta_{i}=0$
-\end_inset
-
- if Gleason 
-\begin_inset Formula $\leq$
-\end_inset
-
- 6 or 
-\shape italic
-indolent
-\shape default
- and 
-\begin_inset Formula $\eta_{i}=1$
-\end_inset
-
- if Gleason 
-\begin_inset Formula $\geq$
-\end_inset
-
- 7 or 
-\shape italic
-aggressive
-\shape default
-.
- True cancer state then follows a Bernoulli distribution-- 
-\begin_inset Formula $\eta_{i}\sim Bernoulli(\rho)$
-\end_inset
-
--- where we assume here, for simplicity, a shared underlying probability
- of aggressive cancer, 
-\begin_inset Formula $\rho$
-\end_inset
-
-.
- This true cancer state is observed in a subset of patients who choose to
- have their prostate surgically removed; as such, 
-\begin_inset Formula $\eta_{i}$
-\end_inset
-
- is a partially latent variable.
-\end_layout
-
-\begin_layout Plain Layout
-Next, define the following mixed effects model 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Laird1982"
-
-\end_inset
-
- for an individual's PSA over time where mean effects for predictors are
- allowed to vary across groups defined by the partially latent true cancer
- state: 
-\begin_inset Formula 
-\begin{eqnarray*}
-\big[\,Y_{im}|\eta_{i}=k,\bmX_{im},\bmZ_{im}\,\big]=\bmX_{im}\bmbeta+\bmZ_{im}\bmb_{i}+\epsilon_{im}
-\end{eqnarray*}
-
-\end_inset
-
-where 
-\begin_inset Formula $Y_{im}$
-\end_inset
-
- is the observed (log-transformed) PSA, 
-\begin_inset Formula $\bmX_{im}$
-\end_inset
-
- and 
-\begin_inset Formula $\bmZ_{im}$
-\end_inset
-
- are vectors of covariates for individual 
-\begin_inset Formula $i$
-\end_inset
-
-'s 
-\begin_inset Formula $m$
-\end_inset
-
-th PSA measurement, 
-\begin_inset Formula $\bmbeta$
-\end_inset
-
- is a parameter vector for fixed effects, and 
-\begin_inset Formula $\bmb_{i}$
-\end_inset
-
- is the patient-specific vector of random effects.
- Following the specification of a Bayesian mixed effects model presented
- by Gelman and Hill (2006)
-\begin_inset CommandInset citation
-LatexCommand nocite
-key "Gelman2006"
-
-\end_inset
-
-, unscaled random effects are centered at the mean effects for each latent
- class 
-\begin_inset Formula $k$
-\end_inset
-
-, 
-\begin_inset Formula $\bmmu_{k}$
-\end_inset
-
-: 
-\begin_inset Formula 
-\begin{eqnarray*}
-\big[\check{\bmb_{i}}|\eta_{i}=k\big]\sim MVN(\bmmu_{k},\Sigma_{k}),\quad k=0,1
-\end{eqnarray*}
-
-\end_inset
-
-where 
-\begin_inset Formula $\Sigma_{k}$
-\end_inset
-
- is a covariance matrix that allows for correlation between random effects.
- Random effects are then scaled with parameter vector 
-\begin_inset Formula $\bmxi$
-\end_inset
-
-: 
-\begin_inset Formula $\bmb_{i}=diag(\check{\bmb_{i}}\bmxi^{T})$
-\end_inset
-
-.
- Lastly, residuals 
-\begin_inset Formula $\epsilon_{im}$
-\end_inset
-
- are assumed to follow a normal distribution with mean 0 and variance 
-\begin_inset Formula $\sigma^{2}$
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Plain Layout
-Finally, let 
-\begin_inset Formula $(B_{ij},R_{ij})$
-\end_inset
-
- denote binary variables for individual 
-\begin_inset Formula $i$
-\end_inset
-
- in annual interval 
-\begin_inset Formula $j$
-\end_inset
-
- indicating, respectively, whether a biopsy was performed and, when it was,
- if 
-\shape italic
-reclassification
-\shape default
- was observed, i.e.
- a determination of Gleason 
-\begin_inset Formula $\geq$
-\end_inset
-
- 7 made.
- 
-\begin_inset Formula $(B_{ij},R_{ij})$
-\end_inset
-
- is defined for 
-\begin_inset Formula $j=1,\dots,J_{i}$
-\end_inset
-
- where 
-\begin_inset Formula $J_{i}$
-\end_inset
-
- is the time of reclassification or censoring for patient 
-\begin_inset Formula $i$
-\end_inset
-
-.
- For each time interval with a biopsy, 
-\begin_inset Formula $B_{ij}=1$
-\end_inset
-
-, we use logistic regression to model its result conditional on true cancer
- state: 
-\begin_inset Formula 
-\begin{eqnarray}
-P(R_{ij}=1|B_{ij}=1,\eta_{i}=k,\bmV_{ij},\bmgamma)=\text{logit}^{-1}\big(\bmV_{ij}(k)\bmgamma\big)\label{eq:p_rc}
-\end{eqnarray}
-
-\end_inset
-
-where 
-\begin_inset Formula $\bmV_{ij}(k)$
-\end_inset
-
- is a matrix of time-varying predictors including 
-\begin_inset Formula $\eta_{i}$
-\end_inset
-
- and 
-\begin_inset Formula $\bmgamma$
-\end_inset
-
- is a parameter vector.
-\end_layout
-
-\begin_layout Plain Layout
-We then define the joint probability of the parameters given data and unobserved
- latent variables: 
-\begin_inset Formula 
-\begin{eqnarray}
- &  & L\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma\,|\,\big(\eta_{i},(\bmY_{i},\bmb_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}}),(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big),i=1,\mydots,n\Big)\nonumber \\
- &  & \quad=\prod_{i=1}^{n}\,\rho^{\eta_{i}}\,(1-\rho)^{1-\eta_{i}}\,f(\bmY_{i}|\eta_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}},\bmb_{i},\bmbeta,\sigma^{2})\,g(\bmb_{i}|\bmmu_{\eta_{i}},\Sigma_{\eta_{i}})\nonumber \\
- &  & \qquad\qquad\prod_{j=1}^{J_{i}}\big(P(R_{ij}=1|\eta_{i},\bmV_{ij},\bmgamma)^{R_{ij}}P(R_{ij}=0|\eta_{i},\bmV_{ij},\bmgamma)^{1-R_{ij}}\big)^{B_{ij}}\label{eq:lik-inf}
-\end{eqnarray}
-
-\end_inset
-
-where 
-\begin_inset Formula $f$
-\end_inset
-
- and 
-\begin_inset Formula $g$
-\end_inset
-
- are multivariate normal densities for the vector of log-transformed PSAs
- 
-\begin_inset Formula $\bmY_{i}$
-\end_inset
-
-, and random effects 
-\begin_inset Formula $\bmb_{i}$
-\end_inset
-
-, respectively, each with mean and covariance as defined above, given covariance
- matrices 
-\begin_inset Formula $\underline{\bmX_{i}}=[X_{i1},\dots,X_{iM_{i}}]$
-\end_inset
-
- and 
-\begin_inset Formula $\underline{\bmZ_{i}}=[Z_{i1},\dots,Z_{iM_{i}}]$
-\end_inset
-
-.
- 
-\begin_inset Formula $\mathbf{B}_{i},\mathbf{R}_{i}$
-\end_inset
-
- represent vectors for biopsy and reclassification for individual 
-\begin_inset Formula $i$
-\end_inset
-
- with associated covariance matrix 
-\begin_inset Formula $\underline{\bmV_{i}}$
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Plain Layout
-Bayesian methods are used to identify posteriors for model parameters and
- latent variables.
- Discussion of prior specification can be found in 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "Coley2015ProstateSurveillence"
-
-\end_inset
-
-.
- After specifying priors for all model parameters, the join posterior distributi
-on of the parameter and latent variables is: 
-\begin_inset Formula 
-\begin{eqnarray}
- &  & p\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma,(\eta_{i},\bmb_{i})\,|\,\big((\bmY_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}}),(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big);\bmTheta\Big)\nonumber \\
- &  & \qquad\propto L\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma\,|\,\big(\eta_{i},(\bmY_{i},\bmb_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}},(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big)\Big)\times\bmpi\big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma|\bmTheta\big)\label{eq:post-inf}
-\end{eqnarray}
-
-\end_inset
-
-where 
-\begin_inset Formula $\bmpi(\cdot|\bmTheta)$
-\end_inset
-
- denotes the joint prior density for model parameters with hyperparameters
- 
-\begin_inset Formula $\bmTheta$
-\end_inset
-
- with indexing on 
-\begin_inset Formula $i,\,j,$
-\end_inset
-
- and 
-\begin_inset Formula $k$
-\end_inset
-
- suppressed for clarity in presentation.
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
-Methods for Fast Prediction Updates
+IS Algorithm for Fast Prediction Updates
 \begin_inset CommandInset label
 LatexCommand label
 name "sec:methods"
@@ -1338,7 +1420,7 @@ reference "eq:posterior_n"
 \end_layout
 
 \begin_layout Subsection
-IS Algorithm
+Core IS Algorithm
 \end_layout
 
 \begin_layout Standard
@@ -1635,61 +1717,42 @@ reference "eq:drawing-subj-level-vars"
  
 \end_layout
 
-\begin_layout Subsection
-Alternative Out-of-Sample Posterior Estimations
+\begin_layout Section
+Alternative Out-of-Sample Posterior Estimation Methods
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Alternative-Out-of-Sample-Poster"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-Our IS approach functions similarly to the out-of-sample estimation approach
- of 
+In this section we outline some of the conceptual connections between our
+ IS approach and out-of-sample fitting approaches based on Rejection Sampling
+ (RS), Gibbs Sampling, and conditional posteriors 
 \begin_inset CommandInset citation
-LatexCommand citet
+LatexCommand citep
 key "Wu2015"
 
 \end_inset
 
 .
- Their approach can be generalized to estimate the updated posterior probability
- that 
-\begin_inset Formula $P(b_{n+1}=x|y_{1:(n+1)})$
-\end_inset
-
-, using the estimator 
-\begin_inset Formula $\hat{P}(b_{n+1}=x|y_{1:(n+1)})=\left(\frac{1}{P}\right)\sum_{j=1}^{P}\left\{ \frac{f(y_{n+1}|b_{n+1}=x,\theta^{(j)})g(x|\theta^{(j)})}{\int f(y_{n+1}|b_{n+1}=x',\theta^{(j)})g(x'|\theta^{(j)})dx'}\right\} $
-\end_inset
-
-.
- This approach is especially practical when the subject-specific variables
- 
-\begin_inset Formula $b_{n+1}$
-\end_inset
-
- are discrete, and the integral in the denominator can be replaced with
- a summation.
- For cases with both continuous and discrete subject-specific variables,
- the approach can be combined with a proposal generation method based on
- Eq 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:drawing-subj-level-vars"
-
-\end_inset
-
-.
- 
 \end_layout
 
 \begin_layout Standard
-Rejection sampling can also be applied using the unstandardized weights
- in Eq 
+Most directly related to our IS approach, RS can also be applied using the
+ unstandardized weights in Eq 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "eq:importance-weights"
 
 \end_inset
 
-, although we found this approach to be less computationally efficient than
- IS for our scenario (see Section 
+.
+ While RS allows for fewer particles to be stored in memory, we found IS
+ to be more computationally efficient in our scenario (see Section 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sub:Results"
@@ -1697,6 +1760,18 @@ reference "sub:Results"
 \end_inset
 
 ).
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+AF - For future version as a paper, need to cite Brian's paper on rejection
+ sampling where the upper limit of the likelihood is not known and we have
+ to use max(likelihood) instead?
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1710,7 +1785,7 @@ status open
 
 
 \backslash
-colorbox{yellow}{Another approach out-of-sample estimation approach}
+colorbox{yellow}{Out-of-sample estimation can also be done using Gibbs Sampling}
 \end_layout
 
 \end_inset
@@ -1720,16 +1795,20 @@ colorbox{yellow}{Another approach out-of-sample estimation approach}
 
 \end_inset
 
- is the use of Gibbs Sampling to update only parameters associated with
- new patient data.
+ to update only the parameters associated with new patient data (i.e.
+ 
+\begin_inset Formula $b_{n+1}$
+\end_inset
+
+).
  One simple implementation is to run separate MCMC chains, each initialized
  on a different element of 
 \begin_inset Formula $\mathscr{J}_{n}$
 \end_inset
 
 .
- An alternate approximate implementation that combines these chains is to
- treat the set 
+ Another approximate implementation that combines these chains is to treat
+ the set 
 \begin_inset Formula $\{\theta_{n}^{(j)}\}_{j=1}^{J}$
 \end_inset
 
@@ -1829,8 +1908,69 @@ For it to be Bayesian Bootstrap exactly, it would have to be an improper
 
 \end_inset
 
- We do not explore the performance of these alternate approaches in this
- report.
+
+\end_layout
+
+\begin_layout Standard
+Finally, our IS approach functions similarly to the out-of-sample estimation
+ approach of 
+\begin_inset CommandInset citation
+LatexCommand citet
+key "Wu2015"
+
+\end_inset
+
+.
+ Their approach can be generalized to estimate the updated posterior probability
+ that 
+\begin_inset Formula $P(b_{n+1}=x|y_{1:(n+1)})$
+\end_inset
+
+, using the estimator 
+\begin_inset Formula $\hat{P}(b_{n+1}=x|y_{1:(n+1)}):=\left(\frac{1}{P}\right)\sum_{j=1}^{P}\left\{ \frac{f(y_{n+1}|b_{n+1}=x,\theta^{(j)})g(x|\theta^{(j)})}{\int f(y_{n+1}|b_{n+1}=x',\theta^{(j)})g(x'|\theta^{(j)})dx'}\right\} $
+\end_inset
+
+.
+ This approach is especially practical when the subject-specific variables
+ 
+\begin_inset Formula $b_{n+1}$
+\end_inset
+
+ are discrete, and the integral in the denominator can be replaced with
+ a summation.
+ For cases with both continuous and discrete subject-specific variables,
+ the approach can be combined with a proposal generation method based on
+ Eq 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:drawing-subj-level-vars"
+
+\end_inset
+
+.
+ We do 
+\begin_inset Preview
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+colorbox{yellow}{not explore}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ the performance of this approach, or of the above Gibbs Sampling approach,
+ in this report.
 \end_layout
 
 \begin_layout Section
@@ -1868,7 +2008,7 @@ key "Coley2015ProstateSurveillence"
 \end_layout
 
 \begin_layout Standard
-We applied IS to a simulated dataset of 1,000 patients.
+Out simulated dataset consisted of 1,000 patients.
  The model proposed in 
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -2036,31 +2176,28 @@ dynamic
 \end_inset
 
  proposal approach, the root mean square of the difference (rMSD) between
- these two sets of risk estimates was 1.05% (on the probability scale, from
+ these two sets of risk estimates was 1.1% (on the probability scale, from
  0% to 100%).
- The maximum absolute difference was 5.6%, with 95% of patients having a
- difference less than 2.4%.
- Estimation time per patient ranged from approximately 1-24 seconds
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-, depending on the number of measurements to be incorporated for that patient
-\end_layout
-
+ The maximum absolute difference was 7.3%, with 99% of patients having a
+ difference less than 3.6%.
+ Corresponding 100% and 99% quantiles of differences were 9.5% and 5.0% for
+ the 
+\begin_inset Quotes eld
 \end_inset
 
-, with an interquartile range of 2.1-4.2 seconds
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-vital change!!!
-\end_layout
-
+small
+\begin_inset Quotes erd
 \end_inset
 
-.
+ approach, and 5.2% and 3.4% for the 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+ approach.
  We also considered a rejection sampling approach using the unstandardized
  weights in Eq 
 \begin_inset CommandInset ref
@@ -2070,7 +2207,15 @@ reference "eq:importance-weights"
 \end_inset
 
 , but found the results to have a greater deviation from the MCMC estimates
- (rMSD = 1.82%).
+ (rMSD = 1.5% for the 
+\begin_inset Quotes eld
+\end_inset
+
+dynamic
+\begin_inset Quotes erd
+\end_inset
+
+ approach).
  
 \begin_inset Note Note
 status collapsed
@@ -2121,33 +2266,73 @@ reference "eq:importance-weights"
 
  illustrates the roughly inverse relationship between the effective sample
  size used for IS, and the difference between IS and MCMC risk estimates.
- In general, the 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+\begin_inset Preview
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+colorbox{yellow}{It is worth noting however}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ that the differences did not tend to decrease at a rate proportional to
+ the square root of the effective sample size.
+\end_layout
+
+\end_inset
+
+ Here, all three approaches performed similarly, with the 
 \begin_inset Quotes eld
 \end_inset
 
-dynamic
+small
 \begin_inset Quotes erd
 \end_inset
 
- approach had an accuracy comparable to the 
+ approach being the fastest.
+ Computation time per patient ranged from 1.6-41.6 minutes, 1.7 seconds-4.2
+ minutes, and 1.7-3.0 seconds for the 
 \begin_inset Quotes eld
 \end_inset
 
-big
+big,
 \begin_inset Quotes erd
 \end_inset
 
- approach, but with a substancially lower computation time.
- Computation time for the 
+ 
 \begin_inset Quotes eld
 \end_inset
 
-big
+dynamic,
 \begin_inset Quotes erd
 \end_inset
 
- approach ranged from 9-36 seconds, with an interquartile range of 21-26
- seconds.
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+small
+\begin_inset Quotes erd
+\end_inset
+
+ approaches respsectively.
+ Interquartile ranges for the three methods were 3.2-4.0 minutes, 2.7-5.3 seconds,
+ and 2.6-2.8 seconds.
 \end_layout
 
 \begin_layout Standard
@@ -2230,6 +2415,39 @@ name "fig:effective-ss-v-deviation"
 \end_inset
 
 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+YC: I would just list the number of candidate- 50,000, 5 million, and dynamic
+ in the legend instead of renaming the approaches 
+\begin_inset Quotes eld
+\end_inset
+
+small
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+big
+\begin_inset Quotes erd
+\end_inset
+
+.
+ One less step for decoding.
+\end_layout
+
+\begin_layout Plain Layout
+AF: Sounds good! I like that approach, and will hopefully find time tomorrow
+ to add it.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -2298,11 +2516,11 @@ Supplemental Code
 Code for simulating data, obtaining IS estimates, and comparing the results
  against MCMC estimates, is available at: 
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
-https://github.com/aaronjfisher/prostate_surveillance/tree/master/IS-demo
+https://github.com/aaronjfisher/prostate_surveillance/tree/public/code
 \end_layout
 
 \end_inset
