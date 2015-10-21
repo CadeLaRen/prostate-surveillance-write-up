@@ -25,7 +25,7 @@ This will ultimately result in plots being saved to the `plots` folder.
         + `model-for-jags-NIOP_BX-NIOP_SURG.txt`, depending on variables that tell whether informative observation processes for biopsies and surgeries should be included in the model.
 * `combine-jags-results.R` - concatenates the results of parallel runs of `call-jags-cluster.R`
 * `IS-fitting.R` - run IS on individual patients. This function calls the script
-    - IS-function-setup.R
+    - `IS-function-setup.R`
 * `IS-combine-results.r` - aggregate results from `IS-fitting.R` and generate plots
 
 
