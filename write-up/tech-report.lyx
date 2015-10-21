@@ -260,7 +260,7 @@ latent class
 \end_inset
 
  terminology.
- I agree that 
+ Are you referring to the other meanings 
 \begin_inset Quotes eld
 \end_inset
 
@@ -268,7 +268,15 @@ risk
 \begin_inset Quotes erd
 \end_inset
 
- has other meanings in statistics (like 
+ has within statistics (like 
+\begin_inset Quotes eld
+\end_inset
+
+bayes risk
+\begin_inset Quotes erd
+\end_inset
+
+ or 
 \begin_inset Quotes eld
 \end_inset
 
@@ -284,7 +292,7 @@ objective
 \begin_inset Quotes erd
 \end_inset
 
-.
+?).
  I think 
 \begin_inset Quotes eld
 \end_inset
@@ -302,8 +310,10 @@ risk of aggressive cancer
 \end_inset
 
 .
- As you mentioned, risk is a term used by doctors, so it seems appropriate
- here? Does this address your concern? 
+ You mentioned that risk is a term used by doctors, so it seems appropriate
+ here? I would say that a risk is a probability estimate, and we're estimating
+ a probability of latent class memberhsip, so we're estimating a risk.
+ Does this address your concern?
 \end_layout
 
 \end_inset
@@ -402,10 +412,12 @@ YC: I find these two introductory sentences to be very confusing.
 AF: As I understand it, this is the definition of precision medicine.
  I really like this sentence actually, since it highlights what makes pecision
  medicine a distinct subcategory of stats.
- Not the data (e.g.
- n=1), but the goal.
+ It's not the data (e.g.
+ n=1), it's the goal.
  How would you define precision medicine? One definition is that it's big-data
- intensive, but that wouldn't fit with what we do here.
+ intensive health predictions, but that wouldn't fit with what we do here.
+ I guess my understanding is that big data has reinvigorated precision medicine,
+ but is not central to it.
 \end_layout
 
 \end_inset
@@ -445,20 +457,12 @@ estimation can be attained from the posterior
 \begin_layout Plain Layout
 AF: I don't understand the criticism here.
  Maybe there is a subtlety I'm missing.
- To me, the only way to interpret this sentence is to say that when you
- do bayes stats, you obtain a posterior (or some approximation of it, via
- sampling or other methods) and then summarize that posterior in some way
- to make inferences or predictions.
- There is some vagueness in how you would 
-\begin_inset Quotes eld
-\end_inset
-
-get
-\begin_inset Quotes erd
-\end_inset
-
- the posterior, but if you *have* the posterior (exactly and analytically
- for isntance), why is it wrong to say 
+ This sentence means that when you do bayes stats, you obtain a posterior
+ (or some approximation of it, via sampling or other methods) and then summarize
+ that posterior in some way to make inferences or predictions.
+ I'm not sayin ghere how you would *get* the posterior, but if you *have*
+ the posterior (exactly / analytically for isntance), why is it wrong to
+ say 
 \begin_inset Quotes eld
 \end_inset
 
@@ -522,7 +526,9 @@ when we have big data, we often have sparisity
 \begin_inset Quotes erd
 \end_inset
 
-) without any specific temporal connotations.
+) without any connotations of sequences in time.
+ The point there being that it's not even really an additional step, it's
+ immediately there.
 \end_layout
 
 \end_inset
@@ -671,10 +677,11 @@ YC: you should include a citation here
 \end_layout
 
 \begin_layout Plain Layout
-AF: I think it's minor, but I don't think it's needed.
- The statement isn't yet specific enough to cite anything, and since this
- is immediately followed by a specific explanation of what I'm referring
- to, with citations, I think doubling those citations would be redundant.
+AF: I think it's minor, but I think the citation in the best spot.
+ The previous statement isn't yet specific enough to tie to a specific citation,
+ and since this is immediately followed by a specific explanation of what
+ I'm referring to, with citations, I think doubling those citations would
+ be redundant.
  I think the citaitons make the most sense at the end of the explanation,
  but I guess we could move them to the beginning? I think this would be
  similar to including a citation for the first sentence of your paper on
@@ -682,11 +689,11 @@ AF: I think it's minor, but I don't think it's needed.
 \begin_inset Quotes eld
 \end_inset
 
-in transition
+in transition,
 \begin_inset Quotes erd
 \end_inset
 
-.
+ rather than talking citing the specific studies in the sentences that follow.
 \end_layout
 
 \end_inset
@@ -724,8 +731,8 @@ key "Andrieu2005"
 status collapsed
 
 \begin_layout Plain Layout
-AF-more citations from Andieu? Most of the ones from Kantas weren't as convincin
-g??
+AF (non vital)-more citations from Andieu? Most of the ones from Kantas
+ weren't as convincing??
 \end_layout
 
 \end_inset
@@ -748,7 +755,7 @@ key "Lee2002"
 status collapsed
 
 \begin_layout Plain Layout
-Should we talk here about server communication again??
+AF (non vital)Should we talk here about server communication again??
 \end_layout
 
 \end_inset
@@ -960,9 +967,9 @@ YC: The Methods section is not the right place for this comparison if we
 
 \begin_layout Plain Layout
 AF: Fair enough.
- I like including it here because of the common notation, and have done
- similar things in another paper I finished up recently (although in that
- case we didn't call it a 
+ I like including it here for continuity and because of the common notation,
+ and have done similar things in another paper I finished up recently (although
+ in that case we didn't call it a 
 \begin_inset Quotes eld
 \end_inset
 
@@ -972,9 +979,9 @@ methods
 
  section).
  Now I've added it as a separate section rather than a subsection.
- I like it here for continuity's sake, but we could also move it to after
- the application.
- What do you think of this?
+ Again, I like the continuity of it there, but we could also move it to
+ after the application.
+ What do you think?
 \end_layout
 
 \end_inset
@@ -1016,7 +1023,7 @@ key "Coley2015ProstateSurveillence"
 status collapsed
 
 \begin_layout Plain Layout
-TC: Just FYI here, labeling someone's cancer as 
+YC: Just FYI here, labeling someone's cancer as 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1190,33 +1197,6 @@ key "Coley2015ProstateSurveillence"
 
  for a full model description.
  
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-AF- Add footnote briefly listing subj level and pop level parameters, without
- further explanation?
-\end_layout
-
-\end_inset
-
- 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-YC - This is also confusing because you haven't used this distinction between
- subject- and population-level parameters yet and the need is unclear.
- 
-\end_layout
-
-\begin_layout Plain Layout
-AF - Isn't this covered in the first paragraph of the intro?
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -1877,10 +1857,10 @@ reference "eq:importance-weights"
 
 .
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
-This model is reminicent of the Bayesian Bootstrap 
+AF (non vital)- This model is reminicent of the Bayesian Bootstrap 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "rubin1981bayesianBootstrap"
@@ -2221,34 +2201,12 @@ dynamic
 status collapsed
 
 \begin_layout Plain Layout
-A small portion of these differences between these risk estimates is to
- be expected simply due to the nature of stochastic posterior sampling --
- for example, the rMSD between two separately run sets of MCMC risk estimates
- has a rMSD of 0.2%.
+AF (non vital)- A small portion of these differences between these risk
+ estimates is to be expected simply due to the nature of stochastic posterior
+ sampling -- for example, the rMSD between two separately run sets of MCMC
+ risk estimates has a rMSD of 0.2%.
  AF- Note sure I want to press this point anymore...
  since we don't get sqrt n error reductions...
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-vital - realized a typo that made 
-\begin_inset Quotes eld
-\end_inset
-
-big
-\begin_inset Quotes erd
-\end_inset
-
- approach not big enough.
- re-running 'big' approach now.
 \end_layout
 
 \end_inset
@@ -2441,8 +2399,8 @@ big
 \end_layout
 
 \begin_layout Plain Layout
-AF: Sounds good! I like that approach, and will hopefully find time tomorrow
- to add it.
+AF: Yea! I like that approach, and will hopefully find time tomorrow to
+ add it.
 \end_layout
 
 \end_inset
@@ -2498,8 +2456,8 @@ key "Coley2015ProstateSurveillence"
 status open
 
 \begin_layout Plain Layout
-AF- This conclusion currently focuses a lot on the PSA example.
- I think it would be better to make it more general.
+AF (non vital)- This conclusion currently focuses a lot on the PSA example.
+ I think it might be better to make it more general.
  
 \end_layout
 
