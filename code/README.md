@@ -5,7 +5,7 @@ Prediction modeling for active surveillance of prostate cancer
 
 Analysts can reproduce our results using a sun grid engine computing cluster, by running
 
-`run-MCMC-IS.sh`
+`bash run-MCMC-IS.sh`
 
 This will ultimately result in plots being saved to the `plots` folder.
 
