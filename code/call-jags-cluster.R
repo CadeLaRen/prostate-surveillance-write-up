@@ -45,7 +45,7 @@ ni <- 50000; nb <- 25000; nt <- 20; nc <- 1
 #save file to show that job has started
 cat('',file=paste0(save_path,Sys.Date(),'_started_SEED-',SEED,'_star-',star,'_crop-',crop,'_len.sim-',len.sim,'.txt'))
 
-source('call-jags-master.R') #includes function `call_jags_psa`
+source('call-jags-functions-setup.R') #includes function `call_jags_psa`
 outJAGS <- call_jags_psa(seed=SEED) #final output of this script
 
 
