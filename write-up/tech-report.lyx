@@ -162,7 +162,8 @@ Abstract
 \begin_layout Standard
 Hierarchical Bayesian models can be especially useful in precision medicine
  settings, where clinicians are interested in estimating the patient-level
- variables associated with a specific person's risk for negative outcomes
+ latent variables associated with a specific person's risk for negative
+ outcomes
 \begin_inset Note Note
 status open
 
@@ -316,6 +317,46 @@ risk of aggressive cancer
  Does this address your concern?
 \end_layout
 
+\begin_layout Plain Layout
+YC: I think we can use 
+\begin_inset Quotes eld
+\end_inset
+
+patient-level latent variables
+\begin_inset Quotes erd
+\end_inset
+
+ instead of patient-level parameters or patient-level variables.
+ Then, instead of 
+\begin_inset Quotes eld
+\end_inset
+
+associated with a specific person's risk for negative outcomes
+\begin_inset Quotes erd
+\end_inset
+
+- which I think is too specific and could be more general- we say 
+\begin_inset Quotes eld
+\end_inset
+
+estimating the patient-level latent variables associated with an individual's
+ current health state and its trajectory.
+\begin_inset Quotes erd
+\end_inset
+
+ This is similar to language that we (SZ, ZW and I) have used to describe
+ a more general bayesian hierarchical framework for individualized medicine
+ and includes various discrete and continuous measures of risk but also,
+ more simiply, any unobserved characteristic.
+ I've only changed the language a few places below; we should probably both
+ proofread a final version to make sure that we are consistent throughout.
+\end_layout
+
+\begin_layout Plain Layout
+AF: Awesome!! I see what you're saying now.
+ I''ve search-replaced risk with latent health state.
+\end_layout
+
 \end_inset
 
 .
@@ -344,14 +385,10 @@ colorbox{yellow}{batch}
  However, the slow speed of batch MCMC computation makes it difficult to
  implement in clinical settings, where immediate risk estimates are often
  desired in response to new patient data.
- For models fit on protected clinical data from multiple hospitals, this
- computation is exacerbated by the algorithm's need to communicate between
- firewalled servers.
- In this report, we discuss how importance sampling (IS) can be used to
- obtain fast, in-clinic risk estimates, while naturally avoiding the issue
- of server communication
+ In this report, we discuss how importance sampling (IS) can isntead be
+ used to obtain fast, in-clinic risk estimates
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 YC: I would leave this last part out until you've fully fleshed out the
@@ -365,6 +402,19 @@ AF: OK, either way works for me.
  Removing just one seems less natural to me.
 \end_layout
 
+\begin_layout Plain Layout
+YC (Most recent): I would either keep both or remove both.
+ It is us to you and probably not too consequential (since you do mention
+ it the report, it is just not a major point of focus).
+ One reason to keep it in is that some people will only read the abstract
+ and this way they know that this is a feature.
+ Up to you.
+\end_layout
+
+\begin_layout Plain Layout
+AF: Cool! I'll remove from both.
+\end_layout
+
 \end_inset
 
 .
@@ -375,10 +425,10 @@ key "Coley2015ProstateSurveillence"
 
 \end_inset
 
- for predicting risk of aggressive prostate cancer.
- Risk estimates via IS can typically be obtained in 1-10 seconds per person,
- and have high agreement with estimates coming from longer-running batch
- MCMC methods.
+ for predicting an individual's underlying prostate cancer state.
+ Latent variable estimates via IS can typically be obtained in 1-10 seconds
+ per person, and have high agreement with estimates coming from longer-running
+ batch MCMC methods.
  Alternative options for out-of-sample fitting and online updating are also
  discussed.
 \end_layout
@@ -420,6 +470,32 @@ AF: As I understand it, this is the definition of precision medicine.
  but is not central to it.
 \end_layout
 
+\begin_layout Plain Layout
+YC: My particular concern with the existing sentence is that it specifically
+ highlights two particular questions that do not fully cover all the possible
+ targets in precision medicine.
+ How about this for the intro paragraph 
+\begin_inset Quotes eld
+\end_inset
+
+Hierarchical models provide a natural statistical framework for precision
+ medicine-- allowing for time-varying health states within a patient as
+ well as for variability across individual patients embedded within a population
+-- while a Bayesian approach to hierarchical modeling encourages inclusion
+ of existing medical knowledge at each level.
+ As a result, hierarchical Bayesian modeling can enable estimation of both
+ patient-level current health status and trajectory as well as the population-le
+vel causal effects of endogenous covariates and exogenous interventions.
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+AF: Cool!
+\end_layout
+
 \end_inset
 
 .
@@ -435,8 +511,9 @@ key "Coley2015ProstateSurveillence"
 
  use a patient-level latent class to categorize patients as having either
  indolent or aggressive cancer.
- In a Bayesian setting, estimation of both levels of the model -- the population
- level and the patient level -- can be attained from the posterior distribution
+ In a Bayesian setting, estimates for both levels of the model -- the population
+ level and the patient level -- can be attained from the joint posterior
+ distribution
 \begin_inset Note Note
 status open
 
@@ -473,12 +550,52 @@ estimates [of parameters] can be obtained from the posterior
 ?
 \end_layout
 
+\begin_layout Plain Layout
+YC (Most recent): My comment was much more simple and it seems we are in
+ agreement from your comment- I think it is more clear and accurate to say
+ you 
+\begin_inset Quotes eld
+\end_inset
+
+obtain estimates
+\begin_inset Quotes erd
+\end_inset
+
+ than 
+\begin_inset Quotes eld
+\end_inset
+
+attain estimation
+\begin_inset Quotes erd
+\end_inset
+
+.
+ So I think the sentence should read 
+\begin_inset Quotes eld
+\end_inset
+
+estimates for both levels of the model--...--- can be obtained from the joint
+ posterior distribution
+\begin_inset Quotes erd
+\end_inset
+
+ Note the inclusion of joint as well.
+ (Individual parameters have a posterior, but it is more precise to say
+ that the model hs a joint posterior.)
+\end_layout
+
+\begin_layout Plain Layout
+AF: Ahhh!! Got it, thanks! Yeap that was incorrect or at least very weird
+ word choice on my part.
+ Changed as indicated.
+\end_layout
+
 \end_inset
 
 .
  When
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 YC: Maybe 
@@ -529,6 +646,10 @@ when we have big data, we often have sparisity
 ) without any connotations of sequences in time.
  The point there being that it's not even really an additional step, it's
  immediately there.
+\end_layout
+
+\begin_layout Plain Layout
+YC(Most recent): Sure.
 \end_layout
 
 \end_inset
@@ -696,6 +817,22 @@ in transition,
  rather than talking citing the specific studies in the sentences that follow.
 \end_layout
 
+\begin_layout Plain Layout
+YC(Most recent): I generally agree with you on this, but here I would put
+ the citation in the first sentence because you refer to *known* challenges.
+ My opinion is purely based on the inclusion of the word 
+\begin_inset Quotes eld
+\end_inset
+
+known
+\begin_inset Quotes erd
+\end_inset
+
+.
+ This is up to you though.
+ 
+\end_layout
+
 \end_inset
 
 .
@@ -728,11 +865,29 @@ key "Andrieu2005"
 
  for an intuitive explanation
 \begin_inset Note Note
-status collapsed
+status open
 
 \begin_layout Plain Layout
 AF (non vital)-more citations from Andieu? Most of the ones from Kantas
  weren't as convincing??
+\end_layout
+
+\begin_layout Plain Layout
+YC (Most recent): If there were a number of references for this, I would
+ put them in.
+ You could put those after the first sentence.
+ Multiple citations really solidy the assertion that challenges are 
+\begin_inset Quotes eld
+\end_inset
+
+known
+\begin_inset Quotes erd
+\end_inset
+
+.
+ I do like how you include this reference here though, pointing readers
+ to the particular discussion of the challenges in what we both know to
+ be a long, dense paper.
 \end_layout
 
 \end_inset
@@ -984,6 +1139,35 @@ methods
  What do you think?
 \end_layout
 
+\begin_layout Plain Layout
+YC (Most recent):Your point is well-taken re: notation and continuity and
+ I think the current placement is more appropriate now that you've really
+ fleshed out the other alternatives (and they clearly rely on notation).
+ I think 
+\begin_inset Quotes eld
+\end_inset
+
+Alternative...
+\begin_inset Quotes erd
+\end_inset
+
+ can be a separate section or a subsection within Section 2
+\begin_inset Quotes erd
+\end_inset
+
+.
+ You may want to even title the (sub)section 
+\begin_inset Quotes eld
+\end_inset
+
+Comparison to Alternative...
+\begin_inset Quotes erd
+\end_inset
+
+ I don't always use the most descriptive section headings in my paper, but
+ I've seen others do it and I think it can work well.
+\end_layout
+
 \end_inset
 
 .
@@ -1075,11 +1259,11 @@ key "Gleason1977,Gleason1992"
 \end_inset
 
  are classified as aggressive.
- The model is used to estimate probabilities of latent class membership,
- or, in other words, the risk of having an aggressive cancer with the potential
- to metastasize.
- Risk predictions can then be used by clinicians and patients to make decisions
- about future treatment or biopsies.
+ The model is used to estimate posterior probabilities of latent class membershi
+p, or, in other words, the risk of having an aggressive cancer with the
+ potential to metastasize.
+ Latent variable predictions can then be used by clinicians and patients
+ to make decisions about future treatment or biopsies.
  This prediction tool addresses a pressing need in prostate cancer care
  as the most common treatments for prostate cancer have a high risk of persisten
 t side effects including erectile dysfunction and urinary incontience, while
@@ -1103,7 +1287,7 @@ key "Coley2015ProstateSurveillence"
 
  includes sub-models for longitudinal prostate specific antigen (PSA) measuremen
 ts, and for longitudinal biopsy results.
- Both of these sub-models incorporate information about the patients latent
+ Both of these sub-models incorporate information about the patient's latent
  state.
 \begin_inset Note Note
 status open
@@ -1129,6 +1313,32 @@ More specifically
 \end_inset
 
  in the following sentence.
+\end_layout
+
+\begin_layout Plain Layout
+YC(Most recent): I think that transition helps, but then I think that the
+ dependence on latent class needs to be included in that next sentence.
+ (Right now there is a sentence between 
+\begin_inset Quotes eld
+\end_inset
+
+sub-models incorporate information about the patient's latent state
+\begin_inset Quotes erd
+\end_inset
+
+ and the description of how that is done.
+ How about 
+\begin_inset Quotes eld
+\end_inset
+
+More specifically, log-transformed PSA measurements are modeled with a stratifie
+d random effects model where the distribution of patient-level random effects
+ depends on latent state.
+\begin_inset Quotes erd
+\end_inset
+
+ Instead of the two sentences you currently have.
+ 
 \end_layout
 
 \end_inset
@@ -1166,7 +1376,7 @@ AF - love this last note on sense & spec
 \end_layout
 
 \begin_layout Standard
-In our context, the subject-level variables
+In our context, the patient-level latent variables
 \begin_inset Note Note
 status open
 
@@ -1197,6 +1407,65 @@ key "Coley2015ProstateSurveillence"
 
  for a full model description.
  
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+YC(Most recent): I don't think we have talked about this but I tend to use
+ the terms 
+\begin_inset Quotes eld
+\end_inset
+
+patient
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+participant
+\begin_inset Quotes erd
+\end_inset
+
+, and 
+\begin_inset Quotes eld
+\end_inset
+
+individual
+\begin_inset Quotes erd
+\end_inset
+
+ rather than 
+\begin_inset Quotes eld
+\end_inset
+
+subject
+\begin_inset Quotes erd
+\end_inset
+
+.
+ There is a whole conversation around patient vs subject in clinical trials
+ and observational studies-- are we 
+\begin_inset Quotes eld
+\end_inset
+
+subjecting
+\begin_inset Quotes erd
+\end_inset
+
+ people to experimentation/observation or are they active participants in
+ the research process?-- and I tend towards the former terms as I find the
+ latter to be a bit dehumanizing.
+ 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2458,6 +2727,11 @@ status open
 \begin_layout Plain Layout
 AF (non vital)- This conclusion currently focuses a lot on the PSA example.
  I think it might be better to make it more general.
+\end_layout
+
+\begin_layout Plain Layout
+YC(Most recent): Of course we will make it longer for a journal submission,
+ but I think it's great for now.
  
 \end_layout
 
