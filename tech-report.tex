@@ -1,12 +1,14 @@
-%% LyX 2.0.6 created this file.  For more info, see http://www.lyx.org/.
+%% LyX 2.1.4 created this file.  For more info, see http://www.lyx.org/.
 %% Do not edit unless you really know what you are doing.
 \documentclass[letterpaper]{article}
 \usepackage[latin9]{inputenc}
+\usepackage{mathrsfs}
 \usepackage{url}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{setspace}
+\usepackage{esint}
 \usepackage[authoryear]{natbib}
 \onehalfspacing
 
@@ -82,10 +84,10 @@
 
 \begin{document}
 
-\title{Technical Report: Fast Updating for Bayesian Joint Hierarchical Model for Prediction of Latent Health States}
+\title{Fast Out-of-Sample Predictions for Bayesian Hierarchical Models of Latent Health States}
 
 
-\author{ Aaron J Fisher, R Yates Coley, Scott L Zeger}
+\author{Aaron J Fisher, R Yates Coley, Scott L Zeger}
 
 
 \date{\today}
@@ -94,7 +96,7 @@
 
 \section*{Abstract}
 
-This technical report presents an importance sampling algorithm for rapidly obtaining updated individualized predictions for the Bayesian joint model proposed in \citet{coley2015prostateSurvaillence}. Algorithm details are given and performance is assessed. Data and code are available at \url{http://github.com/rycoley/XXX}.
+Hierarchical Bayesian models can be especially useful in precision medicine settings, where clinicians are interested in estimating the patient-level latent variables associated with an individual's current health state and its trajectory. Such models are often fit using batch Markov Chain Monte Carlo (MCMC). However, the slow speed of batch MCMC computation makes it difficult to implement in clinical settings, where immediate latent variable estimates are often desired in response to new patient data. In this report, we discuss how importance sampling (IS) can instead be used to obtain fast, in-clinic estimates of patient-level latent variables. We apply IS to the hierarchical model proposed in \citet{Coley2015ProstateSurveillence} for predicting an individual's underlying prostate cancer state. We find that latent variable estimates via IS can typically be obtained in 1-10 seconds per person and have high agreement with estimates coming from longer-running batch MCMC methods. Alternative options for out-of-sample fitting and online updating are also discussed.
 
 \smallskip{}
 
@@ -102,130 +104,138 @@ This technical report presents an importance sampling algorithm for rapidly obta
 
 \section*{Introduction}
 
-Heirarchical bayes models can be especially useful in the context of precision medicine, when scientists are interested not only in estimating treatment effects, but also in estimating the risk for any individual patient. In the context of heirarchical models, treatment effects can be estimated from population-level parameters, and the risk for any specific patient can be described by a patient-level latent class. For example, \citet{coley2015prostateSurvaillence} use a patient specific latent class to identify patients as having either benign cancer, or aggressive cancer. In a bayesian setting, estimation at both levels of the model, the population level and the patient level, can be done by averaging over the posterior. When such models are fit on a training dataset using Markov Chain Monte Carlo (MCMC), risk estimates are immediately available for any patient in the training dataset. 
+Hierarchical Bayesian models provide a natural statistical framework for precision medicine -- allowing estimation of both patient-level latent variables associated with health status trajectory, as well as population-level causal effects of endogenous covariates and exogenous interventions. The use of a Bayesian framework encourages the inclusion of existing medical knowledge at each level. When such models are fit on a training dataset using Markov Chain Monte Carlo (MCMC), latent variable estimates are immediately available for any patient in the training dataset. For example, \citet{Coley2015ProstateSurveillence} use a patient-level latent class to categorize patients in a training dataset as having either indolent or aggressive prostate cancer.
 
-A computational challenge arises though when new patients enter the clinic, or when existing patients accrue new measurements. Here, clinicians may wish to give patients a fast, in-visit estimate of their risk. However, traditional MCMC approaches for new risk estimates require refitting the entire model, which can take hours to complete.
+A computational challenge arises though when new patients enter the clinic or when existing patients accrue new measurements. Here, clinicians may wish to give patients fast, in-visit estimates of their latent variables and associated health states. However, batch MCMC estimation approaches that require refitting the entire model can take hours to complete. Additionally, if the model is refit on protected clinical data from multiple sites, then MCMC may require communication between fire-walled servers as the algorithm iterates, further increasing the computation cost.
 
-In this technical report we describe how importance sampling (IS) can instead be used in precision medicine settings to get fast risk estimates in response to new patient data. We apply this to a version of the prostate cancer model proposed by \citet{coley2015prostateSurvaillence} to get fast risk estimates for new, simulated patients. This approach can be combined with periodic refitting of the entire model via MCMC, in order to update estimates of the population-level parameters \citep{Lee2002}.
+Instead, sampling algorithms tailored for out-of-sample fitting can be used to get fast latent variable estimates in response to new patient data, while naturally avoiding the issue of server communication. Such algorithms can be based on conditional posteriors \citep{Wu2015}, Gibbs Sampling (GS), Importance Sampling (IS), or Rejection Sampling (RS) \citep{Bishop2006}. In this report, we specifically describe how IS can be used to obtain latent variable estimates for out-of-sample data. We also discuss conceptual parallels between these four types of approaches. We then apply IS to the prostate cancer model proposed by \citet{Coley2015ProstateSurveillence} to get fast latent variable estimates for new, simulated patients. In this case, the IS procedure typically takes approximately 1-10 seconds per patient. This approach can be combined with periodic refitting of the entire model via MCMC, in order to update the posteriors for the population-level parameters \citep{Lee2002}.
 
-This IS approach is related to online learning methods, which aim to continuously update population-level parameters at a constant computational cost over time. We avoid a fully online approach though, due to additional known challenges in online learning. Specifically, our use of IS can be viewed as a 1-step version of a sequential importance sampler (SIS), also known as particle filter. Employing a generic particle filter to get updated estimates of the population parameters would seem to be a natural extension, but particle filters are known to suffer from the problem of degeneracy in the precense of ``static'' parameters (see section II of \citet{Andrieu2005} for an intuitive explanation). This applies in our case, where the population-level parameters are modeled as static, and changing as more data is acquired. A combination of IS and periodic MCMC \citep{Lee2002} can be used to update population-level posteriors, but is not fully online as the computational cost of each MCMC iteration increases as more data is acquired.
+This IS approach is related to online (or streaming) learning methods, which aim to continuously update population-level parameters with a constant computational cost over time. We avoid a fully online approach here though, due to additional challenges in online learning. Specifically, our use of IS can be viewed as a 1-step version of a sequential importance sampler (SIS), also known as particle filter. Employing a standard particle filter to update estimates of the population-level parameters would seem to be a natural extension. However, particle filters are known to suffer from the problem of degeneracy, which makes it difficult to estimate posteriors for ``static'' parameters that do not change as more data is acquired (\citet{Kantas2014}, see section II of \citet{Andrieu2005} for an intuitive explanation). This concern applies in our case, as our population-level parameters are assumed to be static. Instead, we combine IS with periodic MCMC \citep{Lee2002} to update the posteriors for all parameters and latent variables at all levels. Note that this is not a fully online method, as the computational cost of MCMC increases as more data is acquired.\footnote{See \citet{Kantas2014} for a recent literature review of particle methods in the context of static parameters.}
 
-Online, or streaming, model fitting has been explored in the literature on topic modeling for corpuses of texts. Text corpuses are often too large to fit an entire model on at once, making online fitting a more feasible option. For example, \citet{hoffman2010online_variational_bayes_LDA_text_analysis} propose a online variational bayes approach for topic modeling. Our specific context within personalized medicine is different in that while the model may be complex and contain several layes, the data can be fully stored in memory at once. Thus, while the approach of combining IS with periodic MCMC is not fully online, and not feasible for topic modeling, it is still a feasible option for limited sample sizes in our problem. An additional benefit of IS, in contrast to variational bayes approaches, is that the formulas required to apply IS are simple to derive, and can be easily ported to other applications within precision medicine.
+Online model fitting has also been explored in the literature on topic modeling for corpuses of texts. Text corpuses are often too large to fit an entire model on at once, making online fitting a more feasible option. \citet{Hoffman2010} propose a online variational Bayes approach for topic modeling. \citet{Canini2009} propose a particle filter approach, in a context where the static parameters can be integrated out. However, in the setting of \citet{Canini2009}, even the best performing online methods were outperformed by batch (non-online) MCMC, and generally did not improve in accuracy as more data was incorporated.
 
-
-\section{Introduction}
-
-\citet{coley2015prostateSurvaillence} presents a Bayesian joint hierarchical model for predicting a latent health state from longitudinal clinical measurements. Model development was motivated by an application to active surveillance of low risk prostate cancer. Previous joint latent class modeling approaches (e.g., \citet{Lin2002}) are unsuitable for this context as they do not accommodate measurement error-- specifically, cancer state determinations based on biopsied tissue are prone to misclassification-- nor do they allow for observations to be missing not at random \citep{Little2014}. The proposed model addresses these limitations, enabling estimation of an individual's underlying prostate cancer state. These individualization predictions can then be communicated to clinicians and patients to inform decision making.
-
-For this prediction model to be most useful in a clinical setting, however, it is necessary to be able to update posterior estimates quickly to incorporate new biopsy or PSA results during a patient's visit. This precludes re-running the full MCMC to obtain updated posteriors of patient-specific variables. Instead, we use importance sampling \citep{Bishop2006} to obtain rapid prediction updates. Using posterior estimates obtained from current data, the proposed importance sampling algorithm updates these estimates for either a new patient or new data on an existing patient in a matter of seconds.
-
-Many options exist for performing online updating of Bayesian models. We chose to use an importance sampling approach because... \citep{Geweke1989}.
-
-In this this technical report, we first provide an overview of the latent class prediction model before detailing the importance sampling algorithm we have developed for enabling real-time updates. Next, we will apply the proposed algorithm to simulated data and compare predictions to those obtained by full MCMC runs. Finally, we close with a discussion of future research.
+Our specific context within precision medicine \citep{Coley2015ProstateSurveillence} is different than that of topic modeling in that, while the model is complex and contains several layers, the data can be fully stored in memory at once. Thus, while the approach of combining IS with periodic MCMC is not fully online and not feasible for text analysis, it is still a feasible option for the limited sample sizes in our application. Relative to variational Bayes approaches, the formulas required to apply IS are simple to derive and can be easily ported to other applications within precision medicine.
 
 
-\section{Bayesian Joint Hierarchical Latent Class Model}
 
-In this section, we briefly summarize the joint model proposed in \citet{coley2015prostateSurvaillence} for predicting latent cancer state for men participating in Active Surveillance for low risk prostate disease. Predictions are made by incorporating information from repeated prostate specific antigen (PSA) and biopsy measurements for all individuals, as well as true cancer state information observed in a subset of the cohort. In this technical report, we will focus on the model that assumes biopsy and latent class observation are missing at random, that is, not associated with the latent state after conditioning on observed clinical variables. For more model details and application background, please see \citet{coley2015prostateSurvaillence}.
-
-Let $\eta_{i}$ indicate the true cancer state for individual $i$, $i=1,\dots,n$, defined using the the Gleason score \citep{Gleason1977,Gleason1992} that would be assigned if his entire prostate were to be removed and pathologic analysis performed: $\eta_{i}=0$ if Gleason $\leq$ 6 or \textit{indolent} and $\eta_{i}=1$ if Gleason $\geq$ 7 or \textit{aggressive}. True cancer state then follows a Bernoulli distribution-- $\eta_{i}\sim Bernoulli(\rho)$-- where we assume here, for simplicity, a shared underlying probability of aggressive cancer, $\rho$. This true cancer state is observed in a subset of patients who choose to have their prostate surgically removed; as such, $\eta_{i}$ is a partially latent variable.
-
-Next, define the following mixed effects model \citep{Laird1982} for an individual's PSA over time where mean effects for predictors are allowed to vary across groups defined by the partially latent true cancer state: 
-\begin{eqnarray*}
-\big[\, Y_{im}|\eta_{i}=k,\bmX_{im},\bmZ_{im}\,\big]=\bmX_{im}\bmbeta+\bmZ_{im}\bmb_{i}+\epsilon_{im}
-\end{eqnarray*}
-where $Y_{im}$ is the observed (log-transformed) PSA, $\bmX_{im}$ and $\bmZ_{im}$ are vectors of covariates for individual $i$'s $m$th PSA measurement, $\bmbeta$ is a parameter vector for fixed effects, and $\bmb_{i}$ is the patient-specific vector of random effects. Following the specification of a Bayesian mixed effects model presented by Gelman and Hill (2006)\nocite{Gelman2006}, unscaled random effects are centered at the mean effects for each latent class $k$, $\bmmu_{k}$: 
-\begin{eqnarray*}
-\big[\check{\bmb_{i}}|\eta_{i}=k\big]\sim MVN(\bmmu_{k},\Sigma_{k}),\quad k=0,1
-\end{eqnarray*}
-where $\Sigma_{k}$ is a covariance matrix that allows for correlation between random effects. Random effects are then scaled with parameter vector $\bmxi$: $\bmb_{i}=diag(\check{\bmb_{i}}\bmxi^{T})$. Lastly, residuals $\epsilon_{im}$ are assumed to follow a normal distribution with mean 0 and variance $\sigma^{2}$.
-
-Finally, let $(B_{ij},R_{ij})$ denote binary variables for individual $i$ in annual interval $j$ indicating, respectively, whether a biopsy was performed and, when it was, if \textit{reclassification} was observed, i.e. a determination of Gleason $\geq$ 7 made. $(B_{ij},R_{ij})$ is defined for $j=1,\dots,J_{i}$ where $J_{i}$ is the time of reclassification or censoring for patient $i$. For each time interval with a biopsy, $B_{ij}=1$, we use logistic regression to model its result conditional on true cancer state: 
-\begin{eqnarray}
-P(R_{ij}=1|B_{ij}=1,\eta_{i}=k,\bmV_{ij},\bmgamma)=\text{logit}^{-1}\big(\bmV_{ij}(k)\bmgamma\big)\label{eq:p_rc}
-\end{eqnarray}
-where $\bmV_{ij}(k)$ is a matrix of time-varying predictors including $\eta_{i}$ and $\bmgamma$ is a parameter vector.
-
-We then define the joint probability of the parameters given data and unobserved latent variables: 
-\begin{eqnarray}
- &  & L\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma\,|\,\big(\eta_{i},(\bmY_{i},\bmb_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}}),(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big),i=1,\mydots,n\Big)\nonumber \\
- &  & \quad=\prod_{i=1}^{n}\,\rho^{\eta_{i}}\,(1-\rho)^{1-\eta_{i}}\, f(\bmY_{i}|\eta_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}},\bmb_{i},\bmbeta,\sigma^{2})\, g(\bmb_{i}|\bmmu_{\eta_{i}},\Sigma_{\eta_{i}})\nonumber \\
- &  & \qquad\qquad\prod_{j=1}^{J_{i}}\big(P(R_{ij}=1|\eta_{i},\bmV_{ij},\bmgamma)^{R_{ij}}P(R_{ij}=0|\eta_{i},\bmV_{ij},\bmgamma)^{1-R_{ij}}\big)^{B_{ij}}\label{eq:lik-inf}
-\end{eqnarray}
-where $f$ and $g$ are multivariate normal densities for the vector of log-transformed PSAs $\bmY_{i}$, and random effects $\bmb_{i}$, respectively, each with mean and covariance as defined above, given covariance matrices $\underline{\bmX_{i}}=[X_{i1},\dots,X_{iM_{i}}]$ and $\underline{\bmZ_{i}}=[Z_{i1},\dots,Z_{iM_{i}}]$. $\mathbf{B}_{i},\mathbf{R}_{i}$ represent vectors for biopsy and reclassification for individual $i$ with associated covariance matrix $\underline{\bmV_{i}}$.
-
-Bayesian methods are used to identify posteriors for model parameters and latent variables. Discussion of prior specification can be found in \citet{coley2015prostateSurvaillence}. After specifying priors for all model parameters, the join posterior distribution of the parameter and latent variables is: 
-\begin{eqnarray}
- &  & p\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma,(\eta_{i},\bmb_{i})\,|\,\big((\bmY_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}}),(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big);\bmTheta\Big)\nonumber \\
- &  & \qquad\propto L\Big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma\,|\,\big(\eta_{i},(\bmY_{i},\bmb_{i},\underline{\bmX_{i}},\underline{\bmZ_{i}},(\mathbf{B}_{i},\mathbf{R}_{i},\underline{\bmV_{i}})\big)\Big)\times\bmpi\big(\rho,\bmbeta,(\bmmu_{k},\Sigma_{k}),\bmgamma|\bmTheta\big)\label{eq:post-inf}
-\end{eqnarray}
-where $\bmpi(\cdot|\bmTheta)$ denotes the joint prior density for model parameters with hyperparameters $\bmTheta$ with indexing on $i,\, j,$ and $k$ suppressed for clarity in presentation.
+The remainder of this document is organized as follows. In Section \ref{sec:Clinical-Application-=000026}, we give an overview of our motivating data example of latent prostate cancer state estimation. In Section \ref{sec:methods}, we detail our approach for applying IS to hierarchical models. We use an abbreviated notation that can be readily generalized to other precision medicine settings. In Section \ref{sec:Alternative-Out-of-Sample-Poster}, we conceptually compare our IS approach with RS, GS, and conditional posteriors \citep{Wu2015}. However, with the exception of RS, we do not explore the performance of these alternate methods here. In Section \ref{sec:Application}, we apply IS to simulated data, and compare the results to latent variable estimates obtained from batch MCMC.
 
 
-\section{Importance Sampling Algorithm for Fast Prediction Updates}
+\section{Clinical Application \& Motivation in Prostate Cancer\label{sec:Clinical-Application-=000026}}
 
-Next, we detail an importance sampling algorithm that enables rapid updates of joint latent class model predictions. To simplify presentation, we abbreviate notation for the joint posterior given above in Equation \ref{eq:post-inf}: 
+Our application is based on the clinical framework of \citet{Coley2015ProstateSurveillence}, who develop a latent class model to predict underlying prostate cancer state in men participating in an active surveillance program for low risk disease. The latent cancer state is defined as being ``indolent'' or ``aggressive'', corresponding to the Gleason score \citep{Gleason1977,Gleason1992} that would be assigned if a patient's entire prostate were to be removed and analyzed. Gleason scores $<6$ are classified as indolent, and Gleason scores $\geq7$ are classified as aggressive. This latent state is known only for those patients who elect to undergo a prostatectomy while under active surveillance, resulting in a partially latent class problem. For those patients who do not elect to have their prostates removed, the model of \citet{Coley2015ProstateSurveillence} is used to estimate posterior probabilities of latent class membership, or, in other words, the risk of having an aggressive cancer with the potential to metastasize. Latent variable predictions can then be used by clinicians and patients to make decisions about future treatment or biopsies. This prediction tool addresses a pressing need in prostate cancer care as the most common treatments for prostate cancer have a high risk of persistent side effects including erectile dysfunction and urinary incontinence, while prostate biopsies are painful and pose a risk of infection \citep{Chou2011a,Chou2011b}.
+
+The hierarchical model of \citet{Coley2015ProstateSurveillence} includes sub-models for longitudinal prostate specific antigen (PSA) measurements and for longitudinal biopsy results. Both of these sub-models incorporate information about the patient's latent state. More specifically, log-transformed PSA measurements are modeled with a stratified random effects model where the distribution of patient-level random effects depends on latent state. Biopsy results are coded as binary outcomes denoting \textit{grade reclassification} on a biopsy, that is, the biopsied tissue was assigned a Gleason score of 7 or higher. The log-odds of reclassification is modeled with a linear predictor whose value also depends on a patient's latent state, reflecting the imperfect sensitivity and specificity of the biopsy procedure. Each patient's latent class is assumed constant over the surveillance period. As a patient continues in active surveillance, additional PSA and biopsy measurements are accrued and the accuracy of latent class predictions improves. Sub-models are also included for informative observation processes associated with biopsies and prostatectomies.
+
+In our context, the patient-level latent variables refer to the latent classes and the random effects used in the sub-model for PSA. The population-level parameters refer to the coefficients in each sub-model and the variance parameters for the patient-level variables. See \citet{Coley2015ProstateSurveillence} for a full model description. 
+
+
+
+
+\section{IS Algorithm for Fast Estimates from New Data\label{sec:methods}}
+
+In this section we detail an IS algorithm that enables rapid estimates of patient-level variables, such as latent classes. This method is meant to be applied to out-of-sample data after MCMC has been applied to get a posterior sample based on current training data. We present the algorithm in a simple, abbreviated notation that is applicable in many clinical settings.
+
+Let the joint posterior based on training data from $n$ patients be denoted as 
 \begin{equation}
 p(\theta,b_{1:n}|y_{1:n})\propto\prod_{i=1}^{n}[f(y_{i}|b_{i},\theta)g(b_{i}|\theta)]\pi(\theta)\label{eq:posterior_n}
 \end{equation}
-where $y_{i}$ is the vector of clinical measurements (PSA and biopsy) for patient $i$, $y_{1:n}$ is the list of measurements for the first $n$ patients, $b_{i}$ is a vector of latent variables (latent class and random effects) for patient $i$, $b_{1:n}$ is a list of latent variables for the first $n$ patients, $\theta$ contains the population-level parameters, $\pi$ is the prior for $\theta$, and $f$ and $g$ are multivariate distributions coming from the model likelihood in Equation \ref{eq:lik-inf}.
+where $y_{i}$ is the vector of clinical measurements (here, PSA and biopsy measurements) for patient $i$, $y_{1:n}$ is the list of measurements for the first $n$ patients, $b_{i}$ is a vector of latent variables (here, latent class and random effects) for patient $i$, $b_{1:n}$ is a list of latent variables for the first $n$ patients, $\theta$ contains the population-level parameters, $\pi$ is the prior for $\theta$, and $f$ and $g$ are multivariate probability distributions chosen based on the application and context. Estimation of $b_{i}$ is of primary interest in this report.
 
-After posterior samples from the joint model are obtained for current data, importance sampling to update these estimates given new data requires three steps: first, generating proposal values for the latent variables to be updated, second, calculating weights for proposed values, and, third, weighting proposed values to estimate an updated posterior. We first illustrate how this process can be used to quickly estimate latent variables for a new patient before showing how similar calculations can be done to incorporate newly measured data on existing patients in real-time.
-
-For a new patient (indexed by $i=n+1$), obtaining posterior predictions of latent variables requires calculating expectations with respect to the posterior distribution based on all $n+1$ patients (i.e. $p(\theta,b_{1:(n+1)}|y_{1:(n+1)})$). While we cannot immediately draw from this distribution, we can evaluate a function that is proportional to its density (Equation \ref{eq:posterior_n}). The posterior distribution based on the first $n$ patients provides an appropriate proposal distribution ($q$) from which to generate candidate values of $(\theta,b_{1:(n+1)})$: 
-\begin{eqnarray*}
-q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})
-\end{eqnarray*}
+Let $\mathscr{J}_{n}=\{\theta^{(j)},b_{1:n}^{(j)}\}_{j=1}^{J}$ be a set of $J$ draws from the posterior distribution in Eq \ref{eq:posterior_n} obtained via methods such as MCMC.
 
 
-This approach is analogous to a one-step particle filter \citet{Bishop2006} and, practically, consists of taking $J$ draws of $\theta$ and $b_{1:n}$ from the previously fitted posterior in Equation \ref{eq:posterior_n}. Then, conditional on $\theta$, we draw $b_{n+1}$ from the distribution $g$. We index each of the resulting draws as $(\theta^{(j)},b_{1:(n+1)}^{(j)})$, with $j=1,\dots,J$. The importance weights $w_{j}$ are then proportional to 
+\subsection{Core IS Algorithm}
+
+After posterior samples from the joint model $(\mathscr{J}_{n})$ are obtained for current data, importance sampling to update these estimates given new data requires three steps: (1) generating proposal values for the latent variables to be estimated or updated, (2) calculating weights for proposed values, and (3) weighting proposed values to estimate an updated posterior. We first illustrate how this process can be used to quickly estimate latent variables for a new patient and then show how similar calculations can be done to incorporate newly measured data on existing patients in real-time.
+
+For a new patient (indexed by $i=n+1$), prediction of latent variables requires calculating expectations with respect to the posterior distribution based on all $n+1$ patients (i.e. $p(\theta,b_{1:(n+1)}|y_{1:(n+1)})$). While we cannot immediately draw from this distribution, we can evaluate a function that is proportional to its density (based on Eq \ref{eq:posterior_n}). We can also use the posterior distribution based on the first $n$ patients as a proposal distribution (denoted by $q$) from which to generate candidate values of $(\theta,b_{1:(n+1)})$. Let 
 \begin{eqnarray}
-w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\nonumber \\
- & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
- & = & f(y_{i}|b_{i}^{(j)},\theta^{(j)})\label{eq:importance-weights}
+q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})\label{eq:drawing-subj-level-vars}
 \end{eqnarray}
 
 
-The final weights $w^{(j)}$ are standardized to sum to 1. The new posterior for $(\theta,b_{1:(n+1)})$ can then be represented as the mixture distribution satisfying $P(\theta=\theta^{(j)},b_{1:(n+1)}=b_{1:(n+1)}^{(j)})=w^{(j)}$. A posterior mean for $b_{(n+1)}$ can be calculated as $\sum_{j=1}^{J}w^{(j)}b_{(n+1)}^{(j)}$. The unstandardized weights can also be used in a rejection sampling procedure, although we found this approach to be less computationally efficient than importance sampling for our scenario.
+Practically, this proposal step is achieved by conditioning on each $\theta^{(j)}$ in $\mathscr{J}_{n}$ and then drawing $b_{n+1}^{(j)}$ from the distribution $g(b_{n+1}^{(j)}|\theta^{(j)})$. This results in the augmented set $\mathscr{J}_{n+1}:=\{\theta^{(j)},b_{1:(n+1)}^{(j)}\}_{j=1}^{J}$. The importance weights $w^{(j)}$ are then proportional to 
+\begin{eqnarray}
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\nonumber \\
+ & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
+ & = & f(y_{n+1}|b_{n+1}^{(j)},\theta^{(j)})\label{eq:importance-weights}
+\end{eqnarray}
+The final weights $w^{(j)}$ are standardized to sum to 1. The new posterior for $(\theta,b_{1:(n+1)})$ can then be represented as the mixture distribution satisfying $P(\theta=\theta^{(j)},b_{1:(n+1)}=b_{1:(n+1)}^{(j)})=w^{(j)}$. Posterior means for $b_{(n+1)}$ can be calculated as $\sum_{j=1}^{J}w^{(j)}b_{(n+1)}^{(j)}$. 
 
-For a patient $k$ with existing data, where we already have a posterior sample for their latent variable values, we instead use this posterior as our proposal distribution $q(\theta^{(j)},b_{1:n}^{(j)})$, with $i\leq n$. Let $y_{1:n}^{k+}$ refer to the data set after incorporating new data on patient $k$, where $y_{i}^{+}=y_{i}$ if $k\neq i$. The importance weights in Equation \ref{eq:importance-weights} then simplify to 
-\begin{eqnarray*}
-w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:n}^{(j)}|y_{1:n}^{+})}{q(\theta^{(j)},b_{1:n}^{(j)})}\\
- & \propto & \frac{\prod_{i=1}^{n}[f(\ensuremath{y_{i}^{+}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{\prod_{i=1}^{n}[f(\ensuremath{y_{i}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}\\
- & = & \frac{f(\ensuremath{y_{k}^{+}}|b_{k}^{(j)},\theta^{(j)})}{f(\ensuremath{y_{k}}|b_{k}^{(j)},\theta^{(j)})}
-\end{eqnarray*}
-
-
-Let $L_{k}$ denote that number of measurements for which we've previously fit a posterior for $b_{k}$, and let $N_{k}$ denote the number of new measurements we wish to incorporate into this posterior. Then, $y_{k}^{+}$ can be expressed as the vector $y_{k}^{+}=(y_{k[1]},y_{k[2]},\dots y_{k[L_{k}]},y_{k[L_{k}+1]}^{+},\dots y_{k[L_{k}+N_{k}]}^{+})$, where $y_{k[l]}^{+}$ is the $l^{th}$ measurement from patient $k$. If the repeated measures for each patient are independent conditional on $b_{i}$, as is the case in the proposed model, then the above ratio reduces to
-
-\begin{eqnarray*}
-w^{(j)} & \propto & \frac{\prod_{l=1}^{L_{k}+N_{k}}f(\ensuremath{y_{k[l]}^{+}}|b_{k}^{(j)},\theta^{(j)})}{\prod_{l=1}^{L_{i}}f(\ensuremath{y_{k[l]}}|b_{k}^{(j)},\theta^{(j)})}\\
- & = & \prod_{l=L_{k}+1}^{L_{k}+N_{k}}f(\ensuremath{y_{k[l]}^{+}}|b_{k}^{(j)},\theta^{(j)})
-\end{eqnarray*}
-We then proceed as above to get a re-weighted posterior for the latent variables of patient $k$.
-
-For implementation in clinical practice, proposals for new patients can be re-generated prior to actually observing new data, so that only weight calculating and re-weighting of the proposal distribution needs to be done in real-time. Then, predictions for each patient can be obtained in a matter of seconds. By random chance, some patients will have data such that very few of the pre-generated proposed latent values will receive high weights; this can cause instability in posterior means. However, such scenarios can be detected by monitoring the effective size of the posterior sample, also known as the effective number of particles. When this number drops below a pre-specified threshold (e.g., 500), the procedure can be repeated with a larger set of pre-generated proposals.
+The approach is similar when we wish to incorporate new measurement data for a patient $k$ who's previous data has already informed the posterior sample $\mathscr{J}_{n}$ (i.e., $k\leq n$). The set $\mathscr{J}_{n}$ already contains proposals $\{b_{k}^{(j)}\}_{j=1}^{J}$ for patient $k$'s latent variable values. Thus, we can use draws from $\mathscr{J}_{n}$ as our proposal distribution $q(\theta^{(j)},b_{1:n}^{(j)})$. Our goal then is to re-weight this set of proposals based on new data. Let $y_{1:n}^{*}$ refer to the data set after incorporating new data on patient $k$, such that $y_{i}^{*}=y_{i}$ if and only if $k\neq i$. The importance weights in Equation \ref{eq:importance-weights} then simplify to 
+\begin{eqnarray}
+w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:n}^{(j)}|y_{1:n}^{*})}{q(\theta^{(j)},b_{1:n}^{(j)})}\nonumber \\
+ & \propto & \frac{\prod_{i=1}^{n}[f(\ensuremath{y_{i}^{*}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{\prod_{i=1}^{n}[f(\ensuremath{y_{i}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
+ & = & \frac{f(\ensuremath{y_{k}^{*}}|b_{k}^{(j)},\theta^{(j)})}{f(\ensuremath{y_{k}}|b_{k}^{(j)},\theta^{(j)})}\label{eq:new-data-patient-ratio}
+\end{eqnarray}
+If the repeated measures for each patient are independent conditional on $b_{i}$, as is the case in the proposed model from \citet{Coley2015ProstateSurveillence}, then the ratio in Eq \ref{eq:new-data-patient-ratio} reduces to the likelihood of only the new data conditional on $b_{k}^{(j)}$ and $\theta^{(j)}$.
 
 
-\section{Application}
+\subsection{Efficient Implementation}
 
-We assessed performance of the proposed importance sampling approach in a simulated dataset. We compared the posterior probability of latent class membership (specifically, $P(\eta_{i}=1)$) obtained from MCMC performed in \texttt{RJAGS} to the predictions obtained by the proposed importance sampling algorithm for each patient for whom true state was not observed. Agreement was examined for the new patient scenario, that is, proposal values for an individual's latent state were generated from population-level parameters and all his available data was used to calculate sampling weights. Code for simulating data and obtaining estimates is available at \texttt{http://github.com/rycoley/XXX}.
+For implementation in clinical practice, proposals for new patients can be generated prior to actually observing new data, so that only weight calculation and  re-weighting of the proposal distribution needs to be done in real-time.
 
-Results of this comparison are shown in Figure \ref{fig:jags-vs-pf}. Agreement between methods for newly introduced patients is strong; correlation between posterior probabilities from \texttt{JAGS} and the importance sampler is 0.XX. These findings indicate that the proposed importance sampling algorithm is an appropriate substitute for full MCMC runs in order to provide real-time updates in a clinical setting.
+By random chance, some new patients may have data such that very few of the pre-generated, proposed latent variables values receive high weights. This will reduce the effective sample size of the posterior $\left(1/\sum_{j=1}^{J}\left[\left(w^{(j)}\right)^{2}\right]\right)$, which in turn increases the Monte Carlo error of the posterior mean estimates.\footnote{The effective sample size is also known as the effective number of particles.} However, we can use the effective sample size to flag patients who might have high error. When this effective sample size drops below a given threshold (e.g. 1000), we can repeat our procedure with a larger set of pre-generated proposals ($J$). If limited computing is available for MCMC, we can also approximate a larger set of proposals from Eq \ref{eq:drawing-subj-level-vars} by drawing multiple $b_{n+1}$ values for each $\theta^{(j)}$, rather than drawing just one. 
+
+
+\section{Comparison to Alternative Algorithms for Fast Estimates from New Data\label{sec:Alternative-Out-of-Sample-Poster}}
+
+In this section we outline some of the conceptual connections between our IS approach and out-of-sample fitting approaches based on Rejection Sampling (RS), Gibbs Sampling, and conditional posteriors \citep{Wu2015}.
+
+Most directly related to our IS approach, RS can also be applied using the unstandardized weights in Eq \ref{eq:importance-weights}. While RS allows for fewer particles to be stored in memory, we found IS to be more computationally efficient in our scenario (see Section \ref{sub:Results}).
+
+Out-of-sample estimation can also be done using Gibbs Sampling to update only the parameters associated with new patient data (i.e., $b_{n+1}$). One simple implementation is to run separate MCMC chains, each initialized on a different element of $\mathscr{J}_{n}$. Another approximate implementation that combines these chains is to treat the set $\{\theta_{n}^{(j)}\}_{j=1}^{J}$ as fixed and to create a proxy categorical parameter $z$ according to the following hierarchical distribution:
+
+\begin{align*}
+\mbox{\textbf{p}} & \sim\text{Dirichlet}(\alpha=\mathbf{1}_{J})\\
+z & \sim\text{Categorical}(\mathbf{p})\\
+b_{n+1} & \sim g(\theta^{(z)})\\
+y_{n+1} & \sim f(b_{n+1},\theta^{(z)})
+\end{align*}
+where $\mathbf{p}$ is a $J$-length vector of probabilities, $\mathbf{1}{}_{J}$ is a $J$-length vector of ones, and $z$ is a scalar such that $P(z=j)=\mbox{\textbf{p}}_{j}$ for $j=1,2,...J$. The above model can then be fit with traditional Gibbs Sampling, and the resulting posterior estimates for $\mathbf{p}$ are analogous to the weights in Eq \ref{eq:importance-weights}.
+
+Finally, our IS approach functions similarly to the out-of-sample estimation approach of \citet{Wu2015}. Their approach can be generalized to estimate the updated posterior probability that $P(b_{n+1}=x|y_{1:(n+1)})$ using the estimator $\hat{P}(b_{n+1}=x|y_{1:(n+1)}):=\left(\frac{1}{J}\right)\sum_{j=1}^{J}\left\{ \frac{f(y_{n+1}|b_{n+1}=x,\theta^{(j)})g(x|\theta^{(j)})}{\int f(y_{n+1}|b_{n+1}=x',\theta^{(j)})g(x'|\theta^{(j)})dx'}\right\} $. This approach is especially practical when the patient-specific variables $b_{n+1}$ are discrete, and the integral in the denominator can be replaced with a summation. For cases with both continuous and discrete patient-specific variables, the approach can be combined with a proposal generation method based on Eq \ref{eq:drawing-subj-level-vars}. We do not explore the performance of this approach, or of the above Gibbs Sampling approach, in this report.
+
+
+\section{Application \label{sec:Application}}
+
+We applied the proposed IS approach to simulated data based on the Johns Hopkins Active Surveillance (JHAS) cohort. 1,298 men with very low or low risk prostate cancer diagnoses were enrolled in JHAS from January 1995 to June 2014. Results of all PSA tests and biopsies performed prior to enrollment and during active surveillance were collected. Patients were followed until grade reclassification, elective treatment, or loss to follow-up. Patients still active in the program were administratively censored at the time of data collection for this analysis (October 2014). The Gleason score determination based on pathologic analysis of the entire prostate specimen was also recored for patients who underwent prostatectomy. Details on the dataset are available in \citet{Coley2015ProstateSurveillence}.
+
+Out simulated dataset consisted of 1,000 patients. The model proposed in \citet{Coley2015ProstateSurveillence} was used as the data generating model, with parameter values set equal to their corresponding posterior mean estimates from fitting the model to the JHAS data. Covariates to the model (age and date of diagnosis) were each generated from a normal distribution with mean and variance equal to that observed in JHAS patients. See \citet{Coley2015ProstateSurveillence} for more details on model specification and covariates.
+
+Using this data as our initial sample ($y_{1:n}$), we generate 500,000 draws ($\mathscr{J}_{n}$) from the posterior for the population-level and patient-level variables (see Eq \ref{eq:posterior_n}). Averaging over $\mathscr{J}_{n}$, we estimate the risk of having aggressive cancer for each patient who's latent class is unknown. The task of generating $\mathscr{J}_{n}$ was run across 400 parallel jobs on a x86-based linux cluster, with as many as 200 jobs allowed to run simultaneously. The total elapsed computation time was 33 hours. Within each job, MCMC was implemented using the R2jags software package \citep{R2jags2015}.
+
+We then re-estimate each patient's risk using IS, taking as input only the population-level parameter posteriors from the MCMC step. When generating values for the patient-level variables $b_{i}$, we further increase the diversity of the proposal set by we drawing 10 values from $g(b_{i}|\theta^{(j)})$ for each posterior draw $\theta^{(j)}$, for a total of 5 million proposals. We experimented with approaches of using only 50,000 proposals, using all 5 million proposals, or starting with 50,000 and increasing number of proposals until the effective sample size exceeds 1000. We refer to the first two approaches as ``fixed'' methods and the last approach as ``dynamic''. Within each approach, the final set of proposals were then weighted to obtain IS risk estimates. These simulation steps are meant to approximate the procedure of using IS to get risk estimates for a new patient, under the assumption that any individual patient has only a minor affect on the population-level parameter posteriors. In section \ref{sub:Results}, we assess coherence between IS risk estimates and MCMC risk estimates.
+
+
+\subsection{Results\label{sub:Results}}
+
+We find a high degree of coherence between the estimated posterior probability of aggressive cancer from IS and from MCMC, as shown in Figure \ref{fig:jags-vs-pf}. With the dynamic proposal approach, the root mean square of the difference (rMSD) between these two sets of risk estimates was 1.1\% (on the probability scale, from 0\% to 100\%). The maximum absolute difference was 7.3\%, with 99\% of patients having a difference less than 3.6\%. Of the approaches using a fixed number of proposals, the corresponding maximum and 99\% quantile of differences were 9.5\% and 5.0\% for 50,000 proposals and 5.2\% and 3.4\% for 5 million proposal. We also considered a rejection sampling approach using the unstandardized weights in Eq \ref{eq:importance-weights} but found the results to have a greater deviation from MCMC estimates (rMSD = 1.5\% for the dynamic approach). 
+
+Figure \ref{eq:importance-weights} illustrates the roughly inverse relationship between the effective sample size used for IS and the difference between IS and MCMC risk estimates.\footnote{It is worth noting, however, that the differences did not tend to decrease at a rate proportional to the square root of the effective sample size.} Here, all three approaches performed similarly, with the fixed 50,000-proposal approach being the fastest. Computation time per patient ranged from 1.6-41.6 minutes, 1.7 seconds-4.2 minutes, and 1.7-3.0 seconds for the 5-million-proposal, dynamic, and 50,000-proposal approaches, respectively. Interquartile ranges for the per-patient calculation times of three methods were 3.2-4.0 minutes, 2.7-5.3 seconds, and 2.6-2.8 seconds.
+
+These findings suggest that the proposed IS algorithm can be an appropriate substitute for full MCMC runs in order to provide real-time updates in a clinical setting.
 
 \begin{figure}
-\centering{}\includegraphics[width=0.7\textwidth]{2015-07-01_compare_fits_manual-edit} \caption{Agreement between importance sampling and JAGS posterior predictions of aggressive prostate cancer state for a new patient. (Dashed line indicates the axis of equality, i.e., perfect agreement.)\label{fig:jags-vs-pf} }
+\centering{}\includegraphics[width=0.55\textwidth]{plots/2015-10-27_agreement_IS_MCMC} \caption{Agreement between IS and MCMC estimates for the posterior predictions of aggressive prostate cancer state in a new patient. Point color represents the number of candidate points used -- 50,000, 5 million, or dynamic. The dashed line indicates the axis of equality (i.e., perfect agreement).\label{fig:jags-vs-pf} }
 \end{figure}
 
 
-Effective sample size...
+\begin{figure}
+\centering{}\includegraphics[width=0.55\textwidth]{plots/2015-10-27_ESS_error_log} \caption{Difference between IS and MCMC risk estimates as a function of effective sample size for IS. Point color represents the number of candidate points used -- 50,000, 5 million, or dynamic. The dotted vertical line shows the threshold used for dynamic proposal generation at an effective sample size of 1,000. Both axes are shown with log-scale spacing. \label{fig:effective-ss-v-deviation}}
+\end{figure}
 
 
-\section{Conclusion}
 
-The joint model of \citet{coley2015prostateSurvaillence} is among a growing number of statistical models for making individualized health predictions and recommendations. Development of such \textit{precision medicine} methods must occur within a framework for clinical implementation. Specifically, concerns about convenience, security, and effective communication must be addressed alongside statistical considerations. In this technical report, we have presented an importance sampling algorithm for obtaining fast predictions of latent health state based on the joint modeling framework of \citet{coley2015prostateSurvaillence}. This approach informs decision-making by enabling doctors and patients to access updated predictions in real-time in a clinical setting.
+\section{Discussion}
 
-The proposed importance sampling approach still requires the periodic use of MCMC to perform full model updates, similar to the procedure described in Lee and Chia (2002)\nocite{Lee2002}. While fully online updating of all posteriors (that is, updating not dependent on periodic MCMC) via sequential importance resampling would be ideal, such online methods are known to suffer from the problem of degeneracy when the model includes static parameters (such as the population-level parameters in our model), as explained in Andrieu et al. (2005, section II)\nocite{Andrieu2005}.
+The joint model of \citet{Coley2015ProstateSurveillence} is among a growing number of statistical models for making individualized health predictions and recommendations. Development of such \textit{\emph{precision medicine}} methods must occur within a framework for clinical implementation. Specifically, concerns about convenience, security, and effective communication must be addressed alongside statistical considerations. In this technical report, we present a fast implementation of the of latent health state model proposed in \citet{Coley2015ProstateSurveillence}, using importance sampling to generate in-clinic predictions. This approach informs decision-making by enabling doctors and patients to access updated predictions in real-time in a clinical setting.
+
+
+\section*{Supplemental Code}
+
+Code for simulating data, obtaining IS estimates, and comparing the results against MCMC estimates is available at: \url{https://github.com/aaronjfisher/in-clinic-updates-PSA}
 
 \bibliographystyle{apalike}
 \bibliography{inhealth-bib}
