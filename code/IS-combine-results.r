@@ -68,11 +68,9 @@ as.tbl(bigAll)
 
 
 	
-
-small$draw_type<-'small'
+small$draw_type<-small$particle_draws[1]
+bigAll$draw_type<-bigAll$particle_draws[1]
 dynamic$draw_type<-'dynamic'
-bigAll$draw_type<-'big'
-
 
 
 ofits<-rbind(small,dynamic,bigAll) #out of sample fits
@@ -91,14 +89,21 @@ ofits<-mutate(ofits, errors_ZW_abs = sqrt((etas_jags-etas_ZW)^2) )
 
 
 
+
 #############
 #Explore results
 
+
+suppressWarnings({
+ draw_types<-as.numeric(unique(ofits$draw_type)) 
+ draw_types<-draw_types[!is.na(draw_types)]
+})
+
 timeq<-c(0,.05,.25,.75,.9,.95,1)
 print(data.frame(
-	small=quantile(filter(ofits, draw_type=='small')$time_IS,
+	smallSec=quantile(filter(ofits, draw_type==min(draw_types))$time_IS,
 		probs=timeq),
-	big=quantile(filter(ofits, draw_type=='big')$time_IS,
+	bigMin=quantile(filter(ofits, draw_type==max(draw_types))$time_IS,
 		probs=timeq)/60,
 	dynamicSec=quantile(filter(ofits, draw_type=='dynamic')$time_IS,
 		probs=timeq),
@@ -123,24 +128,45 @@ errorq<-c(.5,.8,.9,.95,.99,1)
 print(data.frame(
 	'dynamic'=quantile(filter(ofits, draw_type=='dynamic')$errors_IS_abs,
 		probs=errorq),
-	'small'=quantile(filter(ofits, draw_type=='small')$errors_IS_abs,
+	'small'=quantile(filter(ofits, draw_type==min(draw_types))$errors_IS_abs,
 		probs=errorq),
-	'big'=quantile(filter(ofits, draw_type=='big')$errors_IS_abs,
+	'big'=quantile(filter(ofits, draw_type==max(draw_types))$errors_IS_abs,
 		probs=errorq)
 ))
 
 
 #How many particles ended up being drawn?
-range(filter(ofits, draw_type=='big')$particle_draws)
-range(filter(ofits, draw_type=='small')$particle_draws)
 range(filter(ofits, draw_type=='dynamic')$particle_draws)
+range(filter(ofits, draw_type==min(draw_types))$particle_draws)
+range(filter(ofits, draw_type==max(draw_types))$particle_draws)
 
 
+# Plotting function based on function from Brian Diggs, see source below:
+	# https://groups.google.com/forum/#!topic/ggplot2/a_xhMoQyxZ4
+fancy_scientific_num <- function(l) { 
+	# turn in to character string in scientific notation 
+	out1 <- suppressWarnings(as.numeric(l))
+	isNum <- !is.na(out1)
+
+	outNum <- 
+		format(out1[isNum], scientific = TRUE) %>%
+		# quote the part before the exponent to keep all the digits 
+		gsub("^(.*)e", "'\\1'e", .) %>%
+		# turn the 'e+' into plotmath format 
+		gsub("e", "%*%10^", .)
+
+	out<-as.character(l)
+	out[isNum] <- outNum 
+	
+	# return this as an expression 
+	parse(text=out) 
+} 
 
 png(paste0('plots/',Sys.Date(),'_ESS_error_log.png'),height=450,width=510,pointsize=19,type='cairo')
 ggplot(ofits) + geom_point(aes(x=effective_ss, y=errors_IS_abs,color=draw_type),cex=1.1) +
 	scale_y_log10(breaks=c(.1,.05,.01,.005,.001)) +
-	scale_x_log10(breaks=c(10^c(1:7)))+
+	scale_x_log10(breaks=c(10^c(1:7)),labels=fancy_scientific_num) +
+	scale_color_discrete(labels=fancy_scientific_num) +
 	theme(text=element_text(size=18)) +
 	labs(title='Effective Sample Size v. Absolute Error',x='Effective sample size for IS (log spacing)',y='Absolute difference (log spacing)', color='Candidate\ngenerating\nscheme') +
 	geom_vline(xintercept=1000,lty=2)+
@@ -150,7 +176,9 @@ dev.off()
 png(paste0('plots/',Sys.Date(),'_agreement_IS_MCMC.png'),height=450,width=505,pointsize=19,type='cairo')
 ggplot(ofits)+geom_point(aes(x=etas_IS,y=etas_jags,color=draw_type),cex=1.2) +
 	theme(text=element_text(size=18)) +
-	labs(title='Agreement of risk estimates from\nIS and MCMC',x='Risk estimates from IS',y='Risk estimates from MCMC', color='Candidate\ngenerating\nscheme')
+	scale_color_discrete(labels=fancy_scientific_num) +
+	labs(title='Agreement of risk estimates from\nIS and MCMC',x='Risk estimates from IS',y='Risk estimates from MCMC', color='Candidate\ngenerating\nscheme')+
+	geom_abline(intecept=0,slope=1,lty=2)	
 dev.off()
 
 
