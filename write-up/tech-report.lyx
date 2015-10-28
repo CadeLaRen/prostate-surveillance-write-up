@@ -2480,7 +2480,7 @@ We then re-estimate each patient's risk using IS, taking as input only the
  We experimented with approaches of using only 50,000 proposals, using all
  5 million proposals, or starting with 50,000 and increasing number of proposals
  until the effective sample size exceeds 1000.
- We refer to the first two methods as 
+ We refer to the first two approaches as 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2526,7 +2526,7 @@ name "sub:Results"
 
 \begin_layout Standard
 We find a high degree of coherence between the estimated posterior probability
- of aggressive cancer from IS and from MCMC, as shown if Figure 
+ of aggressive cancer from IS and from MCMC, as shown in Figure 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "fig:jags-vs-pf"
@@ -2671,8 +2671,8 @@ status open
 \begin_layout Plain Layout
 Agreement between IS and MCMC estimates for the posterior predictions of
  aggressive prostate cancer state in a new patient.
- Plotting symbol color represents the number of candidate points used--
- 50,000, 5 million, or dynamic.
+ Point color represents the number of candidate points used -- 50,000, 5
+ million, or dynamic.
  The dashed line indicates the axis of equality (i.e., perfect agreement).
 \begin_inset CommandInset label
 LatexCommand label
@@ -2713,8 +2713,8 @@ status open
 \begin_layout Plain Layout
 Difference between IS and MCMC risk estimates as a function of effective
  sample size for IS.
- Plotting symbold color represents the number of candidate points used--
- 50,000, 5 million, or dynamic.
+ Point color represents the number of candidate points used -- 50,000, 5
+ million, or dynamic.
  The dotted vertical line shows the threshold used for dynamic proposal
  generation at an effective sample size of 1,000.
  Both axes are shown with log-scale spacing.
