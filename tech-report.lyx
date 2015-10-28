@@ -415,28 +415,7 @@ latent health state
 
 \end_inset
 
- Such models are often fit using 
-\begin_inset Preview
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-colorbox{yellow}{batch}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- Markov Chain Monte Carlo (MCMC).
+ Such models are often fit using batch Markov Chain Monte Carlo (MCMC).
  However, the slow speed of batch MCMC computation makes it difficult to
  implement in clinical settings, where immediate latent variable estimates
  are often desired in response to new patient data.
@@ -681,99 +660,16 @@ A computational challenge arises though when new patients enter the clinic
  their latent variables and associated health states.
  However, batch MCMC estimation approaches that require refitting the entire
  model can take hours to complete.
- 
-\begin_inset Preview
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-colorbox{yellow}{Additionally}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-, if the model is refit on protected clinical data from multiple sites,
- then MCMC may require communication between fire-walled servers as the
- algorithm iterates, further increasing the computation cost.
+ Additionally, if the model is refit on protected clinical data from multiple
+ sites, then MCMC may require communication between fire-walled servers
+ as the algorithm iterates, further increasing the computation cost.
 \end_layout
 
 \begin_layout Standard
-Instead, 
-\begin_inset Preview
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-colorbox{yellow}{sampling algorithms tailored for out-of-sample fitting}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- can be used to get fast latent variable estimates in response to new patient
- data, 
-\begin_inset Preview
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-colorbox{yellow}{while naturally}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- avoiding the issue of server communication.
- 
-\begin_inset Preview
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-colorbox{yellow}{Such algorithms}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- can be based on conditional posteriors 
+Instead, sampling algorithms tailored for out-of-sample fitting can be used
+ to get fast latent variable estimates in response to new patient data,
+ while naturally avoiding the issue of server communication.
+ Such algorithms can be based on conditional posteriors 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Wu2015"
