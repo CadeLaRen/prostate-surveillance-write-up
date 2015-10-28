@@ -486,7 +486,7 @@ key "Coley2015ProstateSurveillence"
 
  for predicting an individual's underlying prostate cancer state.
  We find that latent variable estimates via IS can typically be obtained
- in 1-10 seconds per person, and have high agreement with estimates coming
+ in 1-10 seconds per person and have high agreement with estimates coming
  from longer-running batch MCMC methods.
  Alternative options for out-of-sample fitting and online updating are also
  discussed.
@@ -515,6 +515,14 @@ status collapsed
 AF to YC - can we say causal!? Hope so!
 \end_layout
 
+\begin_layout Plain Layout
+YC- yes, that is one thing that these models can enable, even though we
+ don't do it here.
+ one of the goals of individualized medicine would be to give someone a
+ predicted outcome under certain treatment options, which requires an estimate
+ of causal effect
+\end_layout
+
 \end_inset
 
  of endogenous covariates and exogenous interventions.
@@ -525,6 +533,11 @@ status collapsed
 
 \begin_layout Plain Layout
 AF to YC - Do we use informative priors?
+\end_layout
+
+\begin_layout Plain Layout
+YC- We don't yet, but we could.
+ 
 \end_layout
 
 \end_inset
@@ -662,7 +675,7 @@ AF: Sounds good.
 \end_layout
 
 \begin_layout Standard
-A computational challenge arises though when new patients enter the clinic,
+A computational challenge arises though when new patients enter the clinic
  or when existing patients accrue new measurements.
  Here, clinicians may wish to give patients fast, in-visit estimates of
  their latent variables and associated health states.
@@ -1058,17 +1071,17 @@ key "Coley2015ProstateSurveillence"
 
 \end_inset
 
- is different that of topic modeling in that while the model is complex
+ is different than that of topic modeling in that, while the model is complex
  and contains several layers, the data can be fully stored in memory at
  once.
  Thus, while the approach of combining IS with periodic MCMC is not fully
  online and not feasible for text analysis, it is still a feasible option
- for the limited sample sizes in our problem.
+ for the limited sample sizes in our application.
  Relative to variational Bayes approaches, the formulas required to apply
- IS are simple to derive, and can be easily ported to other applications
+ IS are simple to derive and can be easily ported to other applications
  within precision medicine.
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 AF - this last sentence is kind of bad
@@ -1138,8 +1151,8 @@ reference "sec:Clinical-Application-&"
 
 \end_inset
 
- we give an overview of our motivating data example of latent prostate cancer
- state estimation.
+, we give an overview of our motivating data example of latent prostate
+ cancer state estimation.
  In Section 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -1147,7 +1160,7 @@ reference "sec:methods"
 
 \end_inset
 
- we detail our approach for applying IS to hierarchical models.
+, we detail our approach for applying IS to hierarchical models.
  We use an abbreviated notation that can be readily generalized to other
  precision medicine settings.
  In Section 
@@ -1157,7 +1170,7 @@ reference "sec:Alternative-Out-of-Sample-Poster"
 
 \end_inset
 
- we 
+, we 
 \begin_inset Preview
 
 \begin_layout Standard
@@ -1186,7 +1199,7 @@ key "Wu2015"
 \end_inset
 
 .
- However, with the exception of RS, 
+ However, with the exception of RS, we
 \begin_inset Preview
 
 \begin_layout Standard
@@ -1290,7 +1303,7 @@ reference "sec:Application"
 
 \end_inset
 
- we apply IS to simulated data, and compare the results to latent variable
+, we apply IS to simulated data, and compare the results to latent variable
  estimates obtained from batch MCMC.
 \end_layout
 
@@ -1352,8 +1365,23 @@ low risk
 \end_inset
 
  disease.
- The latent cancer state is defined as being indolent or aggressive, correspondi
-ng to the Gleason score 
+ The latent cancer state is defined as being 
+\begin_inset Quotes eld
+\end_inset
+
+indolent
+\begin_inset Quotes erd
+\end_inset
+
+ or 
+\begin_inset Quotes eld
+\end_inset
+
+aggressive
+\begin_inset Quotes erd
+\end_inset
+
+, corresponding to the Gleason score 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Gleason1977,Gleason1992"
@@ -1371,10 +1399,7 @@ key "Gleason1977,Gleason1992"
 \end_inset
 
  are classified as aggressive.
- This latent state is
- 
-\lang english
-
+ This latent state is 
 \begin_inset Preview
 
 \begin_layout Standard
@@ -1396,7 +1421,7 @@ colorbox{yellow}{known only}
 \end_inset
 
  for those patients who elect to undergo a prostatectomy while under active
- surveillance, essentially resulting in a partially latent class problem.
+ surveillance, resulting in a partially latent class problem.
 \begin_inset Note Note
 status collapsed
 
@@ -1443,7 +1468,7 @@ key "Coley2015ProstateSurveillence"
 \end_inset
 
  includes sub-models for longitudinal prostate specific antigen (PSA) measuremen
-ts, and for longitudinal biopsy results.
+ts and for longitudinal biopsy results.
  Both of these sub-models incorporate information about the patient's latent
  state.
 \begin_inset Note Note
@@ -1517,8 +1542,8 @@ AF: Very good point.
 \shape italic
 grade reclassification
 \shape default
- on a biopsy, that is the biopsied tissue was aside a Gleason score of 7
- or higher.
+ on a biopsy, that is, the biopsied tissue was assigned a Gleason score
+ of 7 or higher.
  The log-odds of reclassification is modeled with a linear predictor whose
  value also depends on a patient's latent state, reflecting the imperfect
  sensitivity and specificity of the biopsy procedure
@@ -1540,9 +1565,9 @@ AF - love this last note on sense & spec
 \end_layout
 
 \begin_layout Standard
-In our context, the patient-level latent variables refer to the latent classes,
+In our context, the patient-level latent variables refer to the latent classes
  and the random effects used in the sub-model for PSA.
- The population-level parameters refer to the coefficients in each sub-model,
+ The population-level parameters refer to the coefficients in each sub-model
  and the variance parameters for the patient-level variables.
  See 
 \begin_inset CommandInset citation
@@ -1554,7 +1579,7 @@ key "Coley2015ProstateSurveillence"
  for a full model description.
  
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 AF-This last paragraph might be redundant now? I think it's..
@@ -1650,7 +1675,7 @@ name "sec:methods"
 \begin_layout Standard
 In this section we detail an IS algorithm that enables rapid estimates of
  patient-level variables, such as latent classes.
- This method is meant to be applied to out-of-sample data, after MCMC has
+ This method is meant to be applied to out-of-sample data after MCMC has
  been applied to get a posterior sample based on current training data.
  We present the algorithm in a simple, abbreviated notation that is applicable
  in many clinical settings.
@@ -1768,7 +1793,7 @@ reference "eq:posterior_n"
 
 \end_inset
 
-, obtained via methods such as MCMC.
+ obtained via methods such as MCMC.
 \end_layout
 
 \begin_layout Subsection
@@ -1786,7 +1811,7 @@ After posterior samples from the joint model
  for proposed values, and (3) weighting proposed values to estimate an updated
  posterior.
  We first illustrate how this process can be used to quickly estimate latent
- variables for a new patient, and then show how similar calculations can
+ variables for a new patient and then show how similar calculations can
  be done to incorporate newly measured data on existing patients in real-time.
 \end_layout
 
@@ -1842,7 +1867,7 @@ reference "eq:posterior_n"
  Let 
 \begin_inset Formula 
 \begin{eqnarray}
-q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n})\label{eq:drawing-subj-level-vars}
+q(\theta,b_{1:(n+1)}) & := & g(b_{n+1}|\theta)p(\theta,b_{1:n}|y_{1:n}).\label{eq:drawing-subj-level-vars}
 \end{eqnarray}
 
 \end_inset
@@ -1859,7 +1884,7 @@ Practically, this proposal step is achieved by conditioning on each
 \begin_inset Formula $\mathscr{J}_{n}$
 \end_inset
 
-, and then of drawing 
+ and then drawing 
 \begin_inset Formula $b_{n+1}^{(j)}$
 \end_inset
 
@@ -1882,15 +1907,11 @@ Practically, this proposal step is achieved by conditioning on each
 \begin{eqnarray}
 w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:(n+1)}^{(j)}|y_{1:(n+1)})}{q(\theta^{(j)},b_{1:(n+1)}^{(j)})}\nonumber \\
  & \propto & \frac{\prod_{i=1}^{n+1}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{g(b_{n+1}^{(j)}|\theta^{(j)})\prod_{i=1}^{n}[f(y_{i}|b_{i}^{(j)},\theta^{(j)})g(b_{i}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
- & = & f(y_{n+1}|b_{n+1}^{(j)},\theta^{(j)})\label{eq:importance-weights}
+ & = & f(y_{n+1}|b_{n+1}^{(j)},\theta^{(j)}).\label{eq:importance-weights}
 \end{eqnarray}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 The final weights 
 \begin_inset Formula $w^{(j)}$
 \end_inset
@@ -1923,12 +1944,11 @@ The approach is similar when we wish to incorporate new measurement data
 \begin_inset Formula $k$
 \end_inset
 
-, who's previous data has already informed the posterior sample 
+ who's previous data has already informed the posterior sample 
 \begin_inset Formula $\mathscr{J}_{n}$
 \end_inset
 
- (i.e.
- 
+ (i.e., 
 \begin_inset Formula $k\leq n$
 \end_inset
 
@@ -1985,15 +2005,11 @@ reference "eq:importance-weights"
 \begin{eqnarray}
 w^{(j)} & \propto & \frac{p(\theta^{(j)},b_{1:n}^{(j)}|y_{1:n}^{*})}{q(\theta^{(j)},b_{1:n}^{(j)})}\nonumber \\
  & \propto & \frac{\prod_{i=1}^{n}[f(\ensuremath{y_{i}^{*}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}{\prod_{i=1}^{n}[f(\ensuremath{y_{i}}|b_{i}^{(j)},\theta^{(j)})g(b_{i}^{(j)}|\theta^{(j)})]\pi(\theta^{(j)})}\nonumber \\
- & = & \frac{f(\ensuremath{y_{k}^{*}}|b_{k}^{(j)},\theta^{(j)})}{f(\ensuremath{y_{k}}|b_{k}^{(j)},\theta^{(j)})}\label{eq:new-data-patient-ratio}
+ & = & \frac{f(\ensuremath{y_{k}^{*}}|b_{k}^{(j)},\theta^{(j)})}{f(\ensuremath{y_{k}}|b_{k}^{(j)},\theta^{(j)})}.\label{eq:new-data-patient-ratio}
 \end{eqnarray}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 If the repeated measures for each patient are independent conditional on
  
 \begin_inset Formula $b_{i}$
@@ -2013,7 +2029,7 @@ reference "eq:new-data-patient-ratio"
 
 \end_inset
 
- reduces to the likelihood of only the new data, conditional on 
+ reduces to the likelihood of only the new data conditional on 
 \begin_inset Formula $b_{k}^{(j)}$
 \end_inset
 
@@ -2159,8 +2175,7 @@ colorbox{yellow}{Out-of-sample estimation can also be done using Gibbs Sampling}
 
 \end_inset
 
- to update only the parameters associated with new patient data (i.e.
- 
+ to update only the parameters associated with new patient data (i.e., 
 \begin_inset Formula $b_{n+1}$
 \end_inset
 
@@ -2176,11 +2191,11 @@ colorbox{yellow}{Out-of-sample estimation can also be done using Gibbs Sampling}
 \begin_inset Formula $\{\theta_{n}^{(j)}\}_{j=1}^{J}$
 \end_inset
 
- as fixed, and to create a proxy categorical parameter 
+ as fixed and to create a proxy categorical parameter 
 \begin_inset Formula $z$
 \end_inset
 
- according to the following hierarchical distribution
+ according to the following hierarchical distribution:
 \end_layout
 
 \begin_layout Standard
@@ -2194,11 +2209,7 @@ y_{n+1} & \sim f(b_{n+1},\theta^{(z)})
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-Where 
+where 
 \begin_inset Formula $\mathbf{p}$
 \end_inset
 
@@ -2290,7 +2301,7 @@ key "Wu2015"
 \begin_inset Formula $P(b_{n+1}=x|y_{1:(n+1)})$
 \end_inset
 
-, using the estimator 
+ using the estimator 
 \begin_inset Formula $\hat{P}(b_{n+1}=x|y_{1:(n+1)}):=\left(\frac{1}{J}\right)\sum_{j=1}^{J}\left\{ \frac{f(y_{n+1}|b_{n+1}=x,\theta^{(j)})g(x|\theta^{(j)})}{\int f(y_{n+1}|b_{n+1}=x',\theta^{(j)})g(x'|\theta^{(j)})dx'}\right\} $
 \end_inset
 
@@ -2456,7 +2467,7 @@ We then re-estimate each patient's risk using IS, taking as input only the
 \begin_inset Formula $b_{i}$
 \end_inset
 
- we further increase the diversity of the proposal set by we drawing 10
+, we further increase the diversity of the proposal set by we drawing 10
  values from 
 \begin_inset Formula $g(b_{i}|\theta^{(j)})$
 \end_inset
@@ -2477,7 +2488,7 @@ fixed
 \begin_inset Quotes erd
 \end_inset
 
- methods, and last approach as a 
+ methods and the last approach as 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2485,7 +2496,7 @@ dynamic
 \begin_inset Quotes erd
 \end_inset
 
- method.
+.
  Within each approach, the final set of proposals were then weighted to
  obtain IS risk estimates.
  These simulation steps are meant to approximate the procedure of using
@@ -2514,8 +2525,8 @@ name "sub:Results"
 \end_layout
 
 \begin_layout Standard
-We find a high degree of coherence between estimated risk of aggressive
- cancer from IS and from MCMC, as shown if Figure 
+We find a high degree of coherence between the estimated posterior probability
+ of aggressive cancer from IS and from MCMC, as shown if Figure 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "fig:jags-vs-pf"
@@ -2529,7 +2540,7 @@ reference "fig:jags-vs-pf"
  The maximum absolute difference was 7.3%, with 99% of patients having a
  difference less than 3.6%.
  Of the approaches using a fixed number of proposals, the corresponding
- maximum and 99% quantile of differences were 9.5% and 5.0% for 50,000 proposals,
+ maximum and 99% quantile of differences were 9.5% and 5.0% for 50,000 proposals
  and 5.2% and 3.4% for 5 million proposal.
  We also considered a rejection sampling approach using the unstandardized
  weights in Eq 
@@ -2539,8 +2550,8 @@ reference "eq:importance-weights"
 
 \end_inset
 
-, but found the results to have a greater deviation from MCMC estimates
- (rMSD = 1.5% for the dynamic approach).
+ but found the results to have a greater deviation from MCMC estimates (rMSD
+ = 1.5% for the dynamic approach).
  
 \begin_inset Note Note
 status collapsed
@@ -2568,7 +2579,7 @@ reference "eq:importance-weights"
 \end_inset
 
  illustrates the roughly inverse relationship between the effective sample
- size used for IS, and the difference between IS and MCMC risk estimates.
+ size used for IS and the difference between IS and MCMC risk estimates.
 \begin_inset Foot
 status open
 
@@ -2583,7 +2594,7 @@ status open
 
 
 \backslash
-colorbox{yellow}{It is worth noting however}
+colorbox{yellow}{It is worth noting, however,}
 \end_layout
 
 \end_inset
@@ -2629,7 +2640,7 @@ colorbox{yellow}{5-million-proposal}
 
 
 \family default
-, dynamic, and 50,000-proposal approaches respectively.
+, dynamic, and 50,000-proposal approaches, respectively.
  Interquartile ranges for the per-patient calculation times of three methods
  were 3.2-4.0 minutes, 2.7-5.3 seconds, and 2.6-2.8 seconds.
 \end_layout
@@ -2659,9 +2670,9 @@ status open
 
 \begin_layout Plain Layout
 Agreement between IS and MCMC estimates for the posterior predictions of
- aggressive prostate cancer state in a new patient - Color of the points
- refers to the number of candidate points used, either 50,000, 5 million,
- or dynamic.
+ aggressive prostate cancer state in a new patient.
+ Plotting symbol color represents the number of candidate points used--
+ 50,000, 5 million, or dynamic.
  The dashed line indicates the axis of equality (i.e., perfect agreement).
 \begin_inset CommandInset label
 LatexCommand label
@@ -2700,12 +2711,13 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Difference between IS and MCMC risk estimates, as a function of effective
- sample size for IS - Color of the points refers to the number of candidate
- points used, either 50,000, 5 million, or dynamic.
+Difference between IS and MCMC risk estimates as a function of effective
+ sample size for IS.
+ Plotting symbold color represents the number of candidate points used--
+ 50,000, 5 million, or dynamic.
  The dotted vertical line shows the threshold used for dynamic proposal
- generation, at 1000.
- Both axes are shown with log scale spacing.
+ generation at an effective sample size of 1,000.
+ Both axes are shown with log-scale spacing.
  
 \begin_inset CommandInset label
 LatexCommand label
@@ -2791,7 +2803,7 @@ Supplemental Code
 
 \begin_layout Standard
 Code for simulating data, obtaining IS estimates, and comparing the results
- against MCMC estimates, is available at: 
+ against MCMC estimates is available at: 
 \begin_inset Flex URL
 status open
 
