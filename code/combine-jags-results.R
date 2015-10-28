@@ -73,7 +73,12 @@ for(r in 1:nruns){
 		if(class(o_r[[i]])=='numeric'){
 			ol[[i]][r,] <- o_r[[i]]
 		}else{
-			ol[[i]][ind_r,] <- o_r[[i]]
+			text_olr <- paste0(
+				'ol[[i]][ind_r', 
+				paste(rep(',',length(dim(o_r[[i]]))-1),collapse=''), 
+				']',
+				' <- o_r[[i]]')
+			eval(parse(text=text_olr))
 		}
 	}
 
