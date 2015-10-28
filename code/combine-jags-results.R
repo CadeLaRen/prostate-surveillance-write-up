@@ -1,6 +1,11 @@
 # This file contains code for combining output from parallel JAGS scripts
 # results in saved file 'concatenated_posterior.rds'
 
+#All values passed to `args` are logical
+args<-as.logical(commandArgs(TRUE))
+	#The base case is:
+	# args = c(TRUE, TRUE, FALSE, FALSE)
+
 
 #Navigate to results folder
 IOP_BX <- args[1]
